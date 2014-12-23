@@ -27,9 +27,9 @@ Supported service facilities:
 
 
 
-# Quick start guide
+## Quick start guide
 
-- Reference logger library
+- Add reference to logger library
 - Add configuration section to your 'App.config':
 ```XML
   <LoggerConfigurationSection xmlns="Qoollo.Logger.Configuration.LoggerConfigurationSection_NS">
@@ -59,3 +59,9 @@ Supported service facilities:
 ```C#
   Qoollo.Logger.LoggerDefault.ResetInstance();
 ```
+
+
+## Extended materials
+
+[Configuration](LOGGER_CONFIG.md)
+[Usage](LOGGER_USAGE.md)
