@@ -63,5 +63,5 @@ Supported service facilities:
 
 ## Extended materials
 
-[Configuration](LOGGER_CONFIG.md)
-[Usage](LOGGER_USAGE.md)
+- [Configuration](https://github.com/qoollo/logger/wiki/Configuration)
+- [Usage](https://github.com/qoollo/logger/wiki/Usage)
