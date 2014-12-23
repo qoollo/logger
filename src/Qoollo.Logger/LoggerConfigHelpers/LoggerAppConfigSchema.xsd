@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<xs:schema xmlns:tns="Qoollo.Logger.Configuration.LoggerConfigurationSection_NS" elementFormDefault="qualified" targetNamespace="Qoollo.Logger.Configuration.LoggerConfigurationSection_NS" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="LoggerConfigurationSection" type="tns:loggerConfigurationSection_xsdTp" />
+  <xs:complexType name="loggerConfigurationSection_xsdTp">
+    <xs:all>
+      <xs:element name="logger" minOccurs="1" maxOccurs="1" type="tns:rootLoggerConfiguration_xsdTp">
+        <xs:annotation>
+          <xs:documentation>Logger, Type = IRootLoggerConfiguration, IsRequired = True</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:all>
+  </xs:complexType>
+  <xs:complexType name="rootLoggerConfiguration_xsdTp">
+    <xs:choice>
+      <xs:element name="groupWrapper" type="tns:groupWrapper_xsdTp" />
+      <xs:element name="asyncReliableQueueWrapper" type="tns:asyncReliableQueueWrapper_xsdTp" />
+      <xs:element name="reliableWrapper" type="tns:reliableWrapper_xsdTp" />
+      <xs:element name="networkWriter" type="tns:networkWriter_xsdTp" />
+      <xs:element name="asyncQueueWrapper" type="tns:asyncQueueWrapper_xsdTp" />
+      <xs:element name="patternMatchingWrapper" type="tns:patternMatchingWrapper_xsdTp" />
+      <xs:element name="emptyWriter" type="tns:emptyWriter_xsdTp" />
+      <xs:element name="consoleWriter" type="tns:consoleWriter_xsdTp" />
+      <xs:element name="fileWriter" type="tns:fileWriter_xsdTp" />
+      <xs:element name="databaseWriter" type="tns:databaseWriter_xsdTp" />
+      <xs:element name="pipeWriter" type="tns:pipeWriter_xsdTp" />
+      <xs:element name="routingWrapper" type="tns:routingWrapper_xsdTp" />
+    </xs:choice>
+    <xs:attribute name="enableStackTraceExtraction" type="tns:customBool__sp_xsdTp" use="optional" default="false">
+      <xs:annotation>
+        <xs:documentation>EnableStackTraceExtraction, Type = Boolean, IsRequired = False, Default = false</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="logLevel" type="tns:cfgLogLevel_xsdTp" use="required">
+      <xs:annotation>
+        <xs:documentation>LogLevel, Type = CfgLogLevel, IsRequired = True</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="isEnabled" type="tns:customBool__sp_xsdTp" use="optional" default="true">
+      <xs:annotation>
+        <xs:documentation>IsEnabled, Type = Boolean, IsRequired = False, Default = true</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:simpleType name="cfgLogLevel_xsdTp">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="TRACE" />
+      <xs:enumeration value="DEBUG" />
+      <xs:enumeration value="INFO" />
+      <xs:enumeration value="WARN" />
+      <xs:enumeration value="ERROR" />
+      <xs:enumeration value="FATAL" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="loggerWriterWrapperConfiguration_xsdTp" />
+  <xs:complexType name="groupWrapper_xsdTp">
+    <xs:sequence>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="groupWrapper" type="tns:groupWrapper_xsdTp" />
+        <xs:element name="asyncReliableQueueWrapper" type="tns:asyncReliableQueueWrapper_xsdTp" />
+        <xs:element name="reliableWrapper" type="tns:reliableWrapper_xsdTp" />
+        <xs:element name="networkWriter" type="tns:networkWriter_xsdTp" />
+        <xs:element name="asyncQueueWrapper" type="tns:asyncQueueWrapper_xsdTp" />
+        <xs:element name="patternMatchingWrapper" type="tns:patternMatchingWrapper_xsdTp" />
+        <xs:element name="emptyWriter" type="tns:emptyWriter_xsdTp" />
+        <xs:element name="consoleWriter" type="tns:consoleWriter_xsdTp" />
+        <xs:element name="fileWriter" type="tns:fileWriter_xsdTp" />
+        <xs:element name="databaseWriter" type="tns:databaseWriter_xsdTp" />
+        <xs:element name="pipeWriter" type="tns:pipeWriter_xsdTp" />
+        <xs:element name="routingWrapper" type="tns:routingWrapper_xsdTp" />
+      </xs:choice>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="asyncReliableQueueWrapper_xsdTp">
+    <xs:choice>
+      <xs:element name="groupWrapper" type="tns:groupWrapper_xsdTp" />
+      <xs:element name="asyncReliableQueueWrapper" type="tns:asyncReliableQueueWrapper_xsdTp" />
+      <xs:element name="reliableWrapper" type="tns:reliableWrapper_xsdTp" />
+      <xs:element name="networkWriter" type="tns:networkWriter_xsdTp" />
+      <xs:element name="asyncQueueWrapper" type="tns:asyncQueueWrapper_xsdTp" />
+      <xs:element name="patternMatchingWrapper" type="tns:patternMatchingWrapper_xsdTp" />
+      <xs:element name="emptyWriter" type="tns:emptyWriter_xsdTp" />
+      <xs:element name="consoleWriter" type="tns:consoleWriter_xsdTp" />
+      <xs:element name="fileWriter" type="tns:fileWriter_xsdTp" />
+      <xs:element name="databaseWriter" type="tns:databaseWriter_xsdTp" />
+      <xs:element name="pipeWriter" type="tns:pipeWriter_xsdTp" />
+      <xs:element name="routingWrapper" type="tns:routingWrapper_xsdTp" />
+    </xs:choice>
+    <xs:attribute name="maxQueueSize" type="xs:int" use="optional" default="4096">
+      <xs:annotation>
+        <xs:documentation>MaxQueueSize, Type = Int32, IsRequired = False, Default = 4096</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="isDiscardExcess" type="tns:customBool__sp_xsdTp" use="optional" default="true">
+      <xs:annotation>
+        <xs:documentation>IsDiscardExcess, Type = Boolean, IsRequired = False, Default = true</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="folderForTemporaryStore" type="xs:string" use="optional" default="reliable_log_q">
+      <xs:annotation>
+        <xs:documentation>FolderForTemporaryStore, Type = String, IsRequired = False, Default = reliable_log_q</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="maxFileSize" type="xs:long" use="optional" default="67108864">
+      <xs:annotation>
+        <xs:documentation>MaxFileSize, Type = Int64, IsRequired = False, Default = 67108864</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="reliableWrapper_xsdTp">
+    <xs:choice>
+      <xs:element name="groupWrapper" type="tns:groupWrapper_xsdTp" />
+      <xs:element name="asyncReliableQueueWrapper" type="tns:asyncReliableQueueWrapper_xsdTp" />
+      <xs:element name="reliableWrapper" type="tns:reliableWrapper_xsdTp" />
+      <xs:element name="networkWriter" type="tns:networkWriter_xsdTp" />
+      <xs:element name="asyncQueueWrapper" type="tns:asyncQueueWrapper_xsdTp" />
+      <xs:element name="patternMatchingWrapper" type="tns:patternMatchingWrapper_xsdTp" />
+      <xs:element name="emptyWriter" type="tns:emptyWriter_xsdTp" />
+      <xs:element name="consoleWriter" type="tns:consoleWriter_xsdTp" />
+      <xs:element name="fileWriter" type="tns:fileWriter_xsdTp" />
+      <xs:element name="databaseWriter" type="tns:databaseWriter_xsdTp" />
+      <xs:element name="pipeWriter" type="tns:pipeWriter_xsdTp" />
+      <xs:element name="routingWrapper" type="tns:routingWrapper_xsdTp" />
+    </xs:choice>
+    <xs:attribute name="folderForTemporaryStore" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>FolderForTemporaryStore, Type = String, IsRequired = True</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="maxFileSize" type="xs:long" use="optional" default="67108864">
+      <xs:annotation>
+        <xs:documentation>MaxFileSize, Type = Int64, IsRequired = False, Default = 67108864</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="networkWriter_xsdTp">
+    <xs:attribute name="serverAddress" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>ServerAddress, Type = String, IsRequired = True</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="port" type="xs:int" use="optional" default="26113">
+      <xs:annotation>
+        <xs:documentation>Port, Type = Int32, IsRequired = False, Default = 26113</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="logLevel" type="tns:cfgLogLevel_xsdTp" use="optional" default="TRACE">
+      <xs:annotation>
+        <xs:documentation>LogLevel, Type = CfgLogLevel, IsRequired = False, Default = TRACE</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="asyncQueueWrapper_xsdTp">
+    <xs:choice>
+      <xs:element name="groupWrapper" type="tns:groupWrapper_xsdTp" />
+      <xs:element name="asyncReliableQueueWrapper" type="tns:asyncReliableQueueWrapper_xsdTp" />
+      <xs:element name="reliableWrapper" type="tns:reliableWrapper_xsdTp" />
+      <xs:element name="networkWriter" type="tns:networkWriter_xsdTp" />
+      <xs:element name="asyncQueueWrapper" type="tns:asyncQueueWrapper_xsdTp" />
+      <xs:element name="patternMatchingWrapper" type="tns:patternMatchingWrapper_xsdTp" />
+      <xs:element name="emptyWriter" type="tns:emptyWriter_xsdTp" />
+      <xs:element name="consoleWriter" type="tns:consoleWriter_xsdTp" />
+      <xs:element name="fileWriter" type="tns:fileWriter_xsdTp" />
+      <xs:element name="databaseWriter" type="tns:databaseWriter_xsdTp" />
+      <xs:element name="pipeWriter" type="tns:pipeWriter_xsdTp" />
+      <xs:element name="routingWrapper" type="tns:routingWrapper_xsdTp" />
+    </xs:choice>
+    <xs:attribute name="maxQueueSize" type="xs:int" use="optional" default="4096">
+      <xs:annotation>
+        <xs:documentation>MaxQueueSize, Type = Int32, IsRequired = False, Default = 4096</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="isDiscardExcess" type="tns:customBool__sp_xsdTp" use="optional" default="true">
+      <xs:annotation>
+        <xs:documentation>IsDiscardExcess, Type = Boolean, IsRequired = False, Default = true</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="patternMatchingWrapper_xsdTp">
+    <xs:sequence>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="match" type="tns:patternMatchingMatch_xsdTp" />
+        <xs:element name="default" type="tns:patternMatchingDefault_xsdTp" />
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute name="pattern" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>Pattern, Type = String, IsRequired = True</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="patternMatchingElement_xsdTp">
+    <xs:choice>
+      <xs:element name="groupWrapper" type="tns:groupWrapper_xsdTp" />
+      <xs:element name="asyncReliableQueueWrapper" type="tns:asyncReliableQueueWrapper_xsdTp" />
+      <xs:element name="reliableWrapper" type="tns:reliableWrapper_xsdTp" />
+      <xs:element name="networkWriter" type="tns:networkWriter_xsdTp" />
+      <xs:element name="asyncQueueWrapper" type="tns:asyncQueueWrapper_xsdTp" />
+      <xs:element name="patternMatchingWrapper" type="tns:patternMatchingWrapper_xsdTp" />
+      <xs:element name="emptyWriter" type="tns:emptyWriter_xsdTp" />
+      <xs:element name="consoleWriter" type="tns:consoleWriter_xsdTp" />
+      <xs:element name="fileWriter" type="tns:fileWriter_xsdTp" />
+      <xs:element name="databaseWriter" type="tns:databaseWriter_xsdTp" />
+      <xs:element name="pipeWriter" type="tns:pipeWriter_xsdTp" />
+      <xs:element name="routingWrapper" type="tns:routingWrapper_xsdTp" />
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="emptyWriter_xsdTp">
+    <xs:attribute name="logLevel" type="tns:cfgLogLevel_xsdTp" use="optional" default="TRACE">
+      <xs:annotation>
+        <xs:documentation>LogLevel, Type = CfgLogLevel, IsRequired = False, Default = TRACE</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="consoleWriter_xsdTp">
+    <xs:attribute name="template" type="xs:string" use="optional" default="{DateTime}. {Level}. At {StackSource}.{Class}::{Method}. Message: {Message}. {Exception, prefix = ' Exception: ', valueOnNull=''}">
+      <xs:annotation>
+        <xs:documentation>Template, Type = String, IsRequired = False, Default = {DateTime}. {Level}. At {StackSource}.{Class}::{Method}. Message: {Message}. {Exception, prefix = ' Exception: ', valueOnNull=''}</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="logLevel" type="tns:cfgLogLevel_xsdTp" use="optional" default="TRACE">
+      <xs:annotation>
+        <xs:documentation>LogLevel, Type = CfgLogLevel, IsRequired = False, Default = TRACE</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="fileWriter_xsdTp">
+    <xs:attribute name="template" type="xs:string" use="optional" default="{DateTime}. {Level}. At {StackSource}.{Class}::{Method}. Message: {Message}. {Exception, prefix = ' Exception: ', valueOnNull=''}">
+      <xs:annotation>
+        <xs:documentation>Template, Type = String, IsRequired = False, Default = {DateTime}. {Level}. At {StackSource}.{Class}::{Method}. Message: {Message}. {Exception, prefix = ' Exception: ', valueOnNull=''}</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="fileNameTemplate" type="xs:string" use="optional" default="logs/app.log">
+      <xs:annotation>
+        <xs:documentation>FileNameTemplate, Type = String, IsRequired = False, Default = logs/app.log</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="needFileRotation" type="tns:customBool__sp_xsdTp" use="optional" default="true">
+      <xs:annotation>
+        <xs:documentation>NeedFileRotation, Type = Boolean, IsRequired = False, Default = true</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="encoding" type="xs:string" use="optional" default="UTF-8">
+      <xs:annotation>
+        <xs:documentation>Encoding, Type = String, IsRequired = False, Default = UTF-8</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="logLevel" type="tns:cfgLogLevel_xsdTp" use="optional" default="TRACE">
+      <xs:annotation>
+        <xs:documentation>LogLevel, Type = CfgLogLevel, IsRequired = False, Default = TRACE</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="databaseWriter_xsdTp">
+    <xs:attribute name="connectionString" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>ConnectionString, Type = String, IsRequired = True</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="storedProcedureName" type="xs:string" use="optional" default="[dbo].[LogInsert]">
+      <xs:annotation>
+        <xs:documentation>StoredProcedureName, Type = String, IsRequired = False, Default = [dbo].[LogInsert]</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="logLevel" type="tns:cfgLogLevel_xsdTp" use="optional" default="TRACE">
+      <xs:annotation>
+        <xs:documentation>LogLevel, Type = CfgLogLevel, IsRequired = False, Default = TRACE</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="pipeWriter_xsdTp">
+    <xs:attribute name="serverName" type="xs:string" use="optional" default=".">
+      <xs:annotation>
+        <xs:documentation>ServerName, Type = String, IsRequired = False, Default = .</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="pipeName" type="xs:string" use="optional" default="LoggingService">
+      <xs:annotation>
+        <xs:documentation>PipeName, Type = String, IsRequired = False, Default = LoggingService</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="logLevel" type="tns:cfgLogLevel_xsdTp" use="optional" default="TRACE">
+      <xs:annotation>
+        <xs:documentation>LogLevel, Type = CfgLogLevel, IsRequired = False, Default = TRACE</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="routingWrapper_xsdTp">
+    <xs:all>
+      <xs:element name="routingBySystem" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>RoutingBySystem, Type = Dictionary&lt;String, ILoggerWriterWrapperConfiguration&gt;, IsRequired = True</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+              <xs:element name="groupWrapper">
+                <xs:complexType>
+                  <xs:complexContent>
+                    <xs:extension base="tns:groupWrapper_xsdTp">
+                      <xs:attribute name="key" type="xs:string" use="required" />
+                    </xs:extension>
+                  </xs:complexContent>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="asyncReliableQueueWrapper">
+                <xs:complexType>
+                  <xs:complexContent>
+                    <xs:extension base="tns:asyncReliableQueueWrapper_xsdTp">
+                      <xs:attribute name="key" type="xs:string" use="required" />
+                    </xs:extension>
+                  </xs:complexContent>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="reliableWrapper">
+                <xs:complexType>
+                  <xs:complexContent>
+                    <xs:extension base="tns:reliableWrapper_xsdTp">
+                      <xs:attribute name="key" type="xs:string" use="required" />
+                    </xs:extension>
+                  </xs:complexContent>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="networkWriter">
+                <xs:complexType>
+                  <xs:complexContent>
+                    <xs:extension base="tns:networkWriter_xsdTp">
+                      <xs:attribute name="key" type="xs:string" use="required" />
+                    </xs:extension>
+                  </xs:complexContent>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="asyncQueueWrapper">
+                <xs:complexType>
+                  <xs:complexContent>
+                    <xs:extension base="tns:asyncQueueWrapper_xsdTp">
+                      <xs:attribute name="key" type="xs:string" use="required" />
+                    </xs:extension>
+                  </xs:complexContent>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="patternMatchingWrapper">
+                <xs:complexType>
+                  <xs:complexContent>
+                    <xs:extension base="tns:patternMatchingWrapper_xsdTp">
+                      <xs:attribute name="key" type="xs:string" use="required" />
+                    </xs:extension>
+                  </xs:complexContent>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="emptyWriter">
+                <xs:complexType>
+                  <xs:complexContent>
+                    <xs:extension base="tns:emptyWriter_xsdTp">
+                      <xs:attribute name="key" type="xs:string" use="required" />
+                    </xs:extension>
+                  </xs:complexContent>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="consoleWriter">
+                <xs:complexType>
+                  <xs:complexContent>
+                    <xs:extension base="tns:consoleWriter_xsdTp">
+                      <xs:attribute name="key" type="xs:string" use="required" />
+                    </xs:extension>
+                  </xs:complexContent>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="fileWriter">
+                <xs:complexType>
+                  <xs:complexContent>
+                    <xs:extension base="tns:fileWriter_xsdTp">
+                      <xs:attribute name="key" type="xs:string" use="required" />
+                    </xs:extension>
+                  </xs:complexContent>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="databaseWriter">
+                <xs:complexType>
+                  <xs:complexContent>
+                    <xs:extension base="tns:databaseWriter_xsdTp">
+                      <xs:attribute name="key" type="xs:string" use="required" />
+                    </xs:extension>
+                  </xs:complexContent>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="pipeWriter">
+                <xs:complexType>
+                  <xs:complexContent>
+                    <xs:extension base="tns:pipeWriter_xsdTp">
+                      <xs:attribute name="key" type="xs:string" use="required" />
+                    </xs:extension>
+                  </xs:complexContent>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="routingWrapper">
+                <xs:complexType>
+                  <xs:complexContent>
+                    <xs:extension base="tns:routingWrapper_xsdTp">
+                      <xs:attribute name="key" type="xs:string" use="required" />
+                    </xs:extension>
+                  </xs:complexContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:choice>
+          </xs:sequence>
+        </xs:complexType>
+        <xs:key name="dictKeyUniq_n1">
+          <xs:selector xpath="./*" />
+          <xs:field xpath="@key" />
+        </xs:key>
+      </xs:element>
+      <xs:element name="fromAll" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>FromAll, Type = List&lt;ILoggerWriterWrapperConfiguration&gt;, IsRequired = True</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+              <xs:element name="groupWrapper" type="tns:groupWrapper_xsdTp" />
+              <xs:element name="asyncReliableQueueWrapper" type="tns:asyncReliableQueueWrapper_xsdTp" />
+              <xs:element name="reliableWrapper" type="tns:reliableWrapper_xsdTp" />
+              <xs:element name="networkWriter" type="tns:networkWriter_xsdTp" />
+              <xs:element name="asyncQueueWrapper" type="tns:asyncQueueWrapper_xsdTp" />
+              <xs:element name="patternMatchingWrapper" type="tns:patternMatchingWrapper_xsdTp" />
+              <xs:element name="emptyWriter" type="tns:emptyWriter_xsdTp" />
+              <xs:element name="consoleWriter" type="tns:consoleWriter_xsdTp" />
+              <xs:element name="fileWriter" type="tns:fileWriter_xsdTp" />
+              <xs:element name="databaseWriter" type="tns:databaseWriter_xsdTp" />
+              <xs:element name="pipeWriter" type="tns:pipeWriter_xsdTp" />
+              <xs:element name="routingWrapper" type="tns:routingWrapper_xsdTp" />
+            </xs:choice>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="fromOthers" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>FromOthers, Type = List&lt;ILoggerWriterWrapperConfiguration&gt;, IsRequired = True</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+              <xs:element name="groupWrapper" type="tns:groupWrapper_xsdTp" />
+              <xs:element name="asyncReliableQueueWrapper" type="tns:asyncReliableQueueWrapper_xsdTp" />
+              <xs:element name="reliableWrapper" type="tns:reliableWrapper_xsdTp" />
+              <xs:element name="networkWriter" type="tns:networkWriter_xsdTp" />
+              <xs:element name="asyncQueueWrapper" type="tns:asyncQueueWrapper_xsdTp" />
+              <xs:element name="patternMatchingWrapper" type="tns:patternMatchingWrapper_xsdTp" />
+              <xs:element name="emptyWriter" type="tns:emptyWriter_xsdTp" />
+              <xs:element name="consoleWriter" type="tns:consoleWriter_xsdTp" />
+              <xs:element name="fileWriter" type="tns:fileWriter_xsdTp" />
+              <xs:element name="databaseWriter" type="tns:databaseWriter_xsdTp" />
+              <xs:element name="pipeWriter" type="tns:pipeWriter_xsdTp" />
+              <xs:element name="routingWrapper" type="tns:routingWrapper_xsdTp" />
+            </xs:choice>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:all>
+  </xs:complexType>
+  <xs:complexType name="patternMatchingMatch_xsdTp">
+    <xs:choice>
+      <xs:element name="groupWrapper" type="tns:groupWrapper_xsdTp" />
+      <xs:element name="asyncReliableQueueWrapper" type="tns:asyncReliableQueueWrapper_xsdTp" />
+      <xs:element name="reliableWrapper" type="tns:reliableWrapper_xsdTp" />
+      <xs:element name="networkWriter" type="tns:networkWriter_xsdTp" />
+      <xs:element name="asyncQueueWrapper" type="tns:asyncQueueWrapper_xsdTp" />
+      <xs:element name="patternMatchingWrapper" type="tns:patternMatchingWrapper_xsdTp" />
+      <xs:element name="emptyWriter" type="tns:emptyWriter_xsdTp" />
+      <xs:element name="consoleWriter" type="tns:consoleWriter_xsdTp" />
+      <xs:element name="fileWriter" type="tns:fileWriter_xsdTp" />
+      <xs:element name="databaseWriter" type="tns:databaseWriter_xsdTp" />
+      <xs:element name="pipeWriter" type="tns:pipeWriter_xsdTp" />
+      <xs:element name="routingWrapper" type="tns:routingWrapper_xsdTp" />
+    </xs:choice>
+    <xs:attribute name="value" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>Value, Type = String, IsRequired = True</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="patternMatchingDefault_xsdTp">
+    <xs:choice>
+      <xs:element name="groupWrapper" type="tns:groupWrapper_xsdTp" />
+      <xs:element name="asyncReliableQueueWrapper" type="tns:asyncReliableQueueWrapper_xsdTp" />
+      <xs:element name="reliableWrapper" type="tns:reliableWrapper_xsdTp" />
+      <xs:element name="networkWriter" type="tns:networkWriter_xsdTp" />
+      <xs:element name="asyncQueueWrapper" type="tns:asyncQueueWrapper_xsdTp" />
+      <xs:element name="patternMatchingWrapper" type="tns:patternMatchingWrapper_xsdTp" />
+      <xs:element name="emptyWriter" type="tns:emptyWriter_xsdTp" />
+      <xs:element name="consoleWriter" type="tns:consoleWriter_xsdTp" />
+      <xs:element name="fileWriter" type="tns:fileWriter_xsdTp" />
+      <xs:element name="databaseWriter" type="tns:databaseWriter_xsdTp" />
+      <xs:element name="pipeWriter" type="tns:pipeWriter_xsdTp" />
+      <xs:element name="routingWrapper" type="tns:routingWrapper_xsdTp" />
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="add__sp_xsdTp">
+    <xs:attribute name="key" type="xs:string" use="required" />
+    <xs:attribute name="value" type="xs:string" use="required" />
+  </xs:complexType>
+  <xs:simpleType name="customBool__sp_xsdTp">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="false" />
+      <xs:enumeration value="true" />
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

@@ -1,0 +1,415 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".cs" #>
+<#@ Assembly Name="System.Core" #>
+<#@ Assembly Name="System.Windows.Forms" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Diagnostics" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #> 
+using System;
+using Qoollo.Logger.Common;
+using Qoollo.Logger.Helpers;
+using System.Runtime.CompilerServices;
+
+namespace Qoollo.Logger
+{
+    /// <summary>
+    /// Логгер. Содержит методы для логгирования.
+    /// Log - универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+    /// Trace, Debug, Info, Warn, Error, Fatal - 5 методов логгирования с четко указанным уровнем.
+    /// Выходной лог для записи файл, определяется темплейтом в app.config файле 
+    /// (при сетевом логгировании этот параметр будет содержаться в конфигах самого сервера, принимающего логи).
+    /// Так же в лог можно включать информацию, которая не передается в явном виде: имя метода, имя файла,
+    /// номер строки в вызающем коде.
+    /// Отдельно следует описать поле контекст. Под ним подразумевается строки в формате "id=3, pocessId=4, imageId=5"
+    /// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД 
+    /// и делать четкую выборку по интересующим полям
+    /// </summary>
+    partial class LoggerBase
+    {
+    
+<#   
+    string context;
+    string exception;
+    string @class;
+    string comments;
+	string formatParams;
+
+    List<string> Levels = new List<string>
+    {
+        "Trace",
+        "Debug",
+        "Info",
+        "Warn",
+        "Error",
+        "Fatal"
+    };
+
+    string commentHeader = 
+        "/// <summary>" + Environment.NewLine + "\t\t" +
+        "/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования." + Environment.NewLine + "\t\t" +
+        "/// </summary>";
+
+    string commentFormatHeader = 
+        "/// <param name=\"template\">Шаблон сообщения (как в string.Format)</param>";
+	string commentArg0 = 
+        "/// <param name=\"arg0\">Первый аргумент</param>";
+	string commentArg1 =
+        "/// <param name=\"arg1\">Второй аргумент</param>";
+	string commentArg2 =
+        "/// <param name=\"arg2\">Третий аргумент</param>";
+	string commentArg3 =
+        "/// <param name=\"arg3\">Четвертый аргумент</param>";
+    
+    string commentFooter = 
+        "/// <param name=\"guard\">Защитный параметр</param>" + Environment.NewLine + "\t\t" +
+		"/// <param name=\"class\">Имя класса из которого происходит логгирование.</param>" + Environment.NewLine + "\t\t" +
+		"/// <param name=\"lineNumber\">Автоподставляемый параметр! Номер строки в файле исходного кода," + Environment.NewLine + "\t\t" +
+        "/// на которой произошел вызов метода логгирования.</param>" + Environment.NewLine + "\t\t" +
+        "/// <param name=\"filePath\">Автоподставляемый параметр! Имя файла исходного кода," + Environment.NewLine + "\t\t" +
+        "/// из которого произошел вызов метода логгирования.</param>" + Environment.NewLine + "\t\t" +
+        "/// <param name=\"method\">Автоподставляемый параметр! Имя метода," + Environment.NewLine + "\t\t" +
+        "/// из которого произошел вызов метода логгирования.</param>";
+        
+    string ending = "ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0";
+    
+    List<string> headers = new List<string>
+    {
+        "string message",
+        "string message, string context",
+        "Exception exception, string message",
+        "Exception exception, string message, string context"
+    };
+
+    List<string> formatHeaders = new List<string>
+    {
+		"string template",
+		"string template, object arg0",
+		"string template, object arg0, object arg1",
+		"string template, object arg0, object arg1, object arg2",
+        "string template, object arg0, object arg1, object arg2, object arg3",
+		"Exception exception, string template",
+		"Exception exception, string template, object arg0",
+		"Exception exception, string template, object arg0, object arg1",
+		"Exception exception, string template, object arg0, object arg1, object arg2",
+		"Exception exception, string template, object arg0, object arg1, object arg2, object arg3"
+    };
+
+    string contextComment = "/// <param name=\"context\">Контекст соолбщения. Строки в формате \"id=3, pocessId=4, imageId=5\"" + Environment.NewLine + "\t\t" +
+                            "/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД" + Environment.NewLine + "\t\t" +
+                            "/// и делать четкую выборку по интересующим полям.</param>";
+
+    string exceptionComment = "/// <param name=\"exception\">Возникшее исключение.</param>";
+    //string classComment = "/// <param name=\"class\">Имя класса из которого происходит логгирование.</param>";
+
+#>
+
+        #region Методы для логирования
+    
+        #region Log methods
+
+<#	foreach (string header in headers) 
+    {
+        if (header.Contains("context"))
+        {
+            context = "context";
+            comments = contextComment;
+        }
+        else
+        {
+            context = "null";
+            comments = "";
+        }
+
+        if (header.Contains("exception"))
+        {
+            exception = "exception";
+
+			if (!string.IsNullOrEmpty(comments))
+                    comments += Environment.NewLine + "\t\t" + exceptionComment;
+                else
+                    comments += exceptionComment;
+        }
+        else
+        {
+            exception = "null";
+        }
+
+		@class = "@class";
+
+
+        if (!string.IsNullOrEmpty(comments))
+            comments += Environment.NewLine + "\t\t";
+#>
+        #region Log(..., <#= header #>, ...)
+
+        <#= commentHeader #>
+        /// <param name="level">Уровень логгирования.</param>
+        /// <param name="message">Сообщение для логгирования.</param>
+        <#= comments #><#= commentFooter #>
+        public void Log(LogLevel level, <#= header #>,
+                    <#= ending #>)
+        {
+            if (_isEnabled && Level.IsEnabled(level))
+            {
+				string assembly = null;
+				string @namespace = null;
+				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+
+                var data = new LoggingEvent(message, <#= exception #>, level, <#= context #>, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, <#= @class #>, method, filePath, lineNumber);
+                _logger.Write(data);
+            }
+        }
+
+        #endregion
+<# } #>
+
+
+<#	foreach (string header in formatHeaders) 
+    {
+        if (header.Contains("context"))
+        {
+            context = "context";
+            comments = contextComment;
+        }
+        else
+        {
+            context = "null";
+            comments = "";
+        }
+
+        if (header.Contains("exception"))
+        {
+            exception = "exception";
+
+            if (!string.IsNullOrEmpty(comments))
+                    comments +=  Environment.NewLine + "\t\t" + exceptionComment;
+                else
+                    comments += exceptionComment;
+        }
+        else
+        {
+            exception = "null";
+        }
+		
+		formatParams = "";
+		if (header.Contains("arg0"))
+        {
+			formatParams += ", arg0";
+			if (!string.IsNullOrEmpty(comments))
+		        comments +=  Environment.NewLine + "\t\t" + commentArg0;
+            else
+                comments += commentArg0;
+        }
+		if (header.Contains("arg1"))
+        {
+			formatParams += ", arg1";
+			if (!string.IsNullOrEmpty(comments))
+		        comments += Environment.NewLine + "\t\t" + commentArg1;
+            else
+                comments += commentArg1;
+        }
+		if (header.Contains("arg2"))
+        {
+			formatParams += ", arg2";
+			if (!string.IsNullOrEmpty(comments))
+		        comments += Environment.NewLine + "\t\t" + commentArg2;
+            else
+                comments += commentArg2;
+        }
+		if (header.Contains("arg3"))
+        {
+			formatParams += ", arg3";
+			if (!string.IsNullOrEmpty(comments))
+		        comments += Environment.NewLine + "\t\t" + commentArg3;
+            else
+                comments += commentArg3;
+        }
+
+        @class = "@class";
+
+        if (!string.IsNullOrEmpty(comments))
+            comments +=  Environment.NewLine + "\t\t";
+#>
+        #region LogFormat(<#= header #>, ...)
+
+        <#= commentHeader #>
+        /// <param name="level">Уровень логгирования.</param>
+        <#= commentFormatHeader #>
+        <#= comments #><#= commentFooter #>
+        public void LogFormat(LogLevel level, <#= header #>,
+                    <#= ending #>)
+        {
+            if (_isEnabled && Level.IsEnabled(level))
+            {
+				string assembly = null;
+				string @namespace = null;
+				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+
+                var message = string.Format(template<#= formatParams #>);
+
+                var data = new LoggingEvent(message, <#= exception #>, level, <#= context #>, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, <#= @class #>, method, filePath, lineNumber);
+                _logger.Write(data);
+            }
+        }
+        #endregion
+<# } #>
+    
+        #endregion
+
+<# foreach (string Value in Levels) { #>
+
+        #region <#= Value #>
+
+<#		foreach (string header in headers) 
+        {
+            if (header.Contains("context"))
+            {
+                context = "context";
+                comments = contextComment;
+            }
+            else
+            {
+                context = "null";
+                comments = "";
+            }
+
+            if (header.Contains("exception"))
+            {
+                exception = "exception";
+
+				if (!string.IsNullOrEmpty(comments))
+                    comments += Environment.NewLine + "\t\t" + exceptionComment;
+                else
+                    comments += exceptionComment;
+            }
+            else
+            {
+                exception = "null";
+            }
+
+            @class = "@class";
+
+            if (!string.IsNullOrEmpty(comments))
+                comments += Environment.NewLine + "\t\t";
+    #>
+        #region <#= Value #>(..., <#= header #>, ...)
+        <#= commentHeader #>
+        /// <param name="message">Сообщение для логгирования.</param>
+        <#= comments #><#= commentFooter #>
+        public void <#= Value #>(<#= header #>,
+                    <#= ending #>)
+        {
+            if (_isEnabled && _is<#= Value #>Enabled)
+            {
+				string assembly = null;
+				string @namespace = null;
+				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+                
+				var data = new LoggingEvent(message, <#= exception #>, LogLevel.<#= Value #>, <#= context #>, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, <#= @class #>, method, filePath, lineNumber);
+                _logger.Write(data);
+            }
+        }
+        #endregion
+<# } #>
+
+        #endregion
+        #region <#= Value #>Format
+
+<#		foreach (string header in formatHeaders) 
+        {
+            if (header.Contains("context"))
+            {
+                context = "context";
+                comments = contextComment;
+            }
+            else
+            {
+                context = "null";
+                comments = "";
+            }
+
+            if (header.Contains("exception"))
+            {
+                exception = "exception";
+
+                if (!string.IsNullOrEmpty(comments))
+                    comments += Environment.NewLine + "\t\t" + exceptionComment;
+                else
+                    comments += exceptionComment;
+            }
+            else
+            {
+                exception = "null";
+            }
+
+            @class = "@class";
+		
+			formatParams = "";
+			if (header.Contains("arg0"))
+			{
+				formatParams += ", arg0";
+				if (!string.IsNullOrEmpty(comments))
+					comments += Environment.NewLine + "\t\t" + commentArg0;
+				else
+					comments += commentArg0;
+			}
+			if (header.Contains("arg1"))
+			{
+				formatParams += ", arg1";
+				if (!string.IsNullOrEmpty(comments))
+					comments += Environment.NewLine + "\t\t" + commentArg1;
+				else
+					comments += commentArg1;
+			}
+			if (header.Contains("arg2"))
+			{
+				formatParams += ", arg2";
+				if (!string.IsNullOrEmpty(comments))
+					comments += Environment.NewLine + "\t\t" + commentArg2;
+				else
+					comments += commentArg2;
+			}
+			if (header.Contains("arg3"))
+			{
+				formatParams += ", arg3";
+				if (!string.IsNullOrEmpty(comments))
+					comments += Environment.NewLine + "\t\t" + commentArg3;
+				else
+					comments += commentArg3;
+			}
+
+            if (!string.IsNullOrEmpty(comments))
+                comments += Environment.NewLine + "\t\t";
+    #>
+        #region <#= Value #>Format(<#= header #>, ...)
+    
+        <#= commentHeader #>
+        <#= commentFormatHeader #>
+        <#= comments #><#= commentFooter #>
+        public void <#= Value #>Format(<#= header #>,
+                    <#= ending #>)
+        {
+            if (_isEnabled && _is<#= Value #>Enabled)
+            {
+				string assembly = null;
+				string @namespace = null;
+				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+
+                var message = string.Format(template<#= formatParams #>);
+
+                var data = new LoggingEvent(message, <#= exception #>, LogLevel.<#= Value #>, <#= context #>, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, <#= @class #>, method, filePath, lineNumber);
+                _logger.Write(data);
+            }
+        }
+        #endregion
+<# } #>
+
+        #endregion
+<# } #>
+
+        #endregion
+    }
+}

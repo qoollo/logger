@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{3283FE44-B0AC-4043-B6FB-DAEC71C86522}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>LoggerServer.Main</RootNamespace>
+    <AssemblyName>LoggerServer.Main</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Configuration\ILoggerServerConfiguration_AppConfigLoader.cs">
+      <DependentUpon>LoggerServerConfigGenerator.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Configuration\LoggerServerConfigSectionGroup.cs" />
+    <Compile Include="LoggerHandler.cs" />
+    <Compile Include="LoggerServerController.cs" />
+    <Compile Include="Logger\Logger.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Configuration\LoggerServerConfigGenerator.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LoggerServerConfigGenerator.txt</LastGenOutput>
+    </None>
+    <None Include="Configuration\Helpers\ConfigCommonData.ttinclude" />
+    <None Include="Configuration\Helpers\ConfigLoaderGenerator.ttinclude" />
+    <None Include="Configuration\Helpers\ConfigSampleFileGenerator.ttinclude" />
+    <None Include="Configuration\Helpers\ConfigSchemaGenerator.ttinclude" />
+    <None Include="Configuration\Helpers\MultiOutput.ttinclude" />
+    <None Include="Configuration\Helpers\XmlBasedConfigSampleFileGenerator.ttinclude" />
+    <None Include="Configuration\ILoggerServerConfiguration_AppConfigSchema.xsd">
+      <DependentUpon>LoggerServerConfigGenerator.tt</DependentUpon>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Configuration\ILoggerServerConfiguration_SampleAppConfig.config">
+      <DependentUpon>LoggerServerConfigGenerator.tt</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Configuration\LoggerServerConfigGenerator.txt">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>LoggerServerConfigGenerator.tt</DependentUpon>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Qoollo.Logger\Qoollo.Logger.csproj">
+      <Project>{a127db4a-b7f1-4f7e-9cc6-db46a9ea0713}</Project>
+      <Name>Qoollo.Logger</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

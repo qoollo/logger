@@ -1,0 +1,413 @@
+﻿<#@ template debug="true" hostSpecific="true" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ Assembly Name="System.Core" #>
+<#@ Assembly Name="System.Windows.Forms" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Diagnostics" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #> 
+using System;
+using System.Reflection;
+using System.Diagnostics;
+using System.Collections.Generic;
+using Libs.Logger.Common;
+using Libs.Logger.Implementation;
+
+namespace Libs.Logger
+{
+    /// <summary>
+    /// Логгер. Содержит методы для логгирования.
+    /// Флаг isUseTraceParser, определяет будет ли использоваться
+    /// механизм извлечения имени класса, метода, имени файла, номера строки из StackTrace
+    /// Log - универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+    /// Trace, Debug, Info, Warn, Error, Fatal - 5 методов логгирования с четко указанным уровнем.
+    /// Выходной лог для записи файл, определяется темплейтом в app.config файле 
+    /// (при сетевом логгировании этот параметр будет содержаться в конфигах самого сервера, принимающего логи).
+    /// Так же в лог можно включать информацию, которая не передается в явном виде: имя метода, имя файла,
+    /// номер строки в вызающем коде.
+    /// Отдельно следует описать поле контекст. Под ним подразумевается строки в формате "id=3, pocessId=4, imageId=5"
+    /// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД 
+    /// и делать четкую выборку по интересующим полям
+    /// </summary>
+    partial class LoggerBase
+    {
+<#   
+	string context;
+	string exception;
+	string @class;
+	string comments;
+
+	List<string> Levels = new List<string>
+	{
+		"Trace",
+		"Debug",
+		"Info",
+		"Warn",
+		"Error",
+		"Fatal"
+	};
+
+	string commentHeader = 
+		"/// <summary>\n\t\t" +
+		"/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.\n\t\t" +
+		"/// </summary>";
+
+	string commentFormatHeader = 
+		"/// <param name=\"template\">Шаблон сообщения (как в string.Format)</param>\n\t\t" +
+		"/// <param name=\"arg0\">Первый аргумент</param>\n\t\t" +
+		"/// <param name=\"arg1\">Второй аргумент</param>\n\t\t" +
+		"/// <param name=\"arg2\">Третий аргумент</param>\n\t\t" +
+		"/// <param name=\"arg3\">Четвертый аргумент</param>";
+	
+	string commentFooter = 
+		"/// <param name=\"lineNumber\">Автоподставляемый параметр! Номер строки в файле исходного кода,\n\t\t" +
+		"/// на которой произошел вызов метода логгирования.</param>\n\t\t" +
+		"/// <param name=\"filePath\">Автоподставляемый параметр! Имя файла исходного кода,\n\t\t" +
+		"/// из которого произошел вызов метода логгирования.</param>\n\t\t" +
+		"/// <param name=\"method\">Автоподставляемый параметр! Имя метода,\n\t\t" +
+		"/// из которого произошел вызов метода логгирования.</param>";
+		
+	string ending = "int lineNumber = 0, string filePath = null, string method = null";
+	
+	List<string> headers = new List<string>
+	{
+		"string message",
+		"string context, string message",
+		"string context, string @class, string message",
+		"Exception exception, string message",
+		"string context, Exception exception, string message",
+		"string context, string @class, Exception exception, string message"
+	};
+
+	List<string> formatHeaders = new List<string>
+	{
+		"string template, object arg0 = null, object arg1 = null, object arg2 = null, object arg3 = null",
+		"string context, string template, object arg0 = null, object arg1 = null, object arg2 = null, object arg3 = null",
+		"string context, string @class, string template, object arg0 = null, object arg1 = null, object arg2 = null, object arg3 = null",
+		"Exception exception, string template, object arg0 = null, object arg1 = null, object arg2 = null, object arg3 = null",
+		"string context, Exception exception, string template, object arg0 = null, object arg1 = null, object arg2 = null, object arg3 = null",
+		"string context, string @class, Exception exception, string template, object arg0 = null, object arg1 = null, object arg2 = null, object arg3 = null"
+	};
+
+	string contextComment = "/// <param name=\"context\">Контекст соолбщения. Строки в формате \"id=3, pocessId=4, imageId=5\"\n\t\t" +
+							"/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД\n\t\t" +
+							"/// и делать четкую выборку по интересующим полям.</param>";
+
+	string exceptionComment = "/// <param name=\"exception\">Возникшее исключение.</param>";
+	string classComment = "/// <param name=\"class\">Имя класса из которого происходит логгирование.</param>";
+
+
+	string methodConditionBody = 
+			@"if (_isUseTraceParser)
+			{
+				var st = StackTraceParser.GetStackTrace();
+
+				method = method ?? st.Method;
+				filePath = filePath ?? st.FilePath;
+				lineNumber = lineNumber == 0 ? st.LineNumber : lineNumber;
+			}";
+
+#>
+        private readonly bool _isUseTraceParser;
+        
+        #region Constructors
+
+        /// <summary>
+        /// Создание логгера
+        /// </summary>
+        /// <param name="configuration">Конфигурация логгера</param>
+        /// <param name="moduleName">Имя модуля (подсистемы)</param>
+        /// <param name="innerLogger">Внутренний логгер</param>
+        /// <param name="factory">Конвертор для преобразования данных в строковый тип</param>
+        /// <param name="isUseTraceParser">Флаг, определяющий использование механизма извлечения 
+        /// имени класса, метода, имени файла, номера строки из StackTrace</param>
+        public LoggerBase(Common.LoggerConfiguration configuration, string moduleName, IInnerLogger innerLogger,
+            bool isUseTraceParser, ConverterFactory factory = null):
+            this(configuration, moduleName, innerLogger, factory)
+        {
+            _isUseTraceParser = isUseTraceParser;
+        }
+
+        #endregion
+
+		#region Методы для логирования
+	
+		#region Log methods
+
+<#	foreach (string header in headers) 
+	{
+		if (header.Contains("context"))
+		{
+			context = "context";
+			comments = contextComment;
+		}
+		else
+		{
+			context = "null";
+			comments = "";
+		}
+
+		if (header.Contains("exception"))
+		{
+			exception = "exception";
+
+            if (!string.IsNullOrEmpty(comments))
+                comments += "\n\t\t" + exceptionComment;
+            else
+                comments += exceptionComment;
+		}
+		else
+		{
+			exception = "null";
+		}
+
+		if (header.Contains("@class"))
+		{
+			@class = "@class";
+
+            if (!string.IsNullOrEmpty(comments))
+                comments += "\n\t\t" + classComment;
+            else
+                comments += classComment;
+		}
+		else
+		{
+			@class = "null";
+		}
+
+		if (!string.IsNullOrEmpty(comments))
+			comments += "\n\t\t";
+#>
+		#region Log(..., <#= header #>, ...)
+
+		<#= commentHeader #>
+		/// <param name="level">Уровень логгирования.</param>
+		/// <param name="message">Сообщение для логгирования.</param>
+		<#= comments #><#= commentFooter #>
+		public void Log(LogLevel level, <#= header #>,
+					<#= ending #>)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				<#= methodConditionBody #>
+
+				var data = new LoggingEvent(message, <#= exception #>, level, <#= context #>, _stackSources, <#= @class #>, method, filePath, lineNumber);
+                _logger.Write(data);
+			}
+		}
+
+		#endregion
+<# } #>
+
+
+<#	foreach (string header in formatHeaders) 
+	{
+		if (header.Contains("context"))
+		{
+			context = "context";
+			comments = contextComment;
+		}
+		else
+		{
+			context = "null";
+			comments = "";
+		}
+
+		if (header.Contains("exception"))
+		{
+			exception = "exception";
+
+            if (!string.IsNullOrEmpty(comments))
+                comments += "\n\t\t" + exceptionComment;
+            else
+                comments += exceptionComment;
+		}
+		else
+		{
+			exception = "null";
+		}
+
+		if (header.Contains("@class"))
+		{
+			@class = "@class";
+
+            if (!string.IsNullOrEmpty(comments))
+                comments += "\n\t\t" + classComment;
+            else
+                comments += classComment;
+		}
+		else
+		{
+			@class = "null";
+		}
+
+		if (!string.IsNullOrEmpty(comments))
+			comments += "\n\t\t";
+#>
+		#region LogFormat(..., <#= header.Replace(", object arg0 = null, object arg1 = null, object arg2 = null, object arg3 = null", "") #>, ...)
+
+		<#= commentHeader #>
+		/// <param name="level">Уровень логгирования.</param>
+		<#= commentFormatHeader #>
+		<#= comments #><#= commentFooter #>
+		public void LogFormat(LogLevel level, <#= header #>,
+					<#= ending #>)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				var message = string.Format(template, arg0, arg1, arg2, arg3);
+
+				<#= methodConditionBody #>
+
+				var data = new LoggingEvent(message, <#= exception #>, level, <#= context #>, _stackSources, <#= @class #>, method, filePath, lineNumber);
+                _logger.Write(data);
+			}
+		}
+		#endregion
+<# } #>
+	
+		#endregion
+
+<# foreach (string Value in Levels) { #>
+
+        #region <#= Value #>
+
+<#		foreach (string header in headers) 
+		{
+			if (header.Contains("context"))
+			{
+				context = "context";
+				comments = contextComment;
+			}
+			else
+			{
+				context = "null";
+				comments = "";
+			}
+
+			if (header.Contains("exception"))
+			{
+				exception = "exception";
+
+                if (!string.IsNullOrEmpty(comments))
+                    comments += "\n\t\t" + exceptionComment;
+                else
+                    comments += exceptionComment;
+			}
+			else
+			{
+				exception = "null";
+			}
+
+			if (header.Contains("@class"))
+			{
+				@class = "@class";
+
+                if (!string.IsNullOrEmpty(comments))
+                    comments += "\n\t\t" + classComment;
+                else
+                    comments += classComment;
+			}
+			else
+			{
+				@class = "null";
+			}
+
+			if (!string.IsNullOrEmpty(comments))
+				comments += "\n\t\t";
+	#>
+        #region <#= Value #>(..., <#= header #>, ...)
+		<#= commentHeader #>
+		/// <param name="message">Сообщение для логгирования.</param>
+		<#= comments #><#= commentFooter #>
+		public void <#= Value #>(<#= header #>,
+					<#= ending #>)
+		{
+			if (_isEnabled && _is<#= Value #>Enabled)
+			{
+				<#= methodConditionBody #>
+
+				var data = new LoggingEvent(message, <#= exception #>, LogLevel.<#= Value #>, <#= context #>, _stackSources, <#= @class #>, method, filePath, lineNumber);
+                _logger.Write(data);
+			}
+		}
+		#endregion
+<# } #>
+
+	    #endregion
+		#region <#= Value #>Format
+
+<#		foreach (string header in formatHeaders) 
+		{
+			if (header.Contains("context"))
+			{
+				context = "context";
+				comments = contextComment;
+			}
+			else
+			{
+				context = "null";
+				comments = "";
+			}
+
+			if (header.Contains("exception"))
+			{
+				exception = "exception";
+
+                if (!string.IsNullOrEmpty(comments))
+                    comments += "\n\t\t" + exceptionComment;
+                else
+                    comments += exceptionComment;
+			}
+			else
+			{
+				exception = "null";
+			}
+
+			if (header.Contains("@class"))
+			{
+				@class = "@class";
+
+                if (!string.IsNullOrEmpty(comments))
+                    comments += "\n\t\t" + classComment;
+                else
+                    comments += classComment;
+			}
+			else
+			{
+				@class = "null";
+			}
+
+			if (!string.IsNullOrEmpty(comments))
+				comments += "\n\t\t";
+	#>
+		#region <#= Value #>Format(..., <#= header.Replace(", object arg0 = null, object arg1 = null, object arg2 = null, object arg3 = null", "") #>, ...)
+	
+		<#= commentHeader #>
+		<#= commentFormatHeader #>
+		<#= comments #><#= commentFooter #>
+		public void <#= Value #>Format(<#= header #>,
+					<#= ending #>)
+		{
+			if (_isEnabled && _is<#= Value #>Enabled)
+			{
+				var message = string.Format(template, arg0, arg1, arg2, arg3);
+
+				<#= methodConditionBody #>
+
+				var data = new LoggingEvent(message, <#= exception #>, LogLevel.<#= Value #>, <#= context #>, _stackSources, <#= @class #>, method, filePath, lineNumber);
+                _logger.Write(data);
+			}
+		}
+	    #endregion
+<# } #>
+
+	    #endregion
+<# } #>
+
+		#endregion
+
+    }
+}

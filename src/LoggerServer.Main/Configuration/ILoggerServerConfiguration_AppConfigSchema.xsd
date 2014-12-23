@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<xs:schema xmlns:tns="LoggerServer.Main.Configuration.LoggerServerConfigurationSection_NS" elementFormDefault="qualified" targetNamespace="LoggerServer.Main.Configuration.LoggerServerConfigurationSection_NS" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="LoggerServerConfigurationSection" type="tns:loggerServerConfiguration_xsdTp" />
+  <xs:complexType name="loggerServerConfiguration_xsdTp">
+    <xs:all>
+      <xs:element name="tcpServerConfig" minOccurs="1" maxOccurs="1" type="tns:tcpServerConfig_xsdTp">
+        <xs:annotation>
+          <xs:documentation>TcpServerConfig, Type = ITcpServerConfig, IsRequired = True</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="pipeServerConfig" minOccurs="1" maxOccurs="1" type="tns:pipeServerConfig_xsdTp">
+        <xs:annotation>
+          <xs:documentation>PipeServerConfig, Type = IPipeServerConfig, IsRequired = True</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:all>
+  </xs:complexType>
+  <xs:complexType name="tcpServerConfig_xsdTp">
+    <xs:attribute name="isEnabled" type="tns:customBool__sp_xsdTp" use="optional" default="true">
+      <xs:annotation>
+        <xs:documentation>IsEnabled, Type = Boolean, IsRequired = False, Default = true</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="port" type="xs:int" use="required">
+      <xs:annotation>
+        <xs:documentation>Port, Type = Int32, IsRequired = True</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="serviceName" type="xs:string" use="optional" default="LoggerService">
+      <xs:annotation>
+        <xs:documentation>ServiceName, Type = String, IsRequired = False, Default = LoggerService</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="pipeServerConfig_xsdTp">
+    <xs:attribute name="isEnabled" type="tns:customBool__sp_xsdTp" use="optional" default="true">
+      <xs:annotation>
+        <xs:documentation>IsEnabled, Type = Boolean, IsRequired = False, Default = true</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="pipeName" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>PipeName, Type = String, IsRequired = True</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="serviceName" type="xs:string" use="optional" default="LoggerService">
+      <xs:annotation>
+        <xs:documentation>ServiceName, Type = String, IsRequired = False, Default = LoggerService</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="add__sp_xsdTp">
+    <xs:attribute name="key" type="xs:string" use="required" />
+    <xs:attribute name="value" type="xs:string" use="required" />
+  </xs:complexType>
+  <xs:simpleType name="customBool__sp_xsdTp">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="false" />
+      <xs:enumeration value="true" />
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

@@ -1,0 +1,278 @@
+﻿<#@ template  debug="true" language="C#" hostSpecific="true" #>
+<#@ output extension=".txt" #>
+<#@ Assembly Name="System.Core" #>
+<#@ Assembly Name="System.Xml.Linq" #>
+
+<#@ import namespace="System" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Diagnostics" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #> 
+<#@ import namespace="System.Runtime.Remoting.Messaging" #>
+
+<#@ include file="Helpers\MultiOutput.ttinclude" #>
+<#@ include file="Helpers\ConfigCommonData.ttinclude" #>
+<#@ include file="Helpers\XmlBasedConfigSampleFileGenerator.ttinclude" #>
+<#@ include file="Helpers\ConfigLoaderGenerator.ttinclude" #>
+<#@ include file="Helpers\ConfigSchemaGenerator.ttinclude" #>
+
+
+<#
+	 
+	// Определяем, какой интерфейс будет парситься. Сам интерфейс объявляется в самом конце файла
+	Type RootInterface = typeof(ILoggerConfigurationSection);
+	// Пространство имён, в котором будут расположены все объекты
+	string NamespaceName = "Qoollo.Logger.Configuration";
+	// Имя сборки, в которой будет находится сгенерированный файл кода
+	string AssemblyName = "Qoollo.Logger";
+	// Помещать ли интерфейсы в сгенерированный файл (если они объявлены вне, то надо отключить)
+	bool GenerateInterfaces = false;
+	// Для смены имени секции нужно задать значение
+	string OverridedSectionName = null;
+
+#>
+
+
+<#   
+	AppConfigGenerationParams Params = new AppConfigGenerationParams();
+	Params.NamespaceName = NamespaceName;
+	Params.AssemblyName = AssemblyName;
+	Params.GenerateInterface = GenerateInterfaces;
+	Params.SectionName = OverridedSectionName;
+
+	if (Params.SectionName == null)
+    {
+		Params.SectionName = NameResolveHelper.GetSectionNameByIntName(RootInterface);
+    }
+
+	this.GenerationEnvironment = new StringBuilder();
+	  
+	GenerateSampleConfigFileXmlBased(RootInterface, Params);
+	SaveOutput(RootInterface.Name + "_SampleAppConfig.config");
+
+	GenerateConfigXSD(RootInterface, Params);
+	SaveOutput(RootInterface.Name + "_AppConfigSchema.xsd");
+
+	GenerateConfigLoader(RootInterface, Params);
+	SaveOutput(RootInterface.Name + "_AppConfigLoader.cs");
+
+    DeleteOldOutputs();
+#>
+
+
+<#+
+// ==================================================================
+// ================== ЗДЕСЬ ОБЪЯВЛЯЮТСЯ ИНТЕРФЕЙСЫ ==================
+// ==================================================================
+	
+    enum CfgLogLevel
+    {
+        TRACE,
+        DEBUG,
+        INFO,
+        WARN,
+        ERROR,
+        FATAL
+    }
+
+
+    interface ILoggerConfigurationSection
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlElement)]
+        IRootLoggerConfiguration Logger { get; }
+    }
+
+
+	[DefaultInternalElementAttribute("WriterWrapper")]
+    interface IRootLoggerConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "false")]
+        bool EnableStackTraceExtraction { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute)]
+        CfgLogLevel LogLevel { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "true")]
+        bool IsEnabled { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlElementInjectedType, AllowInheritance = true)]
+        ILoggerWriterWrapperConfiguration WriterWrapper { get; }
+    }
+
+
+	[ConfigSubstituteTypeAttribute(typeof(IAsyncQueueWrapper))]
+	[ConfigSubstituteTypeAttribute(typeof(IAsyncReliableQueueWrapper))]
+	[ConfigSubstituteTypeAttribute(typeof(IReliableWrapper))]
+	[ConfigSubstituteTypeAttribute(typeof(IGroupWrapper))]
+	[ConfigSubstituteTypeAttribute(typeof(IRoutingWrapper))]
+	[ConfigSubstituteTypeAttribute(typeof(IPatternMatchingWrapper))]
+	[ConfigSubstituteTypeAttribute(typeof(IEmptyWriter))]
+	[ConfigSubstituteTypeAttribute(typeof(IConsoleWriter))]
+	[ConfigSubstituteTypeAttribute(typeof(IFileWriter))]
+	[ConfigSubstituteTypeAttribute(typeof(IPipeWriter))]
+	[ConfigSubstituteTypeAttribute(typeof(INetworkWriter))]
+	[ConfigSubstituteTypeAttribute(typeof(IDatabaseWriter))]
+    interface ILoggerWriterWrapperConfiguration
+    {
+    }
+
+
+	[DefaultInternalElementAttribute("Logger")]
+    interface IAsyncQueueWrapper : ILoggerWriterWrapperConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "4096")]
+        int MaxQueueSize { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "true")]
+        bool IsDiscardExcess { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlElementInjectedType, AllowInheritance = true)]
+        ILoggerWriterWrapperConfiguration Logger { get; }
+    }
+
+
+	[DefaultInternalElementAttribute("Logger")]
+    interface IAsyncReliableQueueWrapper : ILoggerWriterWrapperConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "4096")]
+        int MaxQueueSize { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "true")]
+        bool IsDiscardExcess { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "reliable_log_q")]
+        string FolderForTemporaryStore { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "67108864")]
+        long MaxFileSize { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlElementInjectedType, AllowInheritance = true)]
+        ILoggerWriterWrapperConfiguration Logger { get; }
+    }
+
+	[DefaultInternalElementAttribute("Logger")]
+    interface IReliableWrapper: ILoggerWriterWrapperConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute)]
+        string FolderForTemporaryStore { get; }
+        [ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "67108864")]
+		long MaxFileSize { get; }
+        [ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlElementInjectedType, AllowInheritance = true)]
+		ILoggerWriterWrapperConfiguration Logger { get; }
+    }
+
+
+	[DefaultInternalElementAttribute("Loggers")]
+    interface IGroupWrapper : ILoggerWriterWrapperConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlElementInjectedType, AllowInheritance = true)]
+        List<ILoggerWriterWrapperConfiguration> Loggers { get; }
+    }
+
+    interface IRoutingWrapper : ILoggerWriterWrapperConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlElementInjectedType, AllowInheritance = true)]
+        Dictionary<string, ILoggerWriterWrapperConfiguration> RoutingBySystem { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlElementInjectedType, AllowInheritance = true)]
+        List<ILoggerWriterWrapperConfiguration> FromAll { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlElementInjectedType, AllowInheritance = true)]
+        List<ILoggerWriterWrapperConfiguration> FromOthers { get; }
+    }
+
+	[DefaultInternalElementAttribute("Writers")]
+	interface IPatternMatchingWrapper: ILoggerWriterWrapperConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = true)]
+		string Pattern { get; }
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlElementInjectedType, AllowInheritance = true)]
+        List<IPatternMatchingElement> Writers { get; }
+    }
+
+	[ConfigSubstituteTypeAttribute(typeof(IPatternMatchingDefault), OverrideTypeName = "default")]
+	[ConfigSubstituteTypeAttribute(typeof(IPatternMatchingMatch), OverrideTypeName = "match")]
+	[DefaultInternalElementAttribute("Writer")]
+    interface IPatternMatchingElement
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlElementInjectedType, AllowInheritance = true)]
+        ILoggerWriterWrapperConfiguration Writer { get; }
+    }
+
+	[DefaultInternalElementAttribute("Writer")]
+	interface IPatternMatchingDefault: IPatternMatchingElement
+    {
+
+    }
+
+	[DefaultInternalElementAttribute("Writer")]
+    interface IPatternMatchingMatch : IPatternMatchingElement
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = true)]
+        string Value { get; }
+    }
+
+
+    interface ILoggerWriterConfiguration : ILoggerWriterWrapperConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "TRACE")]
+        CfgLogLevel LogLevel { get; }
+    }
+
+
+    interface IEmptyWriter : ILoggerWriterConfiguration
+    {
+    }
+
+
+    interface IConsoleWriter : ILoggerWriterConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "{DateTime}. {Level}. At {StackSource}.{Class}::{Method}. Message: {Message}. {Exception, prefix = ' Exception: ', valueOnNull=''}")]
+        string Template { get; }
+    }
+
+    interface IFileWriter : ILoggerWriterConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "{DateTime}. {Level}. At {StackSource}.{Class}::{Method}. Message: {Message}. {Exception, prefix = ' Exception: ', valueOnNull=''}")]
+        string Template { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "logs/app.log")]
+        string FileNameTemplate { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "true")]
+        bool NeedFileRotation { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "UTF-8")]
+        string Encoding { get; }
+    }
+
+    interface IPipeWriter : ILoggerWriterConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = ".")]
+        string ServerName { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "LoggingService")]
+        string PipeName { get; }
+    }
+
+    interface INetworkWriter : ILoggerWriterConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute)]
+        string ServerAddress { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "26113")]
+        int Port { get; }
+    }
+
+    interface IDatabaseWriter : ILoggerWriterConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute)]
+        string ConnectionString { get; }
+
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "[dbo].[LogInsert]")]
+        string StoredProcedureName { get; }
+    }
+	
+#>
+

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <title>Qoollo.Logger</title>
+    <version>$version$</version>
+    <authors>ikopylov</authors>
+    <owners>Qoollo</owners>
+    <licenseUrl>https://github.com/qoollo/logger/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/qoollo/logger</projectUrl>
+    <!--<iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>-->
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>Powerfull logger for .NET applications</description>
+    <releaseNotes>v2.0</releaseNotes>
+    <copyright>Copyright 2014</copyright>
+    <tags>Logger Qoollo</tags>
+    <references>
+      <reference file="$id$.dll" />
+    </references>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\$id$.pdb" target="lib\net45\" />
+    <file src="bin\$configuration$\CodeContracts\*.dll" target="lib\net45\CodeContracts\" />
+    <file src="LoggerConfigHelpers\LoggerAppConfigSchema.xsd" target="lib\net45\" />
+    <file src="LoggerConfigHelpers\LoggerAppConfigSample.config" target="lib\net45\" />
+  </files>
+</package>
