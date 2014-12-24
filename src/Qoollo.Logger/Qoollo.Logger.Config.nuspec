@@ -2,18 +2,18 @@
 <package >
   <metadata>
     <id>Qoollo.Logger.Config</id>
-    <title>Qoollo.Logger Configuration</title>
+    <title>Qoollo.Logger configuration</title>
     <version>2.0.0.0</version>
-    <authors>ikopylov</authors>
+    <authors>Qoollo</authors>
     <owners>Qoollo</owners>
     <licenseUrl>https://github.com/qoollo/logger/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/qoollo/logger</projectUrl>
     <!--<iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>-->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Logger configuration stuff. XSD schema, Sample config.</description>
+    <description>XSD schema and sample App.config for Qoollo.Logger.</description>
     <releaseNotes>v2.0</releaseNotes>
     <copyright>Copyright 2014</copyright>
-    <tags>Qoollo Logger Config Schema</tags>
+    <tags>Qoollo Logger Log Config Schema</tags>
   </metadata>
   <files>
     <file src="LoggerConfigHelpers\LoggerAppConfigSchema.xsd" target="content\LoggerConfigHelpers" />

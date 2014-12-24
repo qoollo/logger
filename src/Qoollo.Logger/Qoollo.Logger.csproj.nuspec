@@ -4,16 +4,16 @@
     <id>$id$</id>
     <title>Qoollo.Logger</title>
     <version>$version$</version>
-    <authors>ikopylov</authors>
+    <authors>Qoollo</authors>
     <owners>Qoollo</owners>
     <licenseUrl>https://github.com/qoollo/logger/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/qoollo/logger</projectUrl>
     <!--<iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>-->
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <description>Powerfull logger for .NET applications</description>
+    <description>Powerful logger for .NET applications</description>
     <releaseNotes>v2.0</releaseNotes>
     <copyright>Copyright 2014</copyright>
-    <tags>Logger Qoollo</tags>
+    <tags>Qoollo Logger Log</tags>
     <references>
       <reference file="$id$.dll" />
     </references>
