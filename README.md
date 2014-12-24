@@ -33,15 +33,12 @@ Supported service facilities:
 - Add configuration section to your 'App.config':
 ```XML
   <LoggerConfigurationSection xmlns="Qoollo.Logger.Configuration.LoggerConfigurationSection_NS">
-    <logger logLevel="TRACE">
+    <logger logLevel="DEBUG">
       <asyncQueueWrapper>
         <groupWrapper>
-          <consoleWriter logLevel="INFO"
-            template="{DateTime}. {Level}. \n At {StackSource}.{Class}::{Method}.\n Message: {Message}. {Exception, prefix = '\n Exception: ', valueOnNull=''}\n\n"/>
-          <fileWriter logLevel="DEBUG" fileNameTemplate="logs/{DateTime, format = yyyy-MM-dd}.log"
-            template="{DateTime}. {Level}. \n At {StackSource}.{Class}::{Method}.\n Message: {Message}. {Exception, prefix = '\n Exception: ', valueOnNull=''}\n\n"/>
-          <fileWriter logLevel="ERROR" fileNameTemplate="logs/Errors_{DateTime, format = yyyy-MM-dd}.log"
-            template="{DateTime}. {Level}. \n At {StackSource}.{Class}::{Method}.\n Message: {Message}. {Exception, prefix = '\n Exception: ', valueOnNull=''}\n\n"/>
+          <consoleWriter />
+          <fileWriter fileNameTemplate="logs/{DateTime, format = yyyy-MM-dd}.log" />
+          <fileWriter logLevel="ERROR" fileNameTemplate="logs/Errors_{DateTime, format = yyyy-MM-dd}.log" />
         </groupWrapper>
       </asyncQueueWrapper>
     </logger>
