@@ -6,6 +6,7 @@ Powerful logger for .NET applications.
 Main features:
 - support most commonly used logging targets out of the box;
 - logging targets can be used in any combination;
+- support reliable and async logging;
 - has configurable log message pattern;
 - loggers can be stacked (logger inside library wraps main application logger);
 - XSD schema for logger section in App.config.
@@ -62,3 +63,9 @@ Supported service facilities:
 
 - [Configuration](https://github.com/qoollo/logger/wiki/Configuration)
 - [Usage](https://github.com/qoollo/logger/wiki/Usage)
+
+
+## NuGet
+
+- [Qoollo.Logger](https://www.nuget.org/packages/Qoollo.Logger)
+- [Qoollo.Logger.Config](https://www.nuget.org/packages/Qoollo.Logger.Config)
