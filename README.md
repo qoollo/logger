@@ -33,6 +33,12 @@ Supported service facilities:
 - Add reference to logger library
 - Add configuration section to your 'App.config':
 ```XML
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <configSections>
+    <section name="LoggerConfigurationSection" type="Qoollo.Logger.Configuration.LoggerConfigurationSectionConfigClass, Qoollo.Logger" allowExeDefinition="MachineToApplication" requirePermission="false" />
+  </configSections>
+  
   <LoggerConfigurationSection xmlns="Qoollo.Logger.Configuration.LoggerConfigurationSection_NS">
     <logger logLevel="DEBUG">
       <asyncQueueWrapper>
@@ -44,6 +50,8 @@ Supported service facilities:
       </asyncQueueWrapper>
     </logger>
   </LoggerConfigurationSection>
+
+</configuration>
 ```
 - Load configuration on application start-up:
 ```C#
