@@ -6,3195 +6,2679 @@ using System.Runtime.CompilerServices;
 
 namespace Qoollo.Logger
 {
-    /// <summary>
-    /// Логгер. Содержит методы для логгирования.
-    /// Log - универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
-    /// Trace, Debug, Info, Warn, Error, Fatal - 5 методов логгирования с четко указанным уровнем.
-    /// Выходной лог для записи файл, определяется темплейтом в app.config файле 
-    /// (при сетевом логгировании этот параметр будет содержаться в конфигах самого сервера, принимающего логи).
-    /// Так же в лог можно включать информацию, которая не передается в явном виде: имя метода, имя файла,
-    /// номер строки в вызающем коде.
-    /// Отдельно следует описать поле контекст. Под ним подразумевается строки в формате "id=3, pocessId=4, imageId=5"
-    /// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД 
-    /// и делать четкую выборку по интересующим полям
-    /// </summary>
     partial class LoggerBase
     {
     
 
-        #region Методы для логирования
-    
-        #region Log methods
+		#region All logging methods
 
-        #region Log(..., string message, ...)
 
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+        #region Log
+
+
+
+		/// <summary>
+		/// Writes log message at the specified level with specified parameters.
 		/// </summary>
-        /// <param name="level">Уровень логгирования.</param>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Log(LogLevel level, string message,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && Level.IsEnabled(level))
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="level">Log level for message</param>
+		/// <param name="message">Log message</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Log(LogLevel level, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				this.WriteLog(level, null, message, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var data = new LoggingEvent(message, null, level, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
+	
 
-        #endregion
-        #region Log(..., string message, string context, ...)
-
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at the specified level with specified parameters.
 		/// </summary>
-        /// <param name="level">Уровень логгирования.</param>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="context">Контекст соолбщения. Строки в формате "id=3, pocessId=4, imageId=5"
-		/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД
-		/// и делать четкую выборку по интересующим полям.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Log(LogLevel level, string message, string context,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && Level.IsEnabled(level))
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="level">Log level for message</param>
+		/// <param name="message">Log message</param>
+		/// <param name="context">Log message context.
+		/// Additional parameter that can be used to filter log messages.</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Log(LogLevel level, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				this.WriteLog(level, null, message, context, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var data = new LoggingEvent(message, null, level, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
+	
 
-        #endregion
-        #region Log(..., Exception exception, string message, ...)
-
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at the specified level with specified parameters.
 		/// </summary>
-        /// <param name="level">Уровень логгирования.</param>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Log(LogLevel level, Exception exception, string message,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && Level.IsEnabled(level))
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="level">Log level for message</param>
+		/// <param name="message">Log message</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Log(LogLevel level, Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				this.WriteLog(level, exception, message, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var data = new LoggingEvent(message, exception, level, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
+	
 
-        #endregion
-        #region Log(..., Exception exception, string message, string context, ...)
-
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at the specified level with specified parameters.
 		/// </summary>
-        /// <param name="level">Уровень логгирования.</param>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="context">Контекст соолбщения. Строки в формате "id=3, pocessId=4, imageId=5"
-		/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД
-		/// и делать четкую выборку по интересующим полям.</param>
-		/// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Log(LogLevel level, Exception exception, string message, string context,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && Level.IsEnabled(level))
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="level">Log level for message</param>
+		/// <param name="message">Log message</param>
+		/// <param name="context">Log message context.
+		/// Additional parameter that can be used to filter log messages.</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Log(LogLevel level, Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				this.WriteLog(level, exception, message, context, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var data = new LoggingEvent(message, exception, level, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
+	
 
-        #endregion
-
-
-        #region LogFormat(string template, ...)
-
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at the specified level with specified parameters.
 		/// </summary>
-        /// <param name="level">Уровень логгирования.</param>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void LogFormat(LogLevel level, string template,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && Level.IsEnabled(level))
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="level">Log level for message</param>
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void LogFormat(LogLevel level, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				this.WriteLog(level, null, template, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template);
+	
 
-                var data = new LoggingEvent(message, null, level, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region LogFormat(string template, object arg0, ...)
-
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at the specified level with specified parameters.
 		/// </summary>
-        /// <param name="level">Уровень логгирования.</param>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void LogFormat(LogLevel level, string template, object arg0,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && Level.IsEnabled(level))
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="level">Log level for message</param>
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void LogFormat<TArg1>(LogLevel level, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				this.WriteLog(level, null, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0);
+	
 
-                var data = new LoggingEvent(message, null, level, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region LogFormat(string template, object arg0, object arg1, ...)
-
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at the specified level with specified parameters.
 		/// </summary>
-        /// <param name="level">Уровень логгирования.</param>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void LogFormat(LogLevel level, string template, object arg0, object arg1,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && Level.IsEnabled(level))
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="level">Log level for message</param>
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void LogFormat<TArg1, TArg2>(LogLevel level, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				this.WriteLog(level, null, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1);
+	
 
-                var data = new LoggingEvent(message, null, level, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region LogFormat(string template, object arg0, object arg1, object arg2, ...)
-
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at the specified level with specified parameters.
 		/// </summary>
-        /// <param name="level">Уровень логгирования.</param>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void LogFormat(LogLevel level, string template, object arg0, object arg1, object arg2,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && Level.IsEnabled(level))
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="level">Log level for message</param>
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void LogFormat<TArg1, TArg2, TArg3>(LogLevel level, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				this.WriteLog(level, null, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2);
+	
 
-                var data = new LoggingEvent(message, null, level, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region LogFormat(string template, object arg0, object arg1, object arg2, object arg3, ...)
-
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at the specified level with specified parameters.
 		/// </summary>
-        /// <param name="level">Уровень логгирования.</param>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="arg3">Четвертый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void LogFormat(LogLevel level, string template, object arg0, object arg1, object arg2, object arg3,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && Level.IsEnabled(level))
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="level">Log level for message</param>
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <typeparam name="TArg4">Fourth argument type</typeparam>
+		/// <param name="arg4">Fourth argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void LogFormat<TArg1, TArg2, TArg3, TArg4>(LogLevel level, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				this.WriteLog(level, null, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2, arg3);
+	
 
-                var data = new LoggingEvent(message, null, level, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region LogFormat(Exception exception, string template, ...)
-
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at the specified level with specified parameters.
 		/// </summary>
-        /// <param name="level">Уровень логгирования.</param>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void LogFormat(LogLevel level, Exception exception, string template,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && Level.IsEnabled(level))
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="level">Log level for message</param>
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void LogFormat(LogLevel level, Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				this.WriteLog(level, exception, template, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template);
+	
 
-                var data = new LoggingEvent(message, exception, level, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region LogFormat(Exception exception, string template, object arg0, ...)
-
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at the specified level with specified parameters.
 		/// </summary>
-        /// <param name="level">Уровень логгирования.</param>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void LogFormat(LogLevel level, Exception exception, string template, object arg0,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && Level.IsEnabled(level))
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="level">Log level for message</param>
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void LogFormat<TArg1>(LogLevel level, Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				this.WriteLog(level, exception, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0);
+	
 
-                var data = new LoggingEvent(message, exception, level, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region LogFormat(Exception exception, string template, object arg0, object arg1, ...)
-
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at the specified level with specified parameters.
 		/// </summary>
-        /// <param name="level">Уровень логгирования.</param>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void LogFormat(LogLevel level, Exception exception, string template, object arg0, object arg1,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && Level.IsEnabled(level))
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="level">Log level for message</param>
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void LogFormat<TArg1, TArg2>(LogLevel level, Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				this.WriteLog(level, exception, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1);
+	
 
-                var data = new LoggingEvent(message, exception, level, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region LogFormat(Exception exception, string template, object arg0, object arg1, object arg2, ...)
-
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at the specified level with specified parameters.
 		/// </summary>
-        /// <param name="level">Уровень логгирования.</param>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void LogFormat(LogLevel level, Exception exception, string template, object arg0, object arg1, object arg2,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && Level.IsEnabled(level))
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="level">Log level for message</param>
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void LogFormat<TArg1, TArg2, TArg3>(LogLevel level, Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				this.WriteLog(level, exception, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2);
+	
 
-                var data = new LoggingEvent(message, exception, level, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region LogFormat(Exception exception, string template, object arg0, object arg1, object arg2, object arg3, ...)
-
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at the specified level with specified parameters.
 		/// </summary>
-        /// <param name="level">Уровень логгирования.</param>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="arg3">Четвертый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void LogFormat(LogLevel level, Exception exception, string template, object arg0, object arg1, object arg2, object arg3,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && Level.IsEnabled(level))
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="level">Log level for message</param>
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <typeparam name="TArg4">Fourth argument type</typeparam>
+		/// <param name="arg4">Fourth argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void LogFormat<TArg1, TArg2, TArg3, TArg4>(LogLevel level, Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && Level.IsEnabled(level))
+			{
+				this.WriteLog(level, exception, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2, arg3);
-
-                var data = new LoggingEvent(message, exception, level, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-    
-        #endregion
+	
+		#endregion
 
 
         #region Trace
 
-        #region Trace(..., string message, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+
+
+		/// <summary>
+		/// Writes log message at Trace level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Trace(string message,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isTraceEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, null, LogLevel.Trace, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Trace(..., string message, string context, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Trace(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isTraceEnabled)
+			{
+				this.WriteLog(LogLevel.Trace, null, message, null, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Trace level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="context">Контекст соолбщения. Строки в формате "id=3, pocessId=4, imageId=5"
-		/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД
-		/// и делать четкую выборку по интересующим полям.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Trace(string message, string context,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isTraceEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, null, LogLevel.Trace, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Trace(..., Exception exception, string message, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="context">Log message context.
+		/// Additional parameter that can be used to filter log messages.</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Trace(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isTraceEnabled)
+			{
+				this.WriteLog(LogLevel.Trace, null, message, context, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Trace level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Trace(Exception exception, string message,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isTraceEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, exception, LogLevel.Trace, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Trace(..., Exception exception, string message, string context, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Trace(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isTraceEnabled)
+			{
+				this.WriteLog(LogLevel.Trace, exception, message, null, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Trace level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="context">Контекст соолбщения. Строки в формате "id=3, pocessId=4, imageId=5"
-		/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД
-		/// и делать четкую выборку по интересующим полям.</param>
-		/// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Trace(Exception exception, string message, string context,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isTraceEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, exception, LogLevel.Trace, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
+		/// <param name="message">Log message</param>
+		/// <param name="context">Log message context.
+		/// Additional parameter that can be used to filter log messages.</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Trace(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isTraceEnabled)
+			{
+				this.WriteLog(LogLevel.Trace, exception, message, context, @class, method, filePath, lineNumber);
+			}
+		}
 
-        #endregion
-        #region TraceFormat
+	
 
-        #region TraceFormat(string template, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Trace level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void TraceFormat(string template,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isTraceEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void TraceFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isTraceEnabled)
+			{
+				this.WriteLog(LogLevel.Trace, null, template, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Trace, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region TraceFormat(string template, object arg0, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Trace level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void TraceFormat(string template, object arg0,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isTraceEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void TraceFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isTraceEnabled)
+			{
+				this.WriteLog(LogLevel.Trace, null, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Trace, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region TraceFormat(string template, object arg0, object arg1, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Trace level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void TraceFormat(string template, object arg0, object arg1,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isTraceEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void TraceFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isTraceEnabled)
+			{
+				this.WriteLog(LogLevel.Trace, null, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Trace, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region TraceFormat(string template, object arg0, object arg1, object arg2, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Trace level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void TraceFormat(string template, object arg0, object arg1, object arg2,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isTraceEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void TraceFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isTraceEnabled)
+			{
+				this.WriteLog(LogLevel.Trace, null, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Trace, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region TraceFormat(string template, object arg0, object arg1, object arg2, object arg3, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Trace level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="arg3">Четвертый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void TraceFormat(string template, object arg0, object arg1, object arg2, object arg3,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isTraceEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <typeparam name="TArg4">Fourth argument type</typeparam>
+		/// <param name="arg4">Fourth argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void TraceFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isTraceEnabled)
+			{
+				this.WriteLog(LogLevel.Trace, null, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2, arg3);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Trace, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region TraceFormat(Exception exception, string template, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Trace level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void TraceFormat(Exception exception, string template,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isTraceEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void TraceFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isTraceEnabled)
+			{
+				this.WriteLog(LogLevel.Trace, exception, template, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Trace, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region TraceFormat(Exception exception, string template, object arg0, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Trace level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void TraceFormat(Exception exception, string template, object arg0,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isTraceEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void TraceFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isTraceEnabled)
+			{
+				this.WriteLog(LogLevel.Trace, exception, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Trace, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region TraceFormat(Exception exception, string template, object arg0, object arg1, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Trace level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void TraceFormat(Exception exception, string template, object arg0, object arg1,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isTraceEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void TraceFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isTraceEnabled)
+			{
+				this.WriteLog(LogLevel.Trace, exception, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Trace, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region TraceFormat(Exception exception, string template, object arg0, object arg1, object arg2, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Trace level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void TraceFormat(Exception exception, string template, object arg0, object arg1, object arg2,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isTraceEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void TraceFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isTraceEnabled)
+			{
+				this.WriteLog(LogLevel.Trace, exception, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Trace, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region TraceFormat(Exception exception, string template, object arg0, object arg1, object arg2, object arg3, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Trace level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="arg3">Четвертый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void TraceFormat(Exception exception, string template, object arg0, object arg1, object arg2, object arg3,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isTraceEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <typeparam name="TArg4">Fourth argument type</typeparam>
+		/// <param name="arg4">Fourth argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void TraceFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isTraceEnabled)
+			{
+				this.WriteLog(LogLevel.Trace, exception, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2, arg3);
+	
+		#endregion
 
-                var data = new LoggingEvent(message, exception, LogLevel.Trace, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-
-        #endregion
 
         #region Debug
 
-        #region Debug(..., string message, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+
+
+		/// <summary>
+		/// Writes log message at Debug level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Debug(string message,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isDebugEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, null, LogLevel.Debug, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Debug(..., string message, string context, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Debug(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isDebugEnabled)
+			{
+				this.WriteLog(LogLevel.Debug, null, message, null, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Debug level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="context">Контекст соолбщения. Строки в формате "id=3, pocessId=4, imageId=5"
-		/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД
-		/// и делать четкую выборку по интересующим полям.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Debug(string message, string context,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isDebugEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, null, LogLevel.Debug, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Debug(..., Exception exception, string message, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="context">Log message context.
+		/// Additional parameter that can be used to filter log messages.</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Debug(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isDebugEnabled)
+			{
+				this.WriteLog(LogLevel.Debug, null, message, context, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Debug level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Debug(Exception exception, string message,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isDebugEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, exception, LogLevel.Debug, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Debug(..., Exception exception, string message, string context, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Debug(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isDebugEnabled)
+			{
+				this.WriteLog(LogLevel.Debug, exception, message, null, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Debug level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="context">Контекст соолбщения. Строки в формате "id=3, pocessId=4, imageId=5"
-		/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД
-		/// и делать четкую выборку по интересующим полям.</param>
-		/// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Debug(Exception exception, string message, string context,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isDebugEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, exception, LogLevel.Debug, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
+		/// <param name="message">Log message</param>
+		/// <param name="context">Log message context.
+		/// Additional parameter that can be used to filter log messages.</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Debug(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isDebugEnabled)
+			{
+				this.WriteLog(LogLevel.Debug, exception, message, context, @class, method, filePath, lineNumber);
+			}
+		}
 
-        #endregion
-        #region DebugFormat
+	
 
-        #region DebugFormat(string template, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Debug level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void DebugFormat(string template,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isDebugEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void DebugFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isDebugEnabled)
+			{
+				this.WriteLog(LogLevel.Debug, null, template, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Debug, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region DebugFormat(string template, object arg0, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Debug level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void DebugFormat(string template, object arg0,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isDebugEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void DebugFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isDebugEnabled)
+			{
+				this.WriteLog(LogLevel.Debug, null, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Debug, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region DebugFormat(string template, object arg0, object arg1, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Debug level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void DebugFormat(string template, object arg0, object arg1,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isDebugEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void DebugFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isDebugEnabled)
+			{
+				this.WriteLog(LogLevel.Debug, null, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Debug, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region DebugFormat(string template, object arg0, object arg1, object arg2, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Debug level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void DebugFormat(string template, object arg0, object arg1, object arg2,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isDebugEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void DebugFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isDebugEnabled)
+			{
+				this.WriteLog(LogLevel.Debug, null, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Debug, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region DebugFormat(string template, object arg0, object arg1, object arg2, object arg3, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Debug level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="arg3">Четвертый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void DebugFormat(string template, object arg0, object arg1, object arg2, object arg3,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isDebugEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <typeparam name="TArg4">Fourth argument type</typeparam>
+		/// <param name="arg4">Fourth argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void DebugFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isDebugEnabled)
+			{
+				this.WriteLog(LogLevel.Debug, null, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2, arg3);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Debug, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region DebugFormat(Exception exception, string template, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Debug level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void DebugFormat(Exception exception, string template,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isDebugEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void DebugFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isDebugEnabled)
+			{
+				this.WriteLog(LogLevel.Debug, exception, template, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Debug, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region DebugFormat(Exception exception, string template, object arg0, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Debug level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void DebugFormat(Exception exception, string template, object arg0,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isDebugEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void DebugFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isDebugEnabled)
+			{
+				this.WriteLog(LogLevel.Debug, exception, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Debug, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region DebugFormat(Exception exception, string template, object arg0, object arg1, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Debug level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void DebugFormat(Exception exception, string template, object arg0, object arg1,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isDebugEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void DebugFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isDebugEnabled)
+			{
+				this.WriteLog(LogLevel.Debug, exception, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Debug, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region DebugFormat(Exception exception, string template, object arg0, object arg1, object arg2, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Debug level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void DebugFormat(Exception exception, string template, object arg0, object arg1, object arg2,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isDebugEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void DebugFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isDebugEnabled)
+			{
+				this.WriteLog(LogLevel.Debug, exception, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Debug, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region DebugFormat(Exception exception, string template, object arg0, object arg1, object arg2, object arg3, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Debug level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="arg3">Четвертый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void DebugFormat(Exception exception, string template, object arg0, object arg1, object arg2, object arg3,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isDebugEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <typeparam name="TArg4">Fourth argument type</typeparam>
+		/// <param name="arg4">Fourth argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void DebugFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isDebugEnabled)
+			{
+				this.WriteLog(LogLevel.Debug, exception, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2, arg3);
+	
+		#endregion
 
-                var data = new LoggingEvent(message, exception, LogLevel.Debug, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-
-        #endregion
 
         #region Info
 
-        #region Info(..., string message, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+
+
+		/// <summary>
+		/// Writes log message at Info level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Info(string message,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isInfoEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, null, LogLevel.Info, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Info(..., string message, string context, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Info(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isInfoEnabled)
+			{
+				this.WriteLog(LogLevel.Info, null, message, null, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Info level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="context">Контекст соолбщения. Строки в формате "id=3, pocessId=4, imageId=5"
-		/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД
-		/// и делать четкую выборку по интересующим полям.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Info(string message, string context,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isInfoEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, null, LogLevel.Info, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Info(..., Exception exception, string message, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="context">Log message context.
+		/// Additional parameter that can be used to filter log messages.</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Info(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isInfoEnabled)
+			{
+				this.WriteLog(LogLevel.Info, null, message, context, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Info level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Info(Exception exception, string message,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isInfoEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, exception, LogLevel.Info, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Info(..., Exception exception, string message, string context, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Info(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isInfoEnabled)
+			{
+				this.WriteLog(LogLevel.Info, exception, message, null, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Info level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="context">Контекст соолбщения. Строки в формате "id=3, pocessId=4, imageId=5"
-		/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД
-		/// и делать четкую выборку по интересующим полям.</param>
-		/// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Info(Exception exception, string message, string context,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isInfoEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, exception, LogLevel.Info, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
+		/// <param name="message">Log message</param>
+		/// <param name="context">Log message context.
+		/// Additional parameter that can be used to filter log messages.</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Info(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isInfoEnabled)
+			{
+				this.WriteLog(LogLevel.Info, exception, message, context, @class, method, filePath, lineNumber);
+			}
+		}
 
-        #endregion
-        #region InfoFormat
+	
 
-        #region InfoFormat(string template, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Info level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void InfoFormat(string template,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isInfoEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void InfoFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isInfoEnabled)
+			{
+				this.WriteLog(LogLevel.Info, null, template, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Info, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region InfoFormat(string template, object arg0, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Info level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void InfoFormat(string template, object arg0,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isInfoEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void InfoFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isInfoEnabled)
+			{
+				this.WriteLog(LogLevel.Info, null, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Info, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region InfoFormat(string template, object arg0, object arg1, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Info level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void InfoFormat(string template, object arg0, object arg1,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isInfoEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void InfoFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isInfoEnabled)
+			{
+				this.WriteLog(LogLevel.Info, null, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Info, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region InfoFormat(string template, object arg0, object arg1, object arg2, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Info level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void InfoFormat(string template, object arg0, object arg1, object arg2,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isInfoEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void InfoFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isInfoEnabled)
+			{
+				this.WriteLog(LogLevel.Info, null, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Info, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region InfoFormat(string template, object arg0, object arg1, object arg2, object arg3, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Info level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="arg3">Четвертый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void InfoFormat(string template, object arg0, object arg1, object arg2, object arg3,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isInfoEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <typeparam name="TArg4">Fourth argument type</typeparam>
+		/// <param name="arg4">Fourth argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void InfoFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isInfoEnabled)
+			{
+				this.WriteLog(LogLevel.Info, null, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2, arg3);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Info, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region InfoFormat(Exception exception, string template, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Info level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void InfoFormat(Exception exception, string template,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isInfoEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void InfoFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isInfoEnabled)
+			{
+				this.WriteLog(LogLevel.Info, exception, template, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Info, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region InfoFormat(Exception exception, string template, object arg0, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Info level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void InfoFormat(Exception exception, string template, object arg0,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isInfoEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void InfoFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isInfoEnabled)
+			{
+				this.WriteLog(LogLevel.Info, exception, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Info, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region InfoFormat(Exception exception, string template, object arg0, object arg1, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Info level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void InfoFormat(Exception exception, string template, object arg0, object arg1,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isInfoEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void InfoFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isInfoEnabled)
+			{
+				this.WriteLog(LogLevel.Info, exception, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Info, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region InfoFormat(Exception exception, string template, object arg0, object arg1, object arg2, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Info level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void InfoFormat(Exception exception, string template, object arg0, object arg1, object arg2,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isInfoEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void InfoFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isInfoEnabled)
+			{
+				this.WriteLog(LogLevel.Info, exception, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Info, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region InfoFormat(Exception exception, string template, object arg0, object arg1, object arg2, object arg3, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Info level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="arg3">Четвертый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void InfoFormat(Exception exception, string template, object arg0, object arg1, object arg2, object arg3,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isInfoEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <typeparam name="TArg4">Fourth argument type</typeparam>
+		/// <param name="arg4">Fourth argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void InfoFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isInfoEnabled)
+			{
+				this.WriteLog(LogLevel.Info, exception, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2, arg3);
+	
+		#endregion
 
-                var data = new LoggingEvent(message, exception, LogLevel.Info, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-
-        #endregion
 
         #region Warn
 
-        #region Warn(..., string message, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+
+
+		/// <summary>
+		/// Writes log message at Warn level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Warn(string message,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isWarnEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, null, LogLevel.Warn, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Warn(..., string message, string context, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Warn(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isWarnEnabled)
+			{
+				this.WriteLog(LogLevel.Warn, null, message, null, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Warn level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="context">Контекст соолбщения. Строки в формате "id=3, pocessId=4, imageId=5"
-		/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД
-		/// и делать четкую выборку по интересующим полям.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Warn(string message, string context,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isWarnEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, null, LogLevel.Warn, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Warn(..., Exception exception, string message, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="context">Log message context.
+		/// Additional parameter that can be used to filter log messages.</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Warn(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isWarnEnabled)
+			{
+				this.WriteLog(LogLevel.Warn, null, message, context, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Warn level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Warn(Exception exception, string message,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isWarnEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, exception, LogLevel.Warn, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Warn(..., Exception exception, string message, string context, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Warn(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isWarnEnabled)
+			{
+				this.WriteLog(LogLevel.Warn, exception, message, null, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Warn level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="context">Контекст соолбщения. Строки в формате "id=3, pocessId=4, imageId=5"
-		/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД
-		/// и делать четкую выборку по интересующим полям.</param>
-		/// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Warn(Exception exception, string message, string context,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isWarnEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, exception, LogLevel.Warn, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
+		/// <param name="message">Log message</param>
+		/// <param name="context">Log message context.
+		/// Additional parameter that can be used to filter log messages.</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Warn(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isWarnEnabled)
+			{
+				this.WriteLog(LogLevel.Warn, exception, message, context, @class, method, filePath, lineNumber);
+			}
+		}
 
-        #endregion
-        #region WarnFormat
+	
 
-        #region WarnFormat(string template, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Warn level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void WarnFormat(string template,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isWarnEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void WarnFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isWarnEnabled)
+			{
+				this.WriteLog(LogLevel.Warn, null, template, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Warn, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region WarnFormat(string template, object arg0, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Warn level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void WarnFormat(string template, object arg0,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isWarnEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void WarnFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isWarnEnabled)
+			{
+				this.WriteLog(LogLevel.Warn, null, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Warn, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region WarnFormat(string template, object arg0, object arg1, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Warn level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void WarnFormat(string template, object arg0, object arg1,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isWarnEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void WarnFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isWarnEnabled)
+			{
+				this.WriteLog(LogLevel.Warn, null, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Warn, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region WarnFormat(string template, object arg0, object arg1, object arg2, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Warn level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void WarnFormat(string template, object arg0, object arg1, object arg2,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isWarnEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void WarnFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isWarnEnabled)
+			{
+				this.WriteLog(LogLevel.Warn, null, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Warn, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region WarnFormat(string template, object arg0, object arg1, object arg2, object arg3, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Warn level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="arg3">Четвертый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void WarnFormat(string template, object arg0, object arg1, object arg2, object arg3,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isWarnEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <typeparam name="TArg4">Fourth argument type</typeparam>
+		/// <param name="arg4">Fourth argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void WarnFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isWarnEnabled)
+			{
+				this.WriteLog(LogLevel.Warn, null, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2, arg3);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Warn, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region WarnFormat(Exception exception, string template, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Warn level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void WarnFormat(Exception exception, string template,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isWarnEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void WarnFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isWarnEnabled)
+			{
+				this.WriteLog(LogLevel.Warn, exception, template, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Warn, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region WarnFormat(Exception exception, string template, object arg0, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Warn level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void WarnFormat(Exception exception, string template, object arg0,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isWarnEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void WarnFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isWarnEnabled)
+			{
+				this.WriteLog(LogLevel.Warn, exception, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Warn, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region WarnFormat(Exception exception, string template, object arg0, object arg1, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Warn level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void WarnFormat(Exception exception, string template, object arg0, object arg1,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isWarnEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void WarnFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isWarnEnabled)
+			{
+				this.WriteLog(LogLevel.Warn, exception, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Warn, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region WarnFormat(Exception exception, string template, object arg0, object arg1, object arg2, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Warn level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void WarnFormat(Exception exception, string template, object arg0, object arg1, object arg2,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isWarnEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void WarnFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isWarnEnabled)
+			{
+				this.WriteLog(LogLevel.Warn, exception, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Warn, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region WarnFormat(Exception exception, string template, object arg0, object arg1, object arg2, object arg3, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Warn level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="arg3">Четвертый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void WarnFormat(Exception exception, string template, object arg0, object arg1, object arg2, object arg3,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isWarnEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <typeparam name="TArg4">Fourth argument type</typeparam>
+		/// <param name="arg4">Fourth argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void WarnFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isWarnEnabled)
+			{
+				this.WriteLog(LogLevel.Warn, exception, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2, arg3);
+	
+		#endregion
 
-                var data = new LoggingEvent(message, exception, LogLevel.Warn, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-
-        #endregion
 
         #region Error
 
-        #region Error(..., string message, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+
+
+		/// <summary>
+		/// Writes log message at Error level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Error(string message,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isErrorEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, null, LogLevel.Error, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Error(..., string message, string context, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Error(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isErrorEnabled)
+			{
+				this.WriteLog(LogLevel.Error, null, message, null, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Error level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="context">Контекст соолбщения. Строки в формате "id=3, pocessId=4, imageId=5"
-		/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД
-		/// и делать четкую выборку по интересующим полям.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Error(string message, string context,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isErrorEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, null, LogLevel.Error, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Error(..., Exception exception, string message, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="context">Log message context.
+		/// Additional parameter that can be used to filter log messages.</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Error(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isErrorEnabled)
+			{
+				this.WriteLog(LogLevel.Error, null, message, context, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Error level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Error(Exception exception, string message,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isErrorEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, exception, LogLevel.Error, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Error(..., Exception exception, string message, string context, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Error(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isErrorEnabled)
+			{
+				this.WriteLog(LogLevel.Error, exception, message, null, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Error level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="context">Контекст соолбщения. Строки в формате "id=3, pocessId=4, imageId=5"
-		/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД
-		/// и делать четкую выборку по интересующим полям.</param>
-		/// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Error(Exception exception, string message, string context,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isErrorEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, exception, LogLevel.Error, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
+		/// <param name="message">Log message</param>
+		/// <param name="context">Log message context.
+		/// Additional parameter that can be used to filter log messages.</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Error(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isErrorEnabled)
+			{
+				this.WriteLog(LogLevel.Error, exception, message, context, @class, method, filePath, lineNumber);
+			}
+		}
 
-        #endregion
-        #region ErrorFormat
+	
 
-        #region ErrorFormat(string template, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Error level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void ErrorFormat(string template,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isErrorEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void ErrorFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isErrorEnabled)
+			{
+				this.WriteLog(LogLevel.Error, null, template, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Error, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region ErrorFormat(string template, object arg0, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Error level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void ErrorFormat(string template, object arg0,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isErrorEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void ErrorFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isErrorEnabled)
+			{
+				this.WriteLog(LogLevel.Error, null, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Error, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region ErrorFormat(string template, object arg0, object arg1, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Error level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void ErrorFormat(string template, object arg0, object arg1,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isErrorEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void ErrorFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isErrorEnabled)
+			{
+				this.WriteLog(LogLevel.Error, null, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Error, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region ErrorFormat(string template, object arg0, object arg1, object arg2, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Error level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void ErrorFormat(string template, object arg0, object arg1, object arg2,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isErrorEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void ErrorFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isErrorEnabled)
+			{
+				this.WriteLog(LogLevel.Error, null, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Error, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region ErrorFormat(string template, object arg0, object arg1, object arg2, object arg3, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Error level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="arg3">Четвертый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void ErrorFormat(string template, object arg0, object arg1, object arg2, object arg3,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isErrorEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <typeparam name="TArg4">Fourth argument type</typeparam>
+		/// <param name="arg4">Fourth argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void ErrorFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isErrorEnabled)
+			{
+				this.WriteLog(LogLevel.Error, null, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2, arg3);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Error, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region ErrorFormat(Exception exception, string template, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Error level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void ErrorFormat(Exception exception, string template,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isErrorEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void ErrorFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isErrorEnabled)
+			{
+				this.WriteLog(LogLevel.Error, exception, template, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Error, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region ErrorFormat(Exception exception, string template, object arg0, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Error level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void ErrorFormat(Exception exception, string template, object arg0,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isErrorEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void ErrorFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isErrorEnabled)
+			{
+				this.WriteLog(LogLevel.Error, exception, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Error, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region ErrorFormat(Exception exception, string template, object arg0, object arg1, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Error level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void ErrorFormat(Exception exception, string template, object arg0, object arg1,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isErrorEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void ErrorFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isErrorEnabled)
+			{
+				this.WriteLog(LogLevel.Error, exception, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Error, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region ErrorFormat(Exception exception, string template, object arg0, object arg1, object arg2, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Error level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void ErrorFormat(Exception exception, string template, object arg0, object arg1, object arg2,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isErrorEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void ErrorFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isErrorEnabled)
+			{
+				this.WriteLog(LogLevel.Error, exception, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Error, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region ErrorFormat(Exception exception, string template, object arg0, object arg1, object arg2, object arg3, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Error level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="arg3">Четвертый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void ErrorFormat(Exception exception, string template, object arg0, object arg1, object arg2, object arg3,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isErrorEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <typeparam name="TArg4">Fourth argument type</typeparam>
+		/// <param name="arg4">Fourth argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void ErrorFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isErrorEnabled)
+			{
+				this.WriteLog(LogLevel.Error, exception, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2, arg3);
+	
+		#endregion
 
-                var data = new LoggingEvent(message, exception, LogLevel.Error, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-
-        #endregion
 
         #region Fatal
 
-        #region Fatal(..., string message, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+
+
+		/// <summary>
+		/// Writes log message at Fatal level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Fatal(string message,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isFatalEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, null, LogLevel.Fatal, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Fatal(..., string message, string context, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Fatal(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isFatalEnabled)
+			{
+				this.WriteLog(LogLevel.Fatal, null, message, null, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Fatal level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="context">Контекст соолбщения. Строки в формате "id=3, pocessId=4, imageId=5"
-		/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД
-		/// и делать четкую выборку по интересующим полям.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Fatal(string message, string context,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isFatalEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, null, LogLevel.Fatal, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Fatal(..., Exception exception, string message, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="context">Log message context.
+		/// Additional parameter that can be used to filter log messages.</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Fatal(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isFatalEnabled)
+			{
+				this.WriteLog(LogLevel.Fatal, null, message, context, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Fatal level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Fatal(Exception exception, string message,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isFatalEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, exception, LogLevel.Fatal, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region Fatal(..., Exception exception, string message, string context, ...)
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <param name="message">Log message</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Fatal(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isFatalEnabled)
+			{
+				this.WriteLog(LogLevel.Fatal, exception, message, null, @class, method, filePath, lineNumber);
+			}
+		}
+
+	
+
+		/// <summary>
+		/// Writes log message at Fatal level with specified parameters.
 		/// </summary>
-        /// <param name="message">Сообщение для логгирования.</param>
-        /// <param name="context">Контекст соолбщения. Строки в формате "id=3, pocessId=4, imageId=5"
-		/// Идея этого поля в том чтобы записывать значения из контекста в отдельный столбец(ы) в БД
-		/// и делать четкую выборку по интересующим полям.</param>
-		/// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void Fatal(Exception exception, string message, string context,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isFatalEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
-                
-				var data = new LoggingEvent(message, exception, LogLevel.Fatal, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
+		/// <param name="message">Log message</param>
+		/// <param name="context">Log message context.
+		/// Additional parameter that can be used to filter log messages.</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Fatal(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isFatalEnabled)
+			{
+				this.WriteLog(LogLevel.Fatal, exception, message, context, @class, method, filePath, lineNumber);
+			}
+		}
 
-        #endregion
-        #region FatalFormat
+	
 
-        #region FatalFormat(string template, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Fatal level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void FatalFormat(string template,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isFatalEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void FatalFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isFatalEnabled)
+			{
+				this.WriteLog(LogLevel.Fatal, null, template, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Fatal, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region FatalFormat(string template, object arg0, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Fatal level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void FatalFormat(string template, object arg0,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isFatalEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void FatalFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isFatalEnabled)
+			{
+				this.WriteLog(LogLevel.Fatal, null, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Fatal, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region FatalFormat(string template, object arg0, object arg1, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Fatal level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void FatalFormat(string template, object arg0, object arg1,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isFatalEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void FatalFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isFatalEnabled)
+			{
+				this.WriteLog(LogLevel.Fatal, null, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Fatal, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region FatalFormat(string template, object arg0, object arg1, object arg2, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Fatal level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void FatalFormat(string template, object arg0, object arg1, object arg2,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isFatalEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void FatalFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isFatalEnabled)
+			{
+				this.WriteLog(LogLevel.Fatal, null, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Fatal, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region FatalFormat(string template, object arg0, object arg1, object arg2, object arg3, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Fatal level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="arg3">Четвертый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void FatalFormat(string template, object arg0, object arg1, object arg2, object arg3,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isFatalEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <typeparam name="TArg4">Fourth argument type</typeparam>
+		/// <param name="arg4">Fourth argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void FatalFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isFatalEnabled)
+			{
+				this.WriteLog(LogLevel.Fatal, null, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2, arg3);
+	
 
-                var data = new LoggingEvent(message, null, LogLevel.Fatal, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region FatalFormat(Exception exception, string template, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Fatal level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void FatalFormat(Exception exception, string template,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isFatalEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void FatalFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isFatalEnabled)
+			{
+				this.WriteLog(LogLevel.Fatal, exception, template, null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Fatal, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region FatalFormat(Exception exception, string template, object arg0, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Fatal level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void FatalFormat(Exception exception, string template, object arg0,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isFatalEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void FatalFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isFatalEnabled)
+			{
+				this.WriteLog(LogLevel.Fatal, exception, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Fatal, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region FatalFormat(Exception exception, string template, object arg0, object arg1, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Fatal level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void FatalFormat(Exception exception, string template, object arg0, object arg1,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isFatalEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void FatalFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isFatalEnabled)
+			{
+				this.WriteLog(LogLevel.Fatal, exception, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Fatal, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region FatalFormat(Exception exception, string template, object arg0, object arg1, object arg2, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Fatal level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void FatalFormat(Exception exception, string template, object arg0, object arg1, object arg2,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isFatalEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void FatalFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isFatalEnabled)
+			{
+				this.WriteLog(LogLevel.Fatal, exception, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2);
+	
 
-                var data = new LoggingEvent(message, exception, LogLevel.Fatal, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-        #region FatalFormat(Exception exception, string template, object arg0, object arg1, object arg2, object arg3, ...)
-    
-        /// <summary>
-		/// Универсальный метод логгирования в который помимо прочих аргументов передается уровень логгирования.
+		/// <summary>
+		/// Writes log message at Fatal level with specified parameters.
 		/// </summary>
-        /// <param name="template">Шаблон сообщения (как в string.Format)</param>
-        /// <param name="exception">Возникшее исключение.</param>
-		/// <param name="arg0">Первый аргумент</param>
-		/// <param name="arg1">Второй аргумент</param>
-		/// <param name="arg2">Третий аргумент</param>
-		/// <param name="arg3">Четвертый аргумент</param>
-		/// <param name="guard">Защитный параметр</param>
-		/// <param name="class">Имя класса из которого происходит логгирование.</param>
-		/// <param name="lineNumber">Автоподставляемый параметр! Номер строки в файле исходного кода,
-		/// на которой произошел вызов метода логгирования.</param>
-		/// <param name="filePath">Автоподставляемый параметр! Имя файла исходного кода,
-		/// из которого произошел вызов метода логгирования.</param>
-		/// <param name="method">Автоподставляемый параметр! Имя метода,
-		/// из которого произошел вызов метода логгирования.</param>
-        public void FatalFormat(Exception exception, string template, object arg0, object arg1, object arg2, object arg3,
-                    ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
-        {
-            if (_isEnabled && _isFatalEnabled)
-            {
-				string assembly = null;
-				string @namespace = null;
-				ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+		/// <param name="template">Message template (similar to string.Format)</param>
+		/// <param name="exception">Exception object to be logged</param>
+		/// <typeparam name="TArg1">First argument type</typeparam>
+		/// <param name="arg1">First argument</param>
+		/// <typeparam name="TArg2">Second argument type</typeparam>
+		/// <param name="arg2">Second argument</param>
+		/// <typeparam name="TArg3">Third argument type</typeparam>
+		/// <param name="arg3">Third argument</param>
+		/// <typeparam name="TArg4">Fourth argument type</typeparam>
+		/// <param name="arg4">Fourth argument</param>
+		/// <param name="guard">Special guard parameter</param>
+		/// <param name="class">Name of the class from which logging is performed.</param>
+		/// <param name="lineNumber">Auto-completed parameter! Line number in source code file 
+		/// at which the logging performed.</param>
+		/// <param name="filePath">Auto-completed parameter! Source code file name 
+		/// from which logging performed</param>
+		/// <param name="method">Auto-completed parameter! Method name 
+		/// from which logging performed.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void FatalFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		{
+			if (_isEnabled && _isFatalEnabled)
+			{
+				this.WriteLog(LogLevel.Fatal, exception, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
+			}
+		}
 
-                var message = string.Format(template, arg0, arg1, arg2, arg3);
+	
+		#endregion
 
-                var data = new LoggingEvent(message, exception, LogLevel.Fatal, null, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
-                _logger.Write(data);
-            }
-        }
-        #endregion
-
-        #endregion
-
-        #endregion
+		#endregion
     }
 }

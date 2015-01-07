@@ -7,16 +7,16 @@ using Qoollo.Logger.Writers;
 namespace Qoollo.Logger
 {
     /// <summary>
-    /// Фабрика, с помощью которой можно создать полноценный логгер или внутренний логгер (writer)
+    /// Factory to create instance of logger by configuration
     /// </summary>
     public static class LoggerFactory
     {
         /// <summary>
-        /// Создаёт уже обернутый логгер для модуля с именем moduleName (уже готовый для логирования)
+        /// Create logger by configuration in AppConfig for module with name 'moduleName'
         /// </summary>
-        /// <param name="moduleName">Имя модуля</param>
-        /// <param name="sectionName">Имя конфигурационной секции в AppConfig </param>
-        /// <returns>Логгер</returns>
+        /// <param name="moduleName">Name of the module</param>
+        /// <param name="sectionName">Configuration section name in AppConfig (default: 'LoggerConfigurationSection')</param>
+        /// <returns>Created logger</returns>
         public static Logger CreateLoggerFromAppConfig(string moduleName, string sectionName)
         {
             Contract.Requires<ArgumentNullException>(moduleName != null, "moduleName");
@@ -26,18 +26,18 @@ namespace Qoollo.Logger
 
             Contract.Assume(config != null);
             if (config == null)
-                throw new ArgumentNullException("Ошбика конфигурирования логгера");
+                throw new ArgumentNullException("Logger configuration error");
 
             return CreateLogger(moduleName, config);
         }
 
         /// <summary>
-        /// Создаёт уже обернутый логгер для модуля с именем moduleName (уже готовый для логирования)
+        /// Create logger by configuration in AppConfig for module with name 'moduleName'
         /// </summary>
-        /// <param name="moduleName">Имя модуля</param>
-        /// <param name="sectionGroupName">Имя группы секций</param>
-        /// <param name="sectionName">Имя конфигурационной секции в AppConfig </param>
-        /// <returns>Логгер</returns>
+        /// <param name="moduleName">Name of the module</param>
+        /// <param name="sectionGroupName">SectionGroup name in AppConfig</param>
+        /// <param name="sectionName">Configuration section name in AppConfig (default: 'LoggerConfigurationSection')</param>
+        /// <returns>Created logger</returns>
         public static Logger CreateLoggerFromAppConfig(string moduleName, string sectionGroupName, string sectionName)
         {
             Contract.Requires<ArgumentNullException>(moduleName != null);
@@ -48,17 +48,17 @@ namespace Qoollo.Logger
 
             Contract.Assume(config != null);
             if (config == null)
-                throw new ArgumentNullException("Ошбика конфигурирования логгера");
+                throw new ArgumentNullException("Logger configuration error");
 
             return CreateLogger(moduleName, config);
         }
 
         /// <summary>
-        /// Создаёт уже обернутый логгер для модуля с именем moduleName (уже готовый для логирования)
+        /// Create logger by passed configuration for module with name 'moduleName'
         /// </summary>
-        /// <param name="configuration">Конфигурация логгера</param>
-        /// <param name="moduleName">Имя модуля </param>
-        /// <returns>Логгер</returns>
+        /// <param name="configuration">Logger configuration object</param>
+        /// <param name="moduleName">Module name</param>
+        /// <returns>Created logger</returns>
         public static Logger CreateLogger(string moduleName, LoggerConfiguration configuration)
         {
             Contract.Requires<ArgumentNullException>(moduleName != null, "moduleName");
@@ -75,9 +75,9 @@ namespace Qoollo.Logger
 
 
         /// <summary>
-        /// Создает определенный Writer
+        /// Create log Writer or Wrapper by its configuration
         /// </summary>
-        /// <param name="config">Конфигурация логгера</param>
+        /// <param name="config">Writer or Wrapper configuration</param>
         internal static ILoggingEventWriter CreateWriter(LogWriterWrapperConfiguration config)
         {
             Contract.Requires<ArgumentNullException>(config != null, "configuration");
@@ -121,7 +121,7 @@ namespace Qoollo.Logger
                     return new ReliableWrapper((ReliableWrapperConfiguration)config);
 
                 default:
-                    throw new NotImplementedException("Не известный тип ресурса для записи логов. Нет возможности произвести инстанцирование");
+                    throw new ArgumentException("Unknown type of logger Writer/Wrapper configuration: " + config.WriterType.ToString());
             }
         }
     }

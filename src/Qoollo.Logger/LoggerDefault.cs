@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Qoollo.Logger
 {
     /// <summary>
-    /// Набор стандартных логгеров
+    /// Contains several default loggers (Empty, Console, Global singleton)
     /// </summary>
     public static class LoggerDefault
     {
@@ -20,53 +20,71 @@ namespace Qoollo.Logger
         private static readonly object _lockCreation = new object();
 
         /// <summary>
-        /// Пустой логгер (в никуда)
+        /// Init empty logger instance
+        /// </summary>
+        private static void CreateEmptyLogger()
+        {
+            if (_emptyInstance == null)
+            {
+                lock (_lockCreation)
+                {
+                    if (_emptyInstance == null)
+                    {
+                        var config = new EmptyWriterConfiguration();
+                        _emptyInstance = new Logger(LogLevel.Info, "EmptyLogger", LoggerFactory.CreateWriter(config), false, true);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Init console logger instance
+        /// </summary>
+        private static void CreateConsoleLogger()
+        {
+            if (_consoleInstance == null)
+            {
+                lock (_lockCreation)
+                {
+                    if (_consoleInstance == null)
+                    {
+                        var config = new ConsoleWriterConfiguration();
+                        _consoleInstance = new Logger(LogLevel.FullLog, "ConsoleLogger", LoggerFactory.CreateWriter(config), false, true);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Empty logger (not writes any message)
         /// </summary>
         public static Logger EmptyLogger
         {
             get
             {
                 if (_emptyInstance == null)
-                {
-                    lock (_lockCreation)
-                    {
-                        if (_emptyInstance == null)
-                        {
-                            var config = new EmptyWriterConfiguration();
-                            _emptyInstance = new Logger(LogLevel.Info, "EmptyLogger", LoggerFactory.CreateWriter(config), false, true);
-                        }
-                    }
-                }
+                    CreateEmptyLogger();
 
                 return _emptyInstance;
             }
         }
 
         /// <summary>
-        /// Простой консольный логгер
+        /// Simple logger to Console
         /// </summary>
         public static Logger ConsoleLogger
         {
             get
             {
                 if (_consoleInstance == null)
-                {
-                    lock (_lockCreation)
-                    {
-                        if (_consoleInstance == null)
-                        {
-                            var config = new ConsoleWriterConfiguration();
-                            _consoleInstance = new Logger(LogLevel.FullLog, "ConsoleLogger", LoggerFactory.CreateWriter(config), false, true);
-                        }
-                    }
-                }
+                    CreateConsoleLogger();
 
                 return _consoleInstance;
             }
         }
 
         /// <summary>
-        /// Логгер по умолчанию
+        /// Global logger singleton
         /// </summary>
         public static Logger Instance
         {
@@ -79,9 +97,9 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Задать логгер по умолчанию
+        /// Set global logger singleton instance
         /// </summary>
-        /// <param name="newDefault">Новый логгер</param>
+        /// <param name="newDefault">New instance</param>
         public static void SetInstance(Logger newDefault)
         {
             if (newDefault == null)
@@ -92,16 +110,16 @@ namespace Qoollo.Logger
                 oldLogger.Dispose();
         }
         /// <summary>
-        /// Сбросить логгер по умолчанию в стандартный
+        /// Reset global logger singleton
         /// </summary>
         public static void ResetInstance()
         {
             SetInstance(null);
         }
         /// <summary>
-        /// Загрузить логгер по умолчанию из файла конфигурации
+        /// Load global logger singleton from AppConfig
         /// </summary>
-        /// <param name="sectionName">Имя секции для загрузки</param>
+        /// <param name="sectionName">Section name in AppConfig</param>
         public static void LoadInstanceFromAppConfig(string sectionName = "LoggerConfigurationSection")
         {
             Contract.Requires<ArgumentNullException>(sectionName != null);

@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Qoollo.Logger.Helpers
 {
+    /// <summary>
+    /// Local machine info
+    /// </summary>
     internal static class LocalMachineInfo
     {
         private static string _machineName;
@@ -27,6 +30,30 @@ namespace Qoollo.Logger.Helpers
             }
         }
 
+
+        /// <summary>
+        /// Init MachineAddress
+        /// </summary>
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private static void InitMachineAddress()
+        {
+            if (_machineAddress == null)
+            {
+                if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+                {
+                    var host = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName());
+                    var ipAddr = host.AddressList.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+                    if (ipAddr != null)
+                        _machineAddress = ipAddr.ToString();
+                }
+
+                if (_machineAddress == null)
+                    _machineAddress = "<no network>";
+
+                System.Threading.Thread.MemoryBarrier();
+            }
+        }
+
         /// <summary>
         /// Адрес машины
         /// </summary>
@@ -35,18 +62,7 @@ namespace Qoollo.Logger.Helpers
             get
             {
                 if (_machineAddress == null)
-                {
-                    if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
-                    {
-                        var host = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName());
-                        var ipAddr = host.AddressList.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
-                        if (ipAddr != null)
-                            _machineAddress = ipAddr.ToString();
-                    }
-
-                    if (_machineAddress == null)
-                        _machineAddress = "<no network>";
-                }
+                    InitMachineAddress();
                 return _machineAddress;
             }
         }

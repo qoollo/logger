@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 namespace Qoollo.Logger
 {
     /// <summary>
-    /// Класс представляет собой уровень логирования и методы работы с ним
+    /// Severity level of log message
     /// </summary>
     [DataContract]
     public sealed class LogLevel : IComparable, IComparable<LogLevel>, IEquatable<LogLevel>
@@ -28,38 +28,38 @@ namespace Qoollo.Logger
 
 
         /// <summary>
-        /// Константа для уровня логгирования Trace
+        /// Trace level (0 - minimal severity)
         /// </summary>
         public static readonly LogLevel Trace = new LogLevel(TraceValueConst, TraceLevelConst);
 
         /// <summary>
-        /// Константа для уровня логгирования Debug
+        /// Debug level (1)
         /// </summary>
         public static readonly LogLevel Debug = new LogLevel(DebugValueConst, DebugLevelConst);
 
         /// <summary>
-        /// Константа для уровня логгирования Info
+        /// Info level (2)
         /// </summary>
         public static readonly LogLevel Info = new LogLevel(InfoValueConst, InfoLevelConst);
 
         /// <summary>
-        /// Константа для уровня логгирования Warn
+        /// Warn level (3)
         /// </summary>
         public static readonly LogLevel Warn = new LogLevel(WarnValueConst, WarnLevelConst);
 
         /// <summary>
-        /// Константа для уровня логгирования Error
+        /// Error level (4)
         /// </summary>
         public static readonly LogLevel Error = new LogLevel(ErrorValueConst, ErrorLevelConst);
 
         /// <summary>
-        /// Константа для уровня логгирования Fatal
+        /// Fatal level (5 - maximal severity)
         /// </summary>
         public static readonly LogLevel Fatal = new LogLevel(FatalValueConst, FatalLevelConst);
 
 
         /// <summary>
-        /// Константа для логирования всего
+        /// Constant for loggers to process all messages' levels (equal to Trace)
         /// </summary>
         public static LogLevel FullLog { get { return Trace; } }
 
@@ -68,13 +68,17 @@ namespace Qoollo.Logger
         #region constructors
 
         /// <summary>
-        /// Конструктор по умолчанию нужен для десериализации
+        /// Constructor without parameters
         /// </summary>
         internal LogLevel()
         {
             Level = TraceLevelConst;
         }
-
+        /// <summary>
+        /// Private constructor for concrete level
+        /// </summary>
+        /// <param name="value">Description</param>
+        /// <param name="level">Level value</param>
         private LogLevel(string value, int level)
         {
             Name = value;
@@ -82,13 +86,16 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Преобразование строкового имени уровня логгирования в тип LogLevel
+        /// Convert string representation of LogLevel to the object of LogLevel class
         /// </summary>
-        /// <param name="value">Cтроковое имя уровня логгирования</param>
-        /// <returns></returns>
+        /// <param name="value">String representation</param>
+        /// <returns>LogLevel</returns>
         public static LogLevel Parse(string value)
         {
             Contract.Requires(value != null);
+
+            if (value == null)
+                throw new ArgumentNullException("value");
 
             switch (value.ToUpper())
             {
@@ -105,15 +112,15 @@ namespace Qoollo.Logger
                 case FatalValueConst:
                     return Fatal;
                 default:
-                    return null;
+                    throw new ArgumentException("Unknown log level string representation: " + value.ToString());
             }
         }
 
         /// <summary>
-        /// Преобразование целочисленного значения уровня логгирования в тип LogLevel
+        /// Convert integer number representation of LogLevel to object of LogLevel class
         /// </summary>
-        /// <param name="value">Число от 0 до 5</param>
-        /// <returns></returns>
+        /// <param name="value">Number (0 - 5)</param>
+        /// <returns>LogLevel</returns>
         public static LogLevel Parse(int value)
         {
             switch (value)
@@ -131,7 +138,7 @@ namespace Qoollo.Logger
                 case FatalLevelConst:
                     return Fatal;
                 default:
-                    return null;
+                    throw new ArgumentException("Unknown log level number representation: " + value.ToString());
             }
         }
 
@@ -140,14 +147,14 @@ namespace Qoollo.Logger
         #region properties
 
         /// <summary>
-        /// Название уровня логирования (TRACE, DEBUG, ..., FATAL)
+        /// LogLevel name (TRACE, DEBUG, ..., FATAL)
         /// </summary>
         public string Name { get; private set; }
 
         private int _level;
 
         /// <summary>
-        /// Порядковый номер уровня логирования (0, 1, ..., 5)
+        /// LogLevel number representation (0, 1, ..., 5)
         /// </summary>
         [DataMember(Order = 1)]
         public int Level
@@ -184,7 +191,7 @@ namespace Qoollo.Logger
 
                     default:
                         throw new ArgumentException(string.Format(
-                            "Не существует уровня логирования \"{0}\".", _level));
+                            "Unknown log level \"{0}\".", _level));
                 }
             }
         }
@@ -192,7 +199,7 @@ namespace Qoollo.Logger
         #region IsTraceEnabled,..., IsFatalEnabled
 
         /// <summary>
-        /// Активен ли уровень логгирования Trace
+        /// Is messages with 'Trace' level will be process by logger configurated with this LogLevel
         /// </summary>
         public bool IsTraceEnabled
         {
@@ -200,7 +207,7 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Активен ли уровень логгирования Debug
+        /// Is messages with 'Debug' level will be process by logger configurated with this LogLevel
         /// </summary>
         public bool IsDebugEnabled
         {
@@ -208,7 +215,7 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Активен ли уровень логгирования Info
+        /// Is messages with 'Info' level will be process by logger configurated with this LogLevel
         /// </summary>
         public bool IsInfoEnabled
         {
@@ -216,7 +223,7 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Активен ли уровень логгирования Warn
+        /// Is messages with 'Warn' level will be process by logger configurated with this LogLevel
         /// </summary>
         public bool IsWarnEnabled
         {
@@ -224,7 +231,7 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Активен ли уровень логгирования Error
+        /// Is messages with 'Error' level will be process by logger configurated with this LogLevel
         /// </summary>
         public bool IsErrorEnabled
         {
@@ -232,7 +239,7 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Активен ли уровень логгирования Fatal
+        /// Is messages with 'Fatal' level will be process by logger configurated with this LogLevel
         /// </summary>
         public bool IsFatalEnabled
         {
@@ -240,10 +247,10 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Определяет активен ли уровень логгирования
+        /// Is messages with passed 'level' will be process by logger configurated with this LogLevel
         /// </summary>
-        /// <param name="level">Уровень логгирования активность которого проверяется</param>
-        /// <returns></returns>
+        /// <param name="level">Checking log level</param>
+        /// <returns>Is enabled</returns>
         public bool IsEnabled(LogLevel level)
         {
             Contract.Requires(level != null);
@@ -260,21 +267,20 @@ namespace Qoollo.Logger
         #region IComparable Members
 
         /// <summary>
-        /// Реализация IComparable
+        /// Compares this LogLevel with log level passed as parameter
         /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <param name="obj">LogLevel object</param>
+        /// <returns>Comparison result</returns>
         public int CompareTo(object obj)
         {
             if (obj == null)
                 return 1;
 
             var logLevel = obj as LogLevel;
-
-            if (!ReferenceEquals(logLevel, null))
-                return Level - logLevel.Level;
-            else
+            if (object.ReferenceEquals(logLevel, null))
                 throw new ArgumentException("Object is not a LogLevel");
+
+            return this.Level - logLevel.Level;
         }
 
         #endregion
@@ -282,16 +288,16 @@ namespace Qoollo.Logger
         #region IComparable<LogLevel> Members
 
         /// <summary>
-        /// Реализация IComparable<LogLevel/>
+        /// Compares this LogLevel with log level passed as parameter
         /// </summary>
-        /// <param name="other"></param>
-        /// <returns></returns>
+        /// <param name="other">LogLevel object</param>
+        /// <returns>Comparison result</returns>
         public int CompareTo(LogLevel other)
         {
             if (ReferenceEquals(other, null))
                 return 1;
 
-            return Level - other.Level;
+            return this.Level - other.Level;
         }
 
         #endregion
@@ -299,16 +305,16 @@ namespace Qoollo.Logger
         #region IEquatable<LogLevel> Members
 
         /// <summary>
-        /// Реализация IEquatable<LogLevel/>
+        /// Equality comparsion of LogLevels
         /// </summary>
-        /// <param name="other"></param>
-        /// <returns></returns>
+        /// <param name="other">LogLevel to compare with</param>
+        /// <returns>Is equals</returns>
         public bool Equals(LogLevel other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            return Level == other.Level;
+            return this.Level == other.Level;
         }
 
         #endregion
@@ -316,20 +322,20 @@ namespace Qoollo.Logger
         #region Equality members
 
         /// <summary>
-        /// Переобределние получения хеша
+        /// Returns the hash code of LogLevel object
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Hash code</returns>
         public override int GetHashCode()
         {
             return Level;
         }
 
         /// <summary>
-        /// Переопределение ==
+        /// Equality comparison operator for LogLevel
         /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns></returns>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Is equals</returns>
         public static bool operator ==(LogLevel left, LogLevel right)
         {
             if (object.ReferenceEquals(left, right))
@@ -342,68 +348,68 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Переопределение !=
+        /// Inequality comparsion operator for LogLevel
         /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns></returns>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Is not equal</returns>
         public static bool operator !=(LogLevel left, LogLevel right)
         {
             return !(left == right);
         }
 
         /// <summary>
-        /// Переопределение
+        /// Greater operator for LogLevel
         /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns></returns>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Is Left greater than Right</returns>
         public static bool operator >(LogLevel left, LogLevel right)
         {
-            Contract.Requires(left != null, "left is null");
-            Contract.Requires(right != null, "right is null");
+            Contract.Requires<ArgumentNullException>(left != null, "left is null");
+            Contract.Requires<ArgumentNullException>(right != null, "right is null");
 
             return left.Level > right.Level;
         }
 
         /// <summary>
-        /// Переопределение
+        /// Greater or Equal comparison operator for LogLevel
         /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns></returns>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Is Left greater than Right</returns>
         public static bool operator >=(LogLevel left, LogLevel right)
         {
-            Contract.Requires(left != null, "left is null");
-            Contract.Requires(right != null, "right is null");
+            Contract.Requires<ArgumentNullException>(left != null, "left is null");
+            Contract.Requires<ArgumentNullException>(right != null, "right is null");
 
             return left.Level >= right.Level;
         }
 
         /// <summary>
-        /// Переопределение
+        /// Less comparison operator for LogLevel
         /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns></returns>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Is Left greater than Right</returns>
         public static bool operator <(LogLevel left, LogLevel right)
         {
-            Contract.Requires(left != null, "left is null");
-            Contract.Requires(right != null, "right is null");
+            Contract.Requires<ArgumentNullException>(left != null, "left is null");
+            Contract.Requires<ArgumentNullException>(right != null, "right is null");
 
             return left.Level < right.Level;
         }
 
         /// <summary>
-        /// Переопределение
+        /// Less or Equal comparison operator for LogLevel
         /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns></returns>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Is Left greater than Right</returns>
         public static bool operator <=(LogLevel left, LogLevel right)
         {
-            Contract.Requires(left != null, "left is null");
-            Contract.Requires(right != null, "right is null");
+            Contract.Requires<ArgumentNullException>(left != null, "left is null");
+            Contract.Requires<ArgumentNullException>(right != null, "right is null");
 
             return left.Level <= right.Level;
         }
@@ -415,10 +421,10 @@ namespace Qoollo.Logger
         #region override: Equals(object obj), ToString()
 
         /// <summary>
-        /// Переопределение Equals()
+        /// Is this LogLevel equals to passed as parameter
         /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <param name="obj">Other log level</param>
+        /// <returns>Is equals</returns>
         public override bool Equals(object obj)
         {
             var logLevel = obj as LogLevel;
@@ -430,9 +436,9 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Переопределение ToString()
+        /// Returns the string representation of this LogLevel
         /// </summary>
-        /// <returns></returns>
+        /// <returns>String representation</returns>
         public override string ToString()
         {
             return Name;

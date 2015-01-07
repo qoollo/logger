@@ -10,27 +10,26 @@ using System.Diagnostics.Contracts;
 namespace Qoollo.Logger
 {
     /// <summary>
-    /// Логгер для использования в подсистемах
-    /// Желательно оборачивать в свой собственный сингелтон в подсистеме, 
-    /// который обязательно наследовать от данного класса.
+    /// Main class for logger.
+    /// It is a good practice to create own logger singleton in every assembly 
+    /// which should be inherited from this class.
     /// </summary>
     public class Logger : LoggerBase
     {
         /// <summary>
-        /// Получить пустой логгер
+        /// Returns the instance of Empty logger
         /// </summary>
-        /// <returns>Логгер</returns>
+        /// <returns>Logger instance</returns>
         protected static Logger GetEmptyLogger()
         {
             return LoggerDefault.EmptyLogger;
         }
 
         /// <summary>
-        /// Инициализировать обёртку логгера
+        /// Method for initialization logger singleton in dependant assembly (with the help of Reflection)
         /// </summary>
-        /// <param name="assembly">Сборка для поиска</param>
-        /// <param name="wrapper">Обёртка</param>
-        /// <returns>Количество инициализированных логгеров</returns>
+        /// <param name="wrapper">Parent logger instance that will be wrapped by assembly logger singleton</param>
+        /// <param name="assembly">Assembly</param>
         protected static void InitializeLoggerInAssembly(ILogger wrapper, System.Reflection.Assembly assembly)
         {
             Contract.Requires<ArgumentNullException>(wrapper != null);
@@ -40,11 +39,10 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Инициализировать обёртку логгера
+        /// Method for initialization logger singleton in dependant assemblies (with the help of Reflection)
         /// </summary>
-        /// <param name="wrapper">Обёртка</param>
-        /// <param name="assembly">Сборки для поиска</param>
-        /// <returns>Количество инициализированных логгеров</returns>
+        /// <param name="wrapper">Parent logger instance that will be wrapped by assembly logger singleton</param>
+        /// <param name="assembly">Array of dependant assemblies</param>
         protected static void InitializeLoggerInAssembly(ILogger wrapper, params System.Reflection.Assembly[] assembly)
         {
             Contract.Requires<ArgumentNullException>(wrapper != null);
@@ -54,11 +52,10 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Инициализировать логгеры в других сборках как дочерние
+        /// Method for initialization logger singleton in dependant assemblies (with the help of Reflection)
         /// </summary>
-        /// <param name="wrapper">Обёртка</param>
-        /// <param name="type">Произвольные тип из сборок с дочерним логгером</param>
-        /// <returns>Количество инициализированных логгеров</returns>
+        /// <param name="wrapper">Parent logger instance that will be wrapped by assembly logger singleton</param>
+        /// <param name="type">Any type in dependant assembly (will be used to extract assembly as 'type.Assembly')</param>
         protected static void InitializeLoggerInAssembly(ILogger wrapper, Type type)
         {
             Contract.Requires<ArgumentNullException>(wrapper != null);
@@ -68,11 +65,10 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Инициализировать логгеры в других сборках как дочерние
+        /// Method for initialization logger singleton in dependant assemblies (with the help of Reflection)
         /// </summary>
-        /// <param name="wrapper">Обёртка</param>
-        /// <param name="types">Произвольные типы из сборок с дочерними логгерами</param>
-        /// <returns>Количество инициализированных логгеров</returns>
+        /// <param name="wrapper">Parent logger instance that will be wrapped by assembly logger singleton</param>
+        /// <param name="types">Array of types from dependant assemblies (will be used to extract assembly as 'type.Assembly')</param>
         protected static void InitializeLoggerInAssembly(ILogger wrapper, params Type[] types)
         {
             Contract.Requires<ArgumentNullException>(wrapper != null);
@@ -84,10 +80,10 @@ namespace Qoollo.Logger
 
 
         /// <summary>
-        /// Определяет, включён ли логгер (для well-known логгеров)
+        /// Detect if logger enabled (for well-known loggers only)
         /// </summary>
-        /// <param name="logger">Интерфейс логгера</param>
-        /// <returns>Включён ли</returns>
+        /// <param name="logger">logger instance as interface of ILogger</param>
+        /// <returns>Is logger enabled</returns>
         private static bool DetectIsEnabled(ILogger logger)
         {
             if (logger == null)
@@ -102,27 +98,27 @@ namespace Qoollo.Logger
 
 
         /// <summary>
-        /// Создание логгера
+        /// Logger constructor
         /// </summary>
-        /// <param name="logLevel">Уровень логирования</param>
-        /// <param name="moduleName">Имя модуля (подсистемы)</param>
-        /// <param name="innerLogger">Внутренний логгер</param>
-        /// <param name="enableStackTraceExtraction">Разрешено ли получать данные из StackTrace</param>
-        /// <param name="isEnabled">Вклюён ли логгер</param>
+        /// <param name="logLevel">Log level</param>
+        /// <param name="moduleName">Name of the module for which this logger will be created</param>
+        /// <param name="innerLogger">Parent logger or writer</param>
+        /// <param name="enableStackTraceExtraction">Will StackTrace extraction be enabled for this logger</param>
+        /// <param name="isEnabled">Will logger be enabled after creation</param>
         internal Logger(LogLevel logLevel, string moduleName, ILoggingEventWriter innerLogger, bool enableStackTraceExtraction, bool isEnabled)
             : base(logLevel, moduleName, innerLogger, enableStackTraceExtraction, isEnabled)
         {
         }
 
         /// <summary>
-        /// Создание логгера
+        /// Logger constructor
         /// </summary>
-        /// <param name="logLevel">Уровень логирования</param>
-        /// <param name="moduleName">Имя модуля (подсистемы)</param>
-        /// <param name="typeInfo">Тип, к которому привзяан логгер</param>
-        /// <param name="innerLogger">Внутренний логгер</param>
-        /// <param name="enableStackTraceExtraction">Разрешено ли получать данные из StackTrace</param>
-        /// <param name="isEnabled">Вклюён ли логгер</param>
+        /// <param name="logLevel">Log level</param>
+        /// <param name="moduleName">Name of the module for which this logger will be created</param>
+        /// <param name="typeInfo">Type to which this logger will be bound</param>
+        /// <param name="innerLogger">Parent logger or writer</param>
+        /// <param name="enableStackTraceExtraction">Will StackTrace extraction be enabled for this logger</param>
+        /// <param name="isEnabled">Will logger be enabled after creation</param>
         internal Logger(LogLevel logLevel, string moduleName, Type typeInfo, ILoggingEventWriter innerLogger, bool enableStackTraceExtraction, bool isEnabled)
             : base(logLevel, moduleName, typeInfo, innerLogger, enableStackTraceExtraction, isEnabled)
         {
@@ -130,21 +126,21 @@ namespace Qoollo.Logger
 
 
         /// <summary>
-        /// Создание логгера
+        /// Logger constructor
         /// </summary>
-        /// <param name="moduleName">Имя модуля (подсистемы)</param>
-        /// <param name="innerLogger">Внутренний логгер</param>
+        /// <param name="moduleName">Name of the module for which this logger will be created</param>
+        /// <param name="innerLogger">Parent logger to be wrapped by this logger instance</param>
         protected Logger(string moduleName, ILogger innerLogger)
             : base(innerLogger.Level, moduleName, innerLogger, innerLogger.AllowStackTraceInfoExtraction, DetectIsEnabled(innerLogger))
         {
         }
 
         /// <summary>
-        /// Создание логгера
+        /// Logger constructor
         /// </summary>
-        /// <param name="logLevel">Уровень логирования</param>
-        /// <param name="moduleName">Имя модуля (подсистемы)</param>
-        /// <param name="innerLogger">Внутренний логгер</param>
+        /// <param name="logLevel">Log level</param>
+        /// <param name="moduleName">Name of the module for which this logger will be created</param>
+        /// <param name="innerLogger">Parent logger to be wrapped by this logger instance</param>
         protected Logger(LogLevel logLevel, string moduleName, ILogger innerLogger)
             : base(logLevel, moduleName, innerLogger, innerLogger.AllowStackTraceInfoExtraction, DetectIsEnabled(innerLogger))
         {
@@ -154,10 +150,11 @@ namespace Qoollo.Logger
 
 
         /// <summary>
-        /// Получение логгера для указанного типа
+        /// Creates the logger which bound to the concrete type.
+        /// (add type information to log message without slow StackTrace extraction)
         /// </summary>
-        /// <param name="typeInfo">Тип</param>
-        /// <returns>Логгер для типа</returns>
+        /// <param name="typeInfo">Type</param>
+        /// <returns>Instance of logger for passed type</returns>
         public Logger GetClassLogger(Type typeInfo)
         {
             if (typeInfo == null)
@@ -167,9 +164,9 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Получение логгера для текущего класса
+        /// Creates the logger which bound to the type from which this method is calling
         /// </summary>
-        /// <returns>Логгер для типа</returns>
+        /// <returns>Instance of logger for current class</returns>
         public Logger GetThisClassLogger()
         {
             var stack = new System.Diagnostics.StackTrace(false);

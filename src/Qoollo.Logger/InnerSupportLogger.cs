@@ -4,6 +4,9 @@ using Qoollo.Logger.Writers;
 
 namespace Qoollo.Logger
 {
+    /// <summary>
+    /// Inner logger
+    /// </summary>
     internal static class InnerSupportLogger
     {
         public const string SupportLoggerName = "InnerSupportLogger";

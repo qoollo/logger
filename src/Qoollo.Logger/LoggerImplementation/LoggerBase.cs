@@ -6,9 +6,15 @@ using System.Text;
 using Qoollo.Logger.Common;
 using Qoollo.Logger.Configuration;
 using Qoollo.Logger.LoggingEventConverters;
+using Qoollo.Logger.Helpers;
 
 namespace Qoollo.Logger
 {
+    /// <summary>
+    /// LoggerBase class that contains core logging methods.
+    /// Log - universal log method which also parametrized with LogLevel of message
+    /// Trace, Debug, Info, Warn, Error, Fatal - separate logging methods for all log levels.
+    /// </summary>
     public abstract partial class LoggerBase : ILogger
     {
         private const string Class = "Qoollo.Logger.LoggerBase";
@@ -23,11 +29,11 @@ namespace Qoollo.Logger
 
 
         /// <summary>
-        /// Создание логгера
+        /// LoggerBase constructor
         /// </summary>
-        /// <param name="configuration">Конфигурация логгера</param>
-        /// <param name="moduleName">Имя модуля (подсистемы)</param>
-        /// <param name="innerLogger">Внутренний логгер</param>
+        /// <param name="configuration">Logger configuration object</param>
+        /// <param name="moduleName">Name of the module for which this logger will be created</param>
+        /// <param name="innerLogger">Logger or writer to be wrapped</param>
         public LoggerBase(LoggerConfiguration configuration, string moduleName, ILoggingEventWriter innerLogger)
         {
             Contract.Requires<ArgumentNullException>(configuration != null, "configuration");
@@ -53,10 +59,10 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Создание логгера
+        /// LoggerBase constructor
         /// </summary>
-        /// <param name="configuration">Конфигурация логгера</param>
-        /// <param name="moduleName">Имя модуля (подсистемы)</param>
+        /// <param name="configuration">Logger configuration</param>
+        /// <param name="moduleName">Name of the module for which this logger will be created</param>
         public LoggerBase(LoggerConfiguration configuration, string moduleName)
             : this(configuration, moduleName, LoggerFactory.CreateWriter(configuration.Writer))
         {
@@ -64,14 +70,14 @@ namespace Qoollo.Logger
 
 
         /// <summary>
-        /// Создание логгера
+        /// LoggerBase constructor
         /// </summary>
-        /// <param name="logLevel">Уровень логирования</param>
-        /// <param name="moduleName">Имя модуля (подсистемы)</param>
-        /// <param name="typeInfo">Тип, к которому привзяан логгер</param>
-        /// <param name="innerLogger">Внутренний логгер</param>
-        /// <param name="enableStackTraceExtraction">Разрешено ли получать данные из StackTrace</param>
-        /// <param name="isEnabled">Включён ли логгер</param>
+        /// <param name="logLevel">Log level</param>
+        /// <param name="moduleName">Name of the module for which this logger will be created</param>
+        /// <param name="typeInfo">Type to which this logger will be bound</param>
+        /// <param name="innerLogger">Logger or writer to be wrapped</param>
+        /// <param name="enableStackTraceExtraction">Will StackTrace extraction be enabled for this logger</param>
+        /// <param name="isEnabled">Will logger be enabled after creation</param>
         public LoggerBase(LogLevel logLevel, string moduleName, Type typeInfo, ILoggingEventWriter innerLogger, bool enableStackTraceExtraction = false, bool isEnabled = true)
         {
             Contract.Requires<ArgumentNullException>(logLevel != null, "logLevel");
@@ -96,18 +102,17 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Создание логгера
+        /// LoggerBase constructor
         /// </summary>
-        /// <param name="logLevel">Уровень логирования</param>
-        /// <param name="moduleName">Имя модуля (подсистемы)</param>
-        /// <param name="innerLogger">Внутренний логгер</param>
-        /// <param name="enableStackTraceExtraction">Разрешено ли получать данные из StackTrace</param>
-        /// <param name="isEnabled">Включён ли логгер</param>
+        /// <param name="logLevel">Log level</param>
+        /// <param name="moduleName">Name of the module for which this logger will be created</param>
+        /// <param name="innerLogger">Logger or writer to be wrapped</param>
+        /// <param name="enableStackTraceExtraction">Will StackTrace extraction be enabled for this logger</param>
+        /// <param name="isEnabled">Will logger be enabled after creation</param>
         public LoggerBase(LogLevel logLevel, string moduleName, ILoggingEventWriter innerLogger, bool enableStackTraceExtraction = false, bool isEnabled = true)
             : this(logLevel, moduleName, null, innerLogger, enableStackTraceExtraction, isEnabled)
         {
         }
-
 
 
         #region Source Info Extraction
@@ -115,7 +120,8 @@ namespace Qoollo.Logger
         private readonly bool _allowStackTraceInfoExtraction = false;
 
         /// <summary>
-        /// Разрешено ли извлекать расширенную информацию об источнике логирования
+        /// Is StackTrace extraction enabled for this logger.
+        /// (Adds information about class and assembly to log message; Slow)
         /// </summary>
         public bool AllowStackTraceInfoExtraction
         {
@@ -123,14 +129,14 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Извлечение информации об источнике логирования по стек трейсу
+        /// Extract full information about caller from StackTrace
         /// </summary>
-        /// <param name="assembly">Сборка</param>
-        /// <param name="namespace">Пространство имён</param>
-        /// <param name="class">Класс</param>
-        /// <param name="method">Метод</param>
-        /// <param name="filePath">Файл</param>
-        /// <param name="lineNumber">Строка</param>
+        /// <param name="assembly">Extracted assembly name</param>
+        /// <param name="namespace">Extracted namespace name</param>
+        /// <param name="class">Extracted class name</param>
+        /// <param name="method">Extracted method name</param>
+        /// <param name="filePath">Extracted source code file name</param>
+        /// <param name="lineNumber">Extracted line number in source code file</param>
         protected void ExtractCallerInfoFromStackTrace(out string assembly, out string @namespace, out string @class, out string method, out string filePath, out int lineNumber)
         {
             assembly = null;
@@ -159,12 +165,12 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Извлечение информации об источнике логирования по стек трейсу
+        /// Extract information about caller from StackTrace
         /// </summary>
-        /// <param name="assembly">Сборка</param>
-        /// <param name="namespace">Пространство имён</param>
-        /// <param name="class">Класс</param>
-        /// <param name="method">Метод</param>
+        /// <param name="assembly">Extracted assembly name</param>
+        /// <param name="namespace">Extracted namespace name</param>
+        /// <param name="class">Extracted class name</param>
+        /// <param name="method">Extracted method name</param>
         protected void ExtractCallerInfoFromStackTrace(out string assembly, out string @namespace, out string @class, out string method)
         {
             assembly = null;
@@ -189,14 +195,14 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Извлечение информации о точке вызова
+        /// Extract information about caller by bound type or from StackTrace (if enabled)
         /// </summary>
-        /// <param name="assembly">Сборка</param>
-        /// <param name="namespace">Пространство имён</param>
-        /// <param name="class">Класс</param>
-        /// <param name="method">Метод</param>
-        /// <param name="filePath">Путь до файла</param>
-        /// <param name="lineNumber">Строка</param>
+        /// <param name="assembly">Extracted assembly name</param>
+        /// <param name="namespace">Extracted namespace name</param>
+        /// <param name="class">Extracted class name</param>
+        /// <param name="method">Extracted method name</param>
+        /// <param name="filePath">Extracted source code file name</param>
+        /// <param name="lineNumber">Extracted line number in source code file</param>
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         protected void ExtractCallerInfo(ref string assembly, ref string @namespace, ref string @class, ref string method, ref string filePath, ref int lineNumber)
         {
@@ -220,7 +226,7 @@ namespace Qoollo.Logger
 
         #endregion
 
-        #region Уровни логирования
+        #region Log Levels
 
         private readonly bool _isTraceEnabled;
         private readonly bool _isDebugEnabled;
@@ -230,7 +236,7 @@ namespace Qoollo.Logger
         private readonly bool _isFatalEnabled;
 
         /// <summary>
-        /// Включён ли сам логгер
+        /// Is logger enabled
         /// </summary>
         public bool IsLoggerEnabled
         {
@@ -238,54 +244,48 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Включен ли уровень <c>Trace</c> логирования.
+        /// Will 'Trace' level messages be processed by this logger.
         /// </summary>
-        /// <returns>Значение <see langword="true" /> если логирование включено для <c>Trace</c> уровня, иначе возвращается <see langword="false" />.</returns>
         public bool IsTraceEnabled
         {
             get { return _isTraceEnabled; }
         }
 
         /// <summary>
-        /// Включен ли уровень <c>Debug</c> логирования.
+        /// Will 'Debug' level messages be processed by this logger.
         /// </summary>
-        /// <returns>Значение <see langword="true" /> если логирование включено для <c>Debug</c> уровня, иначе возвращается <see langword="false" />.</returns>
         public bool IsDebugEnabled
         {
             get { return _isDebugEnabled; }
         }
 
         /// <summary>
-        /// Включен ли уровень <c>Info</c> логирования.
+        /// Will 'Info' level messages be processed by this logger.
         /// </summary>
-        /// <returns>Значение <see langword="true" /> если логирование включено для <c>Info</c> уровня, иначе возвращается <see langword="false" />.</returns>
         public bool IsInfoEnabled
         {
             get { return _isInfoEnabled; }
         }
 
         /// <summary>
-        /// Включен ли уровень <c>Warn</c> логирования.
+        /// Will 'Warn' level messages be processed by this logger.
         /// </summary>
-        /// <returns>Значение <see langword="true" /> если логирование включено для <c>Warn</c> уровня, иначе возвращается <see langword="false" />.</returns>
         public bool IsWarnEnabled
         {
             get { return _isWarnEnabled; }
         }
 
         /// <summary>
-        /// Включен ли уровень <c>Error</c> логирования.
+        /// Will 'Error' level messages be processed by this logger.
         /// </summary>
-        /// <returns>Значение <see langword="true" /> если логирование включено для <c>Error</c> уровня, иначе возвращается <see langword="false" />.</returns>
         public bool IsErrorEnabled
         {
             get { return _isErrorEnabled; }
         }
 
         /// <summary>
-        /// Включен ли уровень <c>Fatal</c> логирования.
+        /// Will 'Fatal' level messages be processed by this logger.
         /// </summary>
-        /// <returns>Значение <see langword="true" /> если логирование включено для <c>Fatal</c> уровня, иначе возвращается <see langword="false" />.</returns>
         public bool IsFatalEnabled
         {
             get { return _isFatalEnabled; }
@@ -293,10 +293,10 @@ namespace Qoollo.Logger
 
 
         /// <summary>
-        /// Включен ли специфичный уровень логирования.
+        /// Gets a value indicating whether logging is enabled for the specified level
         /// </summary>
-        /// <param name="level">Проверяемый уровень логирования.</param>
-        /// <returns>Значение <see langword="true" /> если логирование включено для данного уровня, иначе возвращается <see langword="false" />.</returns>
+        /// <param name="level">Log level to be checked</param>
+        /// <returns>True if level enabled</returns>
         public bool IsEnabled(LogLevel level)
         {
             return Level.IsEnabled(level);
@@ -307,31 +307,31 @@ namespace Qoollo.Logger
         #region Implementation of ILogger
 
         /// <summary>
-        /// Имя модуля, к которому привзяан логгер
+        /// Name of mudle to which this logger is bound
         /// </summary>
         public string ModuleName { get { return _moduleName; } }
 
         /// <summary>
-        /// Тип, к которому привязан логгер
+        /// Type to which this logger is bound
         /// </summary>
         public Type TypeInfo { get { return _typeInfo; } }
 
         /// <summary>
-        /// Возвращает уровень логирования
+        /// Log level
         /// </summary>
         public LogLevel Level { get; private set; }
 
 
         /// <summary>
-        /// Вызывается при обновлении цепочки логгеров
+        /// Hook to process stack source on refresh
         /// </summary>
-        /// <param name="stackSource">Текущая цепочка (может быть изменена)</param>
+        /// <param name="stackSource">Current chain (can be changed)</param>
         protected virtual void OnRefreshStackSource(List<string> stackSource)
         {
         }
 
         /// <summary>
-        /// Обновление цепочки вложенности программных модулей (StackSources) 
+        /// Refresh StackSources chain
         /// </summary>
         public void Refresh()
         {
@@ -347,24 +347,28 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Возвращает цепочку вложенности программных модулей
+        /// Returns the chain of modules through which this logger was initialized (logger stacking order)
         /// </summary>
-        /// <returns>Список модулей. Первый элемент - внутренний модуль, последний - внешний.</returns>
+        /// <returns>Chain of modules names. First element - inner module, last - outer.</returns>
         List<string> ILogger.GetStackSources()
         {
             return new List<string>(_stackSources);
         }
 
         /// <summary>
-        /// Устанавливает фабрику для создания конвертеров,
-        /// необходимых для преобразования логируемых данных в строки для вывода в файл или консоль
+        /// Set the factory to create converters from log message to string.
+        /// Required for FileWriter and ConsoleWriter.
         /// </summary>
-        /// <param name="factory"></param>
+        /// <param name="factory">Factory to create particular converters</param>
         public void SetConverterFactory(ConverterFactory factory)
         {
             _logger.SetConverterFactory(factory);
         }
 
+        /// <summary>
+        /// Write the log message
+        /// </summary>
+        /// <param name="data">Log message</param>
         bool ILoggingEventWriter.Write(LoggingEvent data)
         {
             return _logger.Write(data);
@@ -372,13 +376,40 @@ namespace Qoollo.Logger
 
         #endregion
 
-
-
+        #region Helper Logging Methods
 
         /// <summary>
-        /// Реализация настраиваемого освобождения ресурсов
+        /// Helping method to write log
         /// </summary>
-        /// <param name="isUserCall"></param>
+        /// <param name="level">Log Level</param>
+        /// <param name="exception">Exception (can be null)</param>
+        /// <param name="message">Log message</param>
+        /// <param name="context">Log message context</param>
+        /// <param name="class">Class name from which the logging performed</param>
+        /// <param name="method">Method name from which the logging performed</param>
+        /// <param name="filePath">Source code file name</param>
+        /// <param name="lineNumber">Line number in source code file</param>
+        private void WriteLog(LogLevel level, Exception exception, string message, string context,
+                              string @class, string method, string filePath, int lineNumber)
+        {
+            Contract.Requires(level != null);
+
+            string assembly = null;
+            string @namespace = null;
+            ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
+
+            var data = new LoggingEvent(message, exception, level, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
+            _logger.Write(data);
+        }
+
+        #endregion
+
+        #region Disposing
+
+        /// <summary>
+        /// Main clean-up code
+        /// </summary>
+        /// <param name="isUserCall">Is called by user</param>
         protected void Dispose(bool isUserCall)
         {
             if (!_isDisposed)
@@ -395,10 +426,8 @@ namespace Qoollo.Logger
 
 
         /// <summary>
-        /// Метод закрыть должен применятся один раз и при закрытии программы (если хотите чтобы она закрылась
-        /// с вашим сообщением, а не с логом об экстренном закрытии программы)
-        /// не стоит удивляться что при закрытии логгера в одном потоке, он отвалится в другом 
-        /// (например, если они пишут в один файл - то на самом деле это один и тот же логгер)
+        /// Wirte passed message at Info level and then dispose the logger.
+        /// Helps to distinct cases of expected closing of application and unexpected (by unhandled exception)
         /// </summary>
         public void Close(string msg)
         {
@@ -412,15 +441,14 @@ namespace Qoollo.Logger
 
 
         /// <summary>
-        /// Метод закрыть должен применятся один раз и при закрытии программы (если хотите чтобы она закрылась
-        /// сообщением о корректном завершении, а не с логом об экстренном закрытии программы)
-        /// не стоит удивляться что при закрытии логгера в одном потоке, он отвалится в другом 
-        /// (например, если они пишут в один файл - то на самом деле это один и тот же логгер)
+        /// Clean up logger resources (see also 'void Close(string msg)')
         /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+        #endregion
     }
 }
