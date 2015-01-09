@@ -29,7 +29,7 @@ namespace Qoollo.Logger
         /// Method for initialization logger singleton in dependant assembly (with the help of Reflection)
         /// </summary>
         /// <param name="wrapper">Parent logger instance that will be wrapped by assembly logger singleton</param>
-        /// <param name="assembly">Assembly</param>
+        /// <param name="assembly">Assembly where the loggers will be initialized</param>
         protected static void InitializeLoggerInAssembly(ILogger wrapper, System.Reflection.Assembly assembly)
         {
             Contract.Requires<ArgumentNullException>(wrapper != null);
@@ -52,7 +52,7 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
-        /// Method for initialization logger singleton in dependant assemblies (with the help of Reflection)
+        /// Method for initialization logger singleton in dependant assembly (with the help of Reflection)
         /// </summary>
         /// <param name="wrapper">Parent logger instance that will be wrapped by assembly logger singleton</param>
         /// <param name="type">Any type in dependant assembly (will be used to extract assembly as 'type.Assembly')</param>

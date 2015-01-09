@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Qoollo.Logger.Initialization
 {
     /// <summary>
-    /// Helper инициализации дочерних логгеров
+    /// Helps with initialization of dependant logger singletons (logger stacking)
     /// </summary>
     public static class Initializer
     {
@@ -89,11 +89,11 @@ namespace Qoollo.Logger.Initialization
 
 
         /// <summary>
-        /// Инициализировать обёртку логгера
+        /// Method for initialization logger singleton in dependant assembly (with the help of Reflection)
         /// </summary>
-        /// <param name="assembly">Сборка для поиска</param>
-        /// <param name="logger">Обёртка</param>
-        /// <returns>Количество инициализированных логгеров</returns>
+        /// <param name="logger">Parent logger instance that will be wrapped by assembly logger singleton</param>
+        /// <param name="assembly">Assembly where the loggers will be initialized</param>
+        /// <returns>The number of loggers initialized by this call</returns>
         public static int InitializeLoggerInAssembly(ILogger logger, Assembly assembly)
         {
             Contract.Requires<ArgumentNullException>(assembly != null);
@@ -108,11 +108,11 @@ namespace Qoollo.Logger.Initialization
         }
 
         /// <summary>
-        /// Инициализировать обёртку логгера
+        /// Method for initialization logger singleton in dependant assemblies (with the help of Reflection)
         /// </summary>
-        /// <param name="logger">Обёртка</param>
-        /// <param name="assembly">Сборки для поиска</param>
-        /// <returns>Количество инициализированных логгеров</returns>
+        /// <param name="logger">Parent logger instance that will be wrapped by assembly logger singleton</param>
+        /// <param name="assembly">Collection of dependant assemblies where the loggers will be initialized</param>
+        /// <returns>The number of loggers initialized by this call</returns>
         public static int InitializeLoggerInAssembly(ILogger logger, IEnumerable<Assembly> assembly)
         {
             Contract.Requires<ArgumentNullException>(assembly != null);
@@ -127,11 +127,11 @@ namespace Qoollo.Logger.Initialization
 
 
         /// <summary>
-        /// Инициализировать логгеры в других сборках как дочерние
+        /// Initialize logger signleton in dependant assembly. This logger is used as parent.
         /// </summary>
-        /// <param name="wrapper">Обёртка</param>
-        /// <param name="assembly">Сборка с дочерними логгерами</param>
-        /// <returns>Количество инициализированных логгеров</returns>
+        /// <param name="wrapper">Parent logger instance that will be wrapped by assembly logger singleton</param>
+        /// <param name="assembly">Assembly where the loggers will be initialized</param>
+        /// <returns>The number of loggers initialized by this call</returns>
         public static int PassForInitializationToAssembly(this ILogger wrapper, Assembly assembly)
         {
             Contract.Requires<ArgumentNullException>(wrapper != null);
@@ -141,11 +141,11 @@ namespace Qoollo.Logger.Initialization
         }
 
         /// <summary>
-        /// Инициализировать логгеры в других сборках как дочерние
+        /// Initialize logger signleton in dependant assemblies. This logger is used as parent.
         /// </summary>
-        /// <param name="wrapper">Обёртка</param>
-        /// <param name="assembly">Сборки с дочерними логгерами</param>
-        /// <returns>Количество инициализированных логгеров</returns>
+        /// <param name="wrapper">Parent logger instance that will be wrapped by assembly logger singleton</param>
+        /// <param name="assembly">Array of dependant assemblies where the loggers will be initialized</param>
+        /// <returns>The number of loggers initialized by this call</returns>
         public static int PassForInitializationToAssembly(this ILogger wrapper, params Assembly[] assembly)
         {
             Contract.Requires<ArgumentNullException>(wrapper != null);
@@ -155,11 +155,11 @@ namespace Qoollo.Logger.Initialization
         }
 
         /// <summary>
-        /// Инициализировать логгеры в других сборках как дочерние
+        /// Initialize logger signleton in dependant assembly. This logger is used as parent.
         /// </summary>
-        /// <param name="wrapper">Обёртка</param>
-        /// <param name="type">Произвольные типы из сборок с дочерними логгерами</param>
-        /// <returns>Количество инициализированных логгеров</returns>
+        /// <param name="wrapper">Parent logger instance that will be wrapped by assembly logger singleton</param>
+        /// <param name="type">Any type in dependant assembly (will be used to extract assembly as 'type.Assembly')</param>
+        /// <returns>The number of loggers initialized by this call</returns>
         public static int PassForInitializationToAssembly(this ILogger wrapper, Type type)
         {
             Contract.Requires<ArgumentNullException>(wrapper != null);
@@ -169,11 +169,11 @@ namespace Qoollo.Logger.Initialization
         }
 
         /// <summary>
-        /// Инициализировать логгеры в других сборках как дочерние
+        /// Initialize logger signleton in dependant assemblies. This logger is used as parent.
         /// </summary>
-        /// <param name="wrapper">Обёртка</param>
-        /// <param name="types">Произвольные типы из сборок с дочерними логгерами</param>
-        /// <returns>Количество инициализированных логгеров</returns>
+        /// <param name="wrapper">Parent logger instance that will be wrapped by assembly logger singleton</param>
+        /// <param name="types">Array of types from dependant assemblies (will be used to extract assembly as 'type.Assembly')</param>
+        /// <returns>The number of loggers initialized by this call</returns>
         public static int PassForInitializationToAssembly(this ILogger wrapper, params Type[] types)
         {
             Contract.Requires<ArgumentNullException>(wrapper != null);
