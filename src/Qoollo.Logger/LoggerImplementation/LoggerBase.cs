@@ -307,7 +307,7 @@ namespace Qoollo.Logger
         #region Implementation of ILogger
 
         /// <summary>
-        /// Name of mudle to which this logger is bound
+        /// Name of module to which this logger is bound
         /// </summary>
         public string ModuleName { get { return _moduleName; } }
 
