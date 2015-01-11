@@ -433,7 +433,12 @@ namespace Qoollo.Logger
         {
             if (!_isDisposed)
             {
-                var data = new LoggingEvent(msg, null, LogLevel.Info, _stackSources, Class, "Close");
+                var thisType = this.GetType();
+
+                var data = new LoggingEvent(msg, null, LogLevel.Info, null, _stackSources,
+                    LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId,
+                    thisType.Assembly.FullName, thisType.Namespace, thisType.Name, "Close", null, -1);
+
                 (this as ILogger).Write(data);
                 Dispose(true);
             }

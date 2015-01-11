@@ -1,29 +1,29 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.Runtime.Serialization;
 
 namespace Qoollo.Logger.Common
 {
     /// <summary>
-    /// Класс для хранения и передачи информации об ошибке.
-    /// Мы меньше храним и у нас не возникает проблем с сериализацией/десериализацией
+    /// Exception data container (contains all information about the exception)
     /// </summary>
     [DataContract]
     public class Error
     {
-        /// Констуктор по умолчанию нужен для десериализации
+        /// No parameter constructor
         protected internal Error()
         {
         }
 
         /// <summary>
-        /// Конструктор для создания внутреннего типа для хранения информации об ошибке
+        /// Error constructor
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="message"></param>
-        /// <param name="source"></param>
-        /// <param name="stackTrace"></param>
-        /// <param name="innerError"></param>
-        public Error(string type,string message,string source, string stackTrace, Error innerError)
+        /// <param name="type">Type of the Error</param>
+        /// <param name="message">A message that describes the error</param>
+        /// <param name="source">Error source</param>
+        /// <param name="stackTrace">StackTrace</param>
+        /// <param name="innerError">Inner error</param>
+        public Error(string type, string message, string source, string stackTrace, Error innerError)
         {
             Type = type;
             Message = message;
@@ -33,11 +33,13 @@ namespace Qoollo.Logger.Common
         }
 
         /// <summary>
-        /// Конструктор для создания внутреннего типа для хранения информации об ошибке
+        /// Error constructor from Exception object
         /// </summary>
-        /// <param name="exception"></param>
+        /// <param name="exception">Exception object</param>
         public Error(Exception exception)
         {
+            Contract.Requires(exception != null);
+
             Type = exception.GetType().FullName;
             Message = exception.Message;
             Source = exception.Source;
@@ -48,31 +50,31 @@ namespace Qoollo.Logger.Common
         }
 
         /// <summary>
-        /// Имя типа исключения
+        /// Type of the Error
         /// </summary>
         [DataMember(Order = 1)]
         public string Type { get; private set; }
 
         /// <summary>
-        /// Сообщение исключения
+        /// A message that describes the error
         /// </summary>
         [DataMember(Order = 2)]
         public string Message { get; private set; }
 
         /// <summary>
-        /// Источник исключения
+        /// Error source
         /// </summary>
         [DataMember(Order = 3)]
         public string Source { get; private set; }
 
         /// <summary>
-        /// Стек вызовов
+        /// StackTrace from Exception
         /// </summary>
         [DataMember(Order = 4)]
         public string StackTrace { get; private set; }
 
         /// <summary>
-        /// Внутренняя ошибка
+        /// Inner error
         /// </summary>
         [DataMember(Order = 5)]
         public Error InnerError { get; private set; }

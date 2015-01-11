@@ -6,13 +6,13 @@ using System.Text;
 namespace Qoollo.Logger.Common
 {
     /// <summary>
-    /// Класс для экранирования вспомогательных параметров при логировании
+    /// Special class to separate main log parameters and additional
     /// </summary>
     public sealed class ParameterGuardClass
     {
         private static readonly ParameterGuardClass _value = new ParameterGuardClass();
         /// <summary>
-        /// Единственный инстанс для экранирования
+        /// Instance of ParameterGuardClass
         /// </summary>
         public static ParameterGuardClass Value
         {

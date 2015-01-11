@@ -7,17 +7,17 @@ using System;
 namespace Qoollo.Logger.Configuration
 {
     /// <summary>
-    /// Корневая конфигурация логгера
+    /// Root configuration for logger
     /// </summary>
     public class LoggerConfiguration
     {
         /// <summary>
-        /// Конструктор LoggerConfiguration
+        /// LoggerConfiguration constructor
         /// </summary>
-        /// <param name="level">Уровень логирования</param>
-        /// <param name="isEnabled">Флаг, показывающий включен логгер или нет</param>
-        /// <param name="isStackTraceEnabled">Можно ли извлекать данные о вызове из стека</param>
-        /// <param name="writer">Писатель логов или обёртка</param>
+        /// <param name="level">Global log level</param>
+        /// <param name="isEnabled">Should logger be enabled</param>
+        /// <param name="isStackTraceEnabled">Can logger perform StackTrace extraction (more information, but slow)</param>
+        /// <param name="writer">Real writer/wrapper configuration</param>
         public LoggerConfiguration(LogLevel level, bool isEnabled, bool isStackTraceEnabled, LogWriterWrapperConfiguration writer)
         {
             Contract.Requires<ArgumentNullException>(level != null);
@@ -28,26 +28,26 @@ namespace Qoollo.Logger.Configuration
             Writer = writer;
         }
         /// <summary>
-        /// Конструктор LoggerConfiguration
+        /// LoggerConfiguration constructor
         /// </summary>
-        /// <param name="level">Уровень логирования</param>
-        /// <param name="isEnabled">Флаг, показывающий включен логгер или нет</param>
-        /// <param name="isStackTraceEnabled">Можно ли извлекать данные о вызове из стека</param>
+        /// <param name="level">Global log level</param>
+        /// <param name="isEnabled">Should logger be enabled</param>
+        /// <param name="isStackTraceEnabled">Can logger perform StackTrace extraction (more information, but slow)</param>
         public LoggerConfiguration(LogLevel level, bool isEnabled, bool isStackTraceEnabled)
             : this(level, isEnabled, isStackTraceEnabled, null)
         {
         }
         /// <summary>
-        /// Конструктор LoggerConfiguration
+        /// LoggerConfiguration constructor
         /// </summary>
-        /// <param name="level">Уровень логирования</param>
+        /// <param name="level">Global log level</param>
         public LoggerConfiguration(LogLevel level)
             : this(level, true, false, null)
         {
 
         }
         /// <summary>
-        /// Конструктор LoggerConfiguration
+        /// LoggerConfiguration constructor
         /// </summary>
         public LoggerConfiguration()
             : this(LogLevel.Trace, true, false, null)
@@ -55,39 +55,41 @@ namespace Qoollo.Logger.Configuration
         }
 
         /// <summary>
-        /// Уровень логирования
+        /// Global log level
         /// </summary>
         public LogLevel Level { get; private set; }
         /// <summary>
-        /// Флаг, показывающий включен логгер или нет
+        /// Should logger be enabled
         /// </summary>
         public bool IsEnabled { get; private set; }
         /// <summary>
-        /// Можно ли извлекать данные о вызове из стека
+        /// Can logger perform StackTrace extraction (more information, but slow)
         /// </summary>
         public bool IsStackTraceEnabled { get; set; }
-
+        /// <summary>
+        /// Real writer/wrapper configuration
+        /// </summary>
         public LogWriterWrapperConfiguration Writer { get; set; }
     }
 
 
 
     /// <summary>
-    /// Базовая конфигурация для писателя/обёртки
+    /// Base class for wraper and writer configuration objects
     /// </summary>
     public abstract class LogWriterWrapperConfiguration
     {
         /// <summary>
-        /// Конструктор LogWriterWrapperConfiguration
+        /// LogWriterWrapperConfiguration constructor
         /// </summary>
-        /// <param name="writerType">Тип писателя</param>
+        /// <param name="writerType">Writer/wrapper type</param>
         protected LogWriterWrapperConfiguration(WriterTypeEnum writerType)
         {
             WriterType = writerType;
         }
 
         /// <summary>
-        /// Тип писателя
+        /// Writer/wrapper type
         /// </summary>
         public WriterTypeEnum WriterType { get; private set; }
     }
@@ -95,16 +97,16 @@ namespace Qoollo.Logger.Configuration
     #region Wrappers
 
     /// <summary>
-    /// Обёртка, обеспечивающая асинхронную обработку логов
+    /// Configuration for asynchronous wrapper with queue
     /// </summary>
     public class AsyncQueueWrapperConfiguration : LogWriterWrapperConfiguration
     {
         /// <summary>
-        /// Конструктор AsyncQueueWrapperConfiguration
+        /// AsyncQueueWrapperConfiguration constructor
         /// </summary>
-        /// <param name="maxQueueSize">Определяет максимальный размер очереди (-1 - для бесконечной очереди)</param>
-        /// <param name="isDiscardExcess">Выбрасывать ли записи при переполнении очереди</param>
-        /// <param name="innerWriter">Внутренний писатель</param>
+        /// <param name="maxQueueSize">Bounded capacity of the queue ('-1' - capacity not limited)</param>
+        /// <param name="isDiscardExcess">Can wrapper discard messages on queue overflow ('false' - block the caller)</param>
+        /// <param name="innerWriter">Inner writer/wrapper configuration</param>
         public AsyncQueueWrapperConfiguration(int maxQueueSize, bool isDiscardExcess, LogWriterWrapperConfiguration innerWriter)
             : base(WriterTypeEnum.AsyncQueueWrapper)
         {
@@ -113,16 +115,16 @@ namespace Qoollo.Logger.Configuration
             InnerWriter = innerWriter;
         }
         /// <summary>
-        /// Конструктор AsyncQueueWrapperConfiguration
+        /// AsyncQueueWrapperConfiguration constructor
         /// </summary>
-        /// <param name="maxQueueSize">Определяет максимальный размер очереди (-1 - для бесконечной очереди)</param>
-        /// <param name="isDiscardExcess">Выбрасывать ли записи при переполнении очереди</param>
+        /// <param name="maxQueueSize">Bounded capacity of the queue ('-1' - capacity not limited)</param>
+        /// <param name="isDiscardExcess">Can wrapper discard messages on queue overflow ('false' - block the caller)</param>
         public AsyncQueueWrapperConfiguration(int maxQueueSize, bool isDiscardExcess)
             : this(maxQueueSize, isDiscardExcess, null)
         {
         }
         /// <summary>
-        /// Конструктор AsyncQueueWrapperConfiguration
+        /// AsyncQueueWrapperConfiguration constructor
         /// </summary>
         public AsyncQueueWrapperConfiguration()
             : this(4 * 1024, true, null)
@@ -130,37 +132,41 @@ namespace Qoollo.Logger.Configuration
         }
 
         /// <summary>
-        /// Определяет максимальный размер очереди (-1 - для бесконечной очереди)
+        /// Bounded capacity of the queue ('-1' - capacity not limited)
         /// </summary>
         public int MaxQueueSize { get; private set; }
 
         /// <summary>
-        /// Флаг задает поведение в случае переполнения очереди событий - выбрасывать лишнии 
-        /// или ожидать возможности добавления (блокировать поток на добавлении)
+        /// Can wrapper discard messages on queue overflow ('false' - block the caller)
         /// </summary>
         public bool IsDiscardExcess { get; private set; }
 
         /// <summary>
-        /// Конфигурация логгера, в который будут отправляться логгирующие сообщения
+        /// Inner writer/wrapper configuration
         /// </summary>
         public LogWriterWrapperConfiguration InnerWriter { get; set; }
     }
 
     /// <summary>
-    /// Обертка для обеспечения асинхронности с гарантией записи в лог (ведёт локальное хранилище)
+    /// Configuration for asynchronous wrapper with reliable queue. 
+    /// If writer currently can't write a message, this wrapper save log message to the file on the disk. 
+    /// Later it read logs and try to send them to writer again.
     /// </summary>
     public class AsyncReliableQueueWrapperConfiguration : LogWriterWrapperConfiguration
     {
+        /// <summary>
+        /// Default forlder to store files with logs
+        /// </summary>
         public const string DefaultFolderName = "reliable_log_q";
 
         /// <summary>
-        /// Конструктор AsyncReliableQueueWrapperConfiguration
+        /// AsyncReliableQueueWrapperConfiguration constructor
         /// </summary>
-        /// <param name="maxQueueSize">Определяет максимальный размер очереди (-1 - для бесконечной очереди)</param>
-        /// <param name="isDiscardExcess">Выбрасывать ли записи при переполнении очереди</param>
-        /// <param name="folderName">Имя директории для хранения файлов</param>
-        /// <param name="maxSingleFileSize">Максимальный размер одного файла</param>
-        /// <param name="innerWriter">Внутренний писатель</param>
+        /// <param name="maxQueueSize">Bounded capacity of the queue ('-1' - capacity not limited)</param>
+        /// <param name="isDiscardExcess">Can wrapper discard messages on queue overflow ('false' - block the caller)</param>
+        /// <param name="folderName">Forlder name to store files with logs</param>
+        /// <param name="maxSingleFileSize">Maximum size of single file</param>
+        /// <param name="innerWriter">Inner writer/wrapper configuration</param>
         public AsyncReliableQueueWrapperConfiguration(int maxQueueSize, bool isDiscardExcess, string folderName, long maxSingleFileSize, LogWriterWrapperConfiguration innerWriter)
             : base(WriterTypeEnum.AsyncQueueWithReliableSendingWrapper)
         {
@@ -174,26 +180,26 @@ namespace Qoollo.Logger.Configuration
             InnerWriter = innerWriter;
         }
         /// <summary>
-        /// Конструктор AsyncReliableQueueWrapperConfiguration
+        /// AsyncReliableQueueWrapperConfiguration constructor
         /// </summary>
-        /// <param name="maxQueueSize">Определяет максимальный размер очереди (-1 - для бесконечной очереди)</param>
-        /// <param name="isDiscardExcess">Выбрасывать ли записи при переполнении очереди</param>
-        /// <param name="folderName">Имя директории для хранения файлов</param>
-        /// <param name="maxSingleFileSize">Максимальный размер одного файла</param>
+        /// <param name="maxQueueSize">Bounded capacity of the queue ('-1' - capacity not limited)</param>
+        /// <param name="isDiscardExcess">Can wrapper discard messages on queue overflow ('false' - block the caller)</param>
+        /// <param name="folderName">Forlder name to store files with logs</param>
+        /// <param name="maxSingleFileSize">Maximum size of single file</param>
         public AsyncReliableQueueWrapperConfiguration(int maxQueueSize, bool isDiscardExcess, string folderName, long maxSingleFileSize)
             : this(maxQueueSize, isDiscardExcess, folderName, maxSingleFileSize, null)
         {
         }
         /// <summary>
-        /// Конструктор AsyncReliableQueueWrapperConfiguration
+        /// AsyncReliableQueueWrapperConfiguration constructor
         /// </summary>
-        /// <param name="folderName">Имя директории для хранения файлов</param>
+        /// <param name="folderName">Forlder name to store files with logs</param>
         public AsyncReliableQueueWrapperConfiguration(string folderName)
             : this(4 * 1024, true, folderName, 64 * 1024 * 1024, null)
         {
         }
         /// <summary>
-        /// Конструктор AsyncReliableQueueWrapperConfiguration
+        /// AsyncReliableQueueWrapperConfiguration constructor
         /// </summary>
         public AsyncReliableQueueWrapperConfiguration()
             : this(4 * 1024, true, DefaultFolderName, 64 * 1024 * 1024, null)
@@ -201,29 +207,27 @@ namespace Qoollo.Logger.Configuration
         }
 
         /// <summary>
-        /// Определяет максимальный размер очереди (-1 - для бесконечной очереди)
+        /// Bounded capacity of the queue ('-1' - capacity not limited)
         /// </summary>
         public int MaxQueueSize { get; private set; }
 
         /// <summary>
-        /// Флаг задает поведение в случае переполнения очереди событий - выбрасывать лишнии 
-        /// или ожидать возможности добавления (блокировать поток на добавлении)
+        /// Can wrapper discard messages on queue overflow ('false' - block the caller)
         /// </summary>
         public bool IsDiscardExcess { get; private set; }
 
         /// <summary>
-        /// Имя папки, в которую будут складываться неотправленные сообщения 
-        /// для отложенной отправки
+        /// Forlder name to store files with logs
         /// </summary>
         public string FolderForTemporaryStore { get; private set; }
 
         /// <summary>
-        /// Максимальный размер файла в байтах для хранения неотправленных логов
+        /// Maximum size of single file
         /// </summary>
         public long MaxFileSize { get; private set; }
 
         /// <summary>
-        /// Конфигурация логгера, в который будут отправляться логгирующие сообщения
+        /// Inner writer/wrapper configuration
         /// </summary>
         public LogWriterWrapperConfiguration InnerWriter { get; set; }
     }
@@ -231,18 +235,21 @@ namespace Qoollo.Logger.Configuration
 
 
     /// <summary>
-    /// Обертка для предотвращения потерь записи (ведёт локальное хранилище)
+    /// Configuration for reliable wrapper (stores messages on the disk if they temporary can't be written by inner writer)
     /// </summary>
     public class ReliableWrapperConfiguration : LogWriterWrapperConfiguration
     {
+        /// <summary>
+        /// Default forlder to store files with logs
+        /// </summary>
         public const string DefaultFolderName = "reliable_log_w";
 
         /// <summary>
-        /// Конструктор ReliableWrapperConfiguration
+        /// ReliableWrapperConfiguration constructor
         /// </summary>
-        /// <param name="folderName">Имя директории для хранения файлов</param>
-        /// <param name="maxSingleFileSize">Максимальный размер одного файла</param>
-        /// <param name="innerWriter">Внутренний писатель</param>
+        /// <param name="folderName">Forlder name to store files with logs</param>
+        /// <param name="maxSingleFileSize">Maximum size of single file</param>
+        /// <param name="innerWriter">Inner writer/wrapper configuration</param>
         public ReliableWrapperConfiguration(string folderName, long maxSingleFileSize, LogWriterWrapperConfiguration innerWriter)
             : base(WriterTypeEnum.ReliableWrapper)
         {
@@ -254,24 +261,24 @@ namespace Qoollo.Logger.Configuration
             InnerWriter = innerWriter;
         }
         /// <summary>
-        /// Конструктор ReliableWrapperConfiguration
+        /// ReliableWrapperConfiguration constructor
         /// </summary>
-        /// <param name="folderName">Имя директории для хранения файлов</param>
-        /// <param name="maxSingleFileSize">Максимальный размер одного файла</param>
+        /// <param name="folderName">Forlder name to store files with logs</param>
+        /// <param name="maxSingleFileSize">Maximum size of single file</param>
         public ReliableWrapperConfiguration(string folderName, long maxSingleFileSize)
             : this(folderName, maxSingleFileSize, null)
         {
         }
         /// <summary>
-        /// Конструктор ReliableWrapperConfiguration
+        /// ReliableWrapperConfiguration constructor
         /// </summary>
-        /// <param name="folderName">Имя директории для хранения файлов</param>
+        /// <param name="folderName">Forlder name to store files with logs</param>
         public ReliableWrapperConfiguration(string folderName)
             : this(folderName, 64 * 1024 * 1024, null)
         {
         }
         /// <summary>
-        /// Конструктор ReliableWrapperConfiguration
+        /// ReliableWrapperConfiguration constructor
         /// </summary>
         public ReliableWrapperConfiguration()
             : this(DefaultFolderName, 64 * 1024 * 1024, null)
@@ -279,32 +286,31 @@ namespace Qoollo.Logger.Configuration
         }
 
         /// <summary>
-        /// Имя папки, в которую будут складываться неотправленные сообщения 
-        /// для отложенной отправки
+        /// Forlder name to store files with logs
         /// </summary>
         public string FolderForTemporaryStore { get; private set; }
 
         /// <summary>
-        /// Максимальный размер файла в байтах для хранения неотправленных логов
+        /// Maximum size of single file
         /// </summary>
         public long MaxFileSize { get; private set; }
 
         /// <summary>
-        /// Конфигурация логгера, в который будут отправляться логгирующие сообщения
+        /// Inner writer/wrapper configuration
         /// </summary>
         public LogWriterWrapperConfiguration InnerWriter { get; set; }
     }
 
 
     /// <summary>
-    /// Групповой враппер
+    /// Configuration for Group Wrapper (wrapper that aggregate several other writers/wrappers)
     /// </summary>
     public class GroupWrapperConfiguration: LogWriterWrapperConfiguration
     {
         /// <summary>
-        /// Конструктор GroupWrapperConfiguration
+        /// GroupWrapperConfiguration constructor
         /// </summary>
-        /// <param name="writers">Внутренние писатели</param>
+        /// <param name="writers">Inner writer/wrapper configurations</param>
         public GroupWrapperConfiguration(IEnumerable<LogWriterWrapperConfiguration> writers)
             : base(WriterTypeEnum.GroupWrapper)
         {
@@ -314,7 +320,7 @@ namespace Qoollo.Logger.Configuration
                 InnerWriters = new List<LogWriterWrapperConfiguration>();
         }
         /// <summary>
-        /// Конструктор GroupWrapperConfiguration
+        /// GroupWrapperConfiguration constructor
         /// </summary>
         public GroupWrapperConfiguration()
             : this(null)
@@ -322,23 +328,23 @@ namespace Qoollo.Logger.Configuration
         }
 
         /// <summary>
-        /// Внутренние писатели
+        /// Inner writer/wrapper configurations
         /// </summary>
         public List<LogWriterWrapperConfiguration> InnerWriters { get; private set; }
     }
 
 
     /// <summary>
-    /// Маршрутизирующий враппер
+    /// Configuration for wrapper that routes messages in per Module manner
     /// </summary>
     public class RoutingWrapperConfiguration: LogWriterWrapperConfiguration
     {
         /// <summary>
-        /// Конструктор RoutingWrapperConfiguration
+        /// RoutingWrapperConfiguration constructor
         /// </summary>
-        /// <param name="routing">Маршрутизация по имени подсистем</param>
-        /// <param name="fromAll">Доставка всем</param>
-        /// <param name="fromOthers">Доставка оставшимя</param>
+        /// <param name="routing">Writer/wrapper configurations to process messages from separate Module (dictionary key - module name)</param>
+        /// <param name="fromAll">Writer/wrapper configurations to process all messages</param>
+        /// <param name="fromOthers">Writer/wrapper configurations to process messages that have no special routing config</param>
         public RoutingWrapperConfiguration(Dictionary<string, List<LogWriterWrapperConfiguration>> routing,
             IEnumerable<LogWriterWrapperConfiguration> fromAll, IEnumerable<LogWriterWrapperConfiguration> fromOthers)
             : base(WriterTypeEnum.RoutingWrapper)
@@ -359,16 +365,16 @@ namespace Qoollo.Logger.Configuration
                 RoutingWriters = new Dictionary<string, List<LogWriterWrapperConfiguration>>();
         }
         /// <summary>
-        /// Конструктор RoutingWrapperConfiguration
+        /// RoutingWrapperConfiguration constructor
         /// </summary>
-        /// <param name="routing">Маршрутизация по имени подсистем</param>
+        /// <param name="routing">Writer/wrapper configurations to process messages from separate Module</param>
         public RoutingWrapperConfiguration(Dictionary<string, List<LogWriterWrapperConfiguration>> routing)
             : this(routing, null, null)
         {
 
         }
         /// <summary>
-        /// Конструктор RoutingWrapperConfiguration
+        /// RoutingWrapperConfiguration constructor
         /// </summary>
         public RoutingWrapperConfiguration()
             : this(null, null, null)
@@ -378,33 +384,33 @@ namespace Qoollo.Logger.Configuration
 
 
         /// <summary>
-        /// Список конфигураций логгеров для логирования со всех модулей
+        /// Writer/wrapper configurations to process all messages
         /// </summary>
         public List<LogWriterWrapperConfiguration> FromAll { get; private set; }
 
         /// <summary>
-        /// Список конфигураций логгеров для логирования с модулей которые явно не прописаны в маршрутизации
+        /// Writer/wrapper configurations to process messages that have no special routing config
         /// </summary>
         public List<LogWriterWrapperConfiguration> FromOthers { get; private set; }
 
         /// <summary>
-        /// Список конфигураций логгеров для логирования с привязкой для каждого имени модуля
+        /// Writer/wrapper configurations to process messages from separate Module (dictionary key - module name)
         /// </summary>
         public Dictionary<string, List<LogWriterWrapperConfiguration>> RoutingWriters { get; private set; }
     }
 
 
     /// <summary>
-    /// Маршрутизирующий по паттерну враппер
+    /// Configuration for simple pattern-matching messages router
     /// </summary>
     public class PatternMatchingWrapperConfiguration : LogWriterWrapperConfiguration
     {
         /// <summary>
-        /// Конструктор PatternMatchingWrapperConfiguration
+        /// PatternMatchingWrapperConfiguration constructor
         /// </summary>
-        /// <param name="pattern">Паттерн для получения строки</param>
-        /// <param name="matchWriters">Словарь для выявляения совпадающих по паттерну писателей</param>
-        /// <param name="defaultWriter">Писатель, в который пишет я при отстутвии совпадений</param>
+        /// <param name="pattern">Pattern to build the string for comparison</param>
+        /// <param name="matchWriters">Writer/wrapper configurations for concrete matching</param>
+        /// <param name="defaultWriter">Writer/wrapper configuration that will be used when matches not found</param>
         public PatternMatchingWrapperConfiguration(string pattern,
                     Dictionary<string, LogWriterWrapperConfiguration> matchWriters, 
                     LogWriterWrapperConfiguration defaultWriter)
@@ -422,18 +428,18 @@ namespace Qoollo.Logger.Configuration
             DefaultWriter = defaultWriter;
         }
         /// <summary>
-        /// Конструктор PatternMatchingWrapperConfiguration
+        /// PatternMatchingWrapperConfiguration constructor
         /// </summary>
-        /// <param name="pattern">Паттерн для получения строки</param>
-        /// <param name="matchWriters">Словарь для выявляения совпадающих по паттерну писателей</param>
+        /// <param name="pattern">Pattern to build the string for comparison</param>
+        /// <param name="matchWriters">Writer/wrapper configurations for concrete matching</param>
         public PatternMatchingWrapperConfiguration(string pattern, Dictionary<string, LogWriterWrapperConfiguration> matchWriters)
             : this(pattern, matchWriters, null)
         {
         }
         /// <summary>
-        /// Конструктор PatternMatchingWrapperConfiguration
+        /// PatternMatchingWrapperConfiguration constructor
         /// </summary>
-        /// <param name="pattern">Паттерн для получения строки</param>
+        /// <param name="pattern">Pattern to build the string for comparison</param>
         public PatternMatchingWrapperConfiguration(string pattern)
             : this(pattern, null, null)
         {
@@ -441,35 +447,50 @@ namespace Qoollo.Logger.Configuration
 
 
         /// <summary>
-        /// Паттерн для формирования строки по сообщению, которая потом сравнивается
+        /// Pattern to build the string for comparison
         /// </summary>
         public string Pattern {get; private set;}
 
         /// <summary>
-        /// Список конфигураций логгеров для логирования с привязкой по паттерну
+        /// Writer/wrapper configurations for concrete matching
         /// </summary>
         public Dictionary<string, LogWriterWrapperConfiguration> MatchWriters { get; private set; }
 
         /// <summary>
-        /// Конфигурация писателя, в который пишется при отсутствии совпадений
+        /// Writer/wrapper configuration that will be used when matches not found
         /// </summary>
         public LogWriterWrapperConfiguration DefaultWriter { get; private set; }
     }
 
 
 
+    /// <summary>
+    /// Base class for custom user wrapper configuration
+    /// </summary>
+    public abstract class CustomWrapperConfiguration: LogWriterWrapperConfiguration
+    {
+        /// <summary>
+        /// CustomWrapperConfiguration constructor
+        /// </summary>
+        public CustomWrapperConfiguration()
+            : base(WriterTypeEnum.CustomWrapper)
+        {
+        }
+    }
+
+
     #endregion
 
     /// <summary>
-    /// Базовая конфигурация для писателей 
+    /// Base class for writer configurations
     /// </summary>
     public abstract class LogWriterConfiguration : LogWriterWrapperConfiguration
     {
         /// <summary>
-        /// Конструктор LogWriterConfiguration
+        /// LogWriterConfiguration constructor
         /// </summary>
-        /// <param name="level">Уровень логирования</param>
-        /// <param name="writerType">Тип писателя</param>
+        /// <param name="level">Log level</param>
+        /// <param name="writerType">Writer type</param>
         protected LogWriterConfiguration(LogLevel level, WriterTypeEnum writerType)
             : base(writerType)
         {
@@ -479,7 +500,7 @@ namespace Qoollo.Logger.Configuration
         }
 
         /// <summary>
-        /// Уровень логирования
+        /// Log level
         /// </summary>
         public LogLevel Level { get; private set; }
     }
@@ -487,12 +508,12 @@ namespace Qoollo.Logger.Configuration
     #region Writers
 
     /// <summary>
-    /// Пустой писатель
+    /// Configuration for empty writer (sepcial writer that do not perform any actions)
     /// </summary>
     public class EmptyWriterConfiguration : LogWriterConfiguration
     {
         /// <summary>
-        /// Конструктор EmptyWriterConfiguration
+        /// EmptyWriterConfiguration constructor
         /// </summary>
         public EmptyWriterConfiguration()
             : base(LogLevel.FullLog, WriterTypeEnum.EmptyWriter)
@@ -501,17 +522,20 @@ namespace Qoollo.Logger.Configuration
     }
 
     /// <summary>
-    /// Писатель логов в консоль
+    /// Configuration for Console writer (writes logs to Console)
     /// </summary>
     public class ConsoleWriterConfiguration: LogWriterConfiguration
     {
+        /// <summary>
+        /// Default log message format string
+        /// </summary>
         public const string DefaultTemplateFormat = "{DateTime}. {Level}. \\n At {StackSource}.{Class}::{Method}.\\n Message: {Message}. {Exception, prefix = '\\n Exception: ', valueOnNull=''}\\n\\n";
 
         /// <summary>
-        /// Конструктор ConsoleWriterConfiguration
+        /// ConsoleWriterConfiguration constructor
         /// </summary>
-        /// <param name="level">Уровень логирования</param>
-        /// <param name="template">Шаблон</param>
+        /// <param name="level">Log level</param>
+        /// <param name="template">Log message format string</param>
         public ConsoleWriterConfiguration(LogLevel level, string template)
             : base(level, WriterTypeEnum.ConsoleWriter)
         {
@@ -521,15 +545,15 @@ namespace Qoollo.Logger.Configuration
             Template = template;
         }
         /// <summary>
-        /// Конструктор ConsoleWriterConfiguration
+        /// ConsoleWriterConfiguration constructor
         /// </summary>
-        /// <param name="template">Шаблон</param>
+        /// <param name="template">Log message format string</param>
         public ConsoleWriterConfiguration(string template)
             : this(LogLevel.FullLog, template)
         {
         }
         /// <summary>
-        /// Конструктор ConsoleWriterConfiguration
+        /// ConsoleWriterConfiguration constructor
         /// </summary>
         public ConsoleWriterConfiguration()
             : this(LogLevel.FullLog, DefaultTemplateFormat)
@@ -537,27 +561,33 @@ namespace Qoollo.Logger.Configuration
         }
 
         /// <summary>
-        /// Шаблон для записи форматируемой строки
+        /// Log message format string
         /// </summary>
         public string Template { get; private set; }
     }
 
     /// <summary>
-    /// Писатель в файл
+    /// Configuration for File Writer (writes logs to text file)
     /// </summary>
     public class FileWriterConfiguration: LogWriterConfiguration
     {
+        /// <summary>
+        /// Default log message format string
+        /// </summary>
         public const string DefaultTemplateFormat = "{DateTime}. {Level}. \\n At {StackSource}.{Class}::{Method}.\\n Message: {Message}. {Exception, prefix = '\\n Exception: ', valueOnNull=''}\\n\\n";
+        /// <summary>
+        /// Default file name format string
+        /// </summary>
         public const string DefaultFileNameTemplateFormat = "logs/app.log";
 
         /// <summary>
-        /// Конструктор FileWriterConfiguration
+        /// FileWriterConfiguration constructor
         /// </summary>
-        /// <param name="level">Уровень логирования</param>
-        /// <param name="template">Шаблон записи</param>
-        /// <param name="fileNameTemplate">Шаблон имени файла с директорией</param>
-        /// <param name="isNeedFileRotation">Нужна ли ротация файлов</param>
-        /// <param name="encoding">Кодировка</param>
+        /// <param name="level">Log level</param>
+        /// <param name="template">Log message format string</param>
+        /// <param name="fileNameTemplate">File name format string</param>
+        /// <param name="isNeedFileRotation">Enable file rotation (required if 'fileNameTemplate' contains sustitution tokens)</param>
+        /// <param name="encoding">Text file encoding (default: UTF-8)</param>
         public FileWriterConfiguration(LogLevel level, string template, string fileNameTemplate, bool isNeedFileRotation, Encoding encoding)
             : base(level, WriterTypeEnum.FileWriter)
         {
@@ -571,37 +601,37 @@ namespace Qoollo.Logger.Configuration
             Encoding = encoding ?? Encoding.UTF8;
         }
         /// <summary>
-        /// Конструктор FileWriterConfiguration
+        /// FileWriterConfiguration constructor
         /// </summary>
-        /// <param name="level">Уровень логирования</param>
-        /// <param name="template">Шаблон записи</param>
-        /// <param name="fileNameTemplate">Шаблон имени файла с директорией</param>
-        /// <param name="encoding">Кодировка</param>
+        /// <param name="level">Log level</param>
+        /// <param name="template">Log message format string</param>
+        /// <param name="fileNameTemplate">File name format string</param>
+        /// <param name="encoding">Text file encoding (default: UTF-8)</param>
         public FileWriterConfiguration(LogLevel level, string template, string fileNameTemplate, Encoding encoding)
             : this(level, template, fileNameTemplate, fileNameTemplate.Contains('{') && fileNameTemplate.Contains('}'), encoding)
         {       
         }
         /// <summary>
-        /// Конструктор FileWriterConfiguration
+        /// FileWriterConfiguration constructor
         /// </summary>
-        /// <param name="level">Уровень логирования</param>
-        /// <param name="template">Шаблон записи</param>
-        /// <param name="fileNameTemplate">Шаблон имени файла с директорией</param>
+        /// <param name="level">Log level</param>
+        /// <param name="template">Log message format string</param>
+        /// <param name="fileNameTemplate">File name format string</param>
         public FileWriterConfiguration(LogLevel level, string template, string fileNameTemplate)
             : this(level, template, fileNameTemplate, Encoding.UTF8)
         {
         }
         /// <summary>
-        /// Конструктор FileWriterConfiguration
+        /// FileWriterConfiguration constructor
         /// </summary>
-        /// <param name="template">Шаблон записи</param>
-        /// <param name="fileNameTemplate">Шаблон имени файла с директорией</param>
+        /// <param name="template">Log message format string</param>
+        /// <param name="fileNameTemplate">File name format string</param>
         public FileWriterConfiguration(string template, string fileNameTemplate)
             : this(LogLevel.FullLog, template, fileNameTemplate)
         {
         }
         /// <summary>
-        /// Конструктор FileWriterConfiguration
+        /// FileWriterConfiguration constructor
         /// </summary>
         public FileWriterConfiguration()
             : this(LogLevel.FullLog, DefaultTemplateFormat, DefaultFileNameTemplateFormat)
@@ -609,44 +639,47 @@ namespace Qoollo.Logger.Configuration
         }
 
         /// <summary>
-        /// Шаблон для записи форматируемой строки для некоторых логгеров - ConsoleWriter, FileWriter
+        /// Log message format string (can contains substitution tokens)
         /// </summary>
         public string Template { get; private set; }
 
         /// <summary>
-        /// Имя файла для записи логов
-        /// Может содержать ключи для подстановки Data, Time, Modul, Namespace, Class, Level, 
-        /// и ключи объявленные в контексте экземляра логгера
-        /// Благордаря ключам поддерживается ротация файлов - по дате или по имени системы от куда пишем
+        /// File name format string (can contains substitution tokens)
         /// </summary>
         public string FileNameTemplate { get; private set; }
 
         /// <summary>
-        /// Показывает нужна ли ротация файлов
+        /// Is file rotation enabled (required if 'FileNameTemplate' contains sustitution tokens)
         /// </summary>
         public bool IsNeedFileRotate { get; private set; }
 
         /// <summary>
-        /// Кодировка, используемая для записи в файл
+        /// Text file encoding
         /// </summary>
         public Encoding Encoding { get; private set; }
     }
 
 
     /// <summary>
-    /// Конфиг писателя в Пайп
+    /// Configuration for Pipe Writer (sends logs to server through Pipe)
     /// </summary>
     public class PipeWriterConfiguration: LogWriterConfiguration
     {
+        /// <summary>
+        /// Default server name (local)
+        /// </summary>
         public const string DefaultServerName = ".";
+        /// <summary>
+        /// Default Pipe name
+        /// </summary>
         public const string DefaultPipeName = "LoggingService";
 
         /// <summary>
-        /// Конструктор PipeWriterConfiguration
+        /// PipeWriterConfiguration constructor
         /// </summary>
-        /// <param name="level">Уровень логирования</param>
-        /// <param name="serverName">Имя сервера</param>
-        /// <param name="pipeName">Имя пайпа</param>
+        /// <param name="level">Log level</param>
+        /// <param name="serverName">Server name</param>
+        /// <param name="pipeName">Pipe name</param>
         public PipeWriterConfiguration(LogLevel level, string serverName, string pipeName)
             : base(level, WriterTypeEnum.PipeWriter)
         {
@@ -658,26 +691,26 @@ namespace Qoollo.Logger.Configuration
             PipeName = pipeName;
         }
         /// <summary>
-        /// Конструктор PipeWriterConfiguration
+        /// PipeWriterConfiguration constructor
         /// </summary>
-        /// <param name="level">Уровень логирования</param>
-        /// <param name="pipeName">Имя пайпа</param>
+        /// <param name="level">Log level</param>
+        /// <param name="pipeName">Pipe name</param>
         public PipeWriterConfiguration(LogLevel level, string pipeName)
             : this(level, DefaultServerName, pipeName)
         {
 
         }
         /// <summary>
-        /// Конструктор PipeWriterConfiguration
+        /// PipeWriterConfiguration constructor
         /// </summary>
-        /// <param name="pipeName">Имя пайпа</param>
+        /// <param name="pipeName">Pipe name</param>
         public PipeWriterConfiguration(string pipeName)
             : this(LogLevel.FullLog, pipeName)
         {
 
         }
         /// <summary>
-        /// Конструктор PipeWriterConfiguration
+        /// PipeWriterConfiguration constructor
         /// </summary>
         public PipeWriterConfiguration()
             : this(LogLevel.FullLog, DefaultServerName, DefaultPipeName)
@@ -686,31 +719,37 @@ namespace Qoollo.Logger.Configuration
         }
 
         /// <summary>
-        /// Имя сервера
+        /// Server name
         /// </summary>
         public string ServerName { get; private set; }
 
         /// <summary>
-        /// Имя пайпа
+        /// Pipe name
         /// </summary>
         public string PipeName { get; private set; }
     }
 
 
     /// <summary>
-    /// Конфиг писателя по сети
+    /// Configuration for Network Writer (sends logs to server through Network)
     /// </summary>
     public class NetWriterConfiguration: LogWriterConfiguration
     {
+        /// <summary>
+        /// Default server TCP port
+        /// </summary>
         public const int DefaultPort = 26113;
+        /// <summary>
+        /// Default server address/host
+        /// </summary>
         public const string DefaultServerName = "127.0.0.1";
 
         /// <summary>
-        /// Конструктор NetWriterConfiguration
+        /// NetWriterConfiguration constructor
         /// </summary>
-        /// <param name="level">Уровень логирования</param>
-        /// <param name="serverAddress">Адрес сервера</param>
-        /// <param name="port">Порт</param>
+        /// <param name="level">Log level</param>
+        /// <param name="serverAddress">Server address/host</param>
+        /// <param name="port">Server TCP port</param>
         public NetWriterConfiguration(LogLevel level, string serverAddress, int port)
             : base(level, WriterTypeEnum.NetWriter)
         {
@@ -722,26 +761,26 @@ namespace Qoollo.Logger.Configuration
             Port = port;
         }
         /// <summary>
-        /// Конструктор NetWriterConfiguration
+        /// NetWriterConfiguration constructor
         /// </summary>
-        /// <param name="level">Уровень логирования</param>
-        /// <param name="serverAddress">Адрес сервера</param>
+        /// <param name="level">Log level</param>
+        /// <param name="serverAddress">Server address/host</param>
         public NetWriterConfiguration(LogLevel level, string serverAddress)
             : this(level, serverAddress, DefaultPort)
         {
 
         }
         /// <summary>
-        /// Конструктор NetWriterConfiguration
+        /// NetWriterConfiguration constructor
         /// </summary>
-        /// <param name="serverAddress">Адрес сервера</param>
+        /// <param name="serverAddress">Server address/host</param>
         public NetWriterConfiguration(string serverAddress)
             : this(LogLevel.FullLog, serverAddress, DefaultPort)
         {
 
         }
         /// <summary>
-        /// Конструктор NetWriterConfiguration
+        /// NetWriterConfiguration constructor
         /// </summary>
         public NetWriterConfiguration()
             : this(LogLevel.FullLog, DefaultServerName, DefaultPort)
@@ -750,31 +789,40 @@ namespace Qoollo.Logger.Configuration
         }
 
         /// <summary>
-        /// Имя или адресс сервера
+        /// Server address/host
         /// </summary>
         public string ServerAddress { get; private set; }
 
         /// <summary>
-        /// Порт для подключения
+        /// Server TCP port
         /// </summary>
         public int Port { get; private set; }
     }
 
     /// <summary>
-    /// Конфиг писателя в базу данных
+    /// Configuration for Database writer (writes logs to MS SQL Server Database)
     /// </summary>
     public class DatabaseWriterConfiguration: LogWriterConfiguration
     {
+        /// <summary>
+        /// Default stored porcedure name to insert logs
+        /// </summary>
         public const string DefaultStoredProcedureName = "[dbo].[LogInsert]";
+        /// <summary>
+        /// Default database name
+        /// </summary>
         public const string DefaultLogDatabaseName = "LogDatabase";
+        /// <summary>
+        /// Default connection string
+        /// </summary>
         public const string DefaultConnectionString = "Data Source = (local); Database = LogDatabase; Integrated Security = SSPI;";
 
         /// <summary>
-        /// Конструктор DatabaseWriterConfiguration
+        /// DatabaseWriterConfiguration constructor
         /// </summary>
-        /// <param name="level">Уровень логирования</param>
-        /// <param name="connectionString">Строка соединения</param>
-        /// <param name="storedProcedureName">Имя хранимой процедуры</param>
+        /// <param name="level">Log level</param>
+        /// <param name="connectionString">Connection string</param>
+        /// <param name="storedProcedureName">Stored procedure name to insert logs</param>
         public DatabaseWriterConfiguration(LogLevel level, string connectionString, string storedProcedureName)
             : base(level, WriterTypeEnum.DBWriter)
         {
@@ -786,24 +834,24 @@ namespace Qoollo.Logger.Configuration
             StoredProcedureName = storedProcedureName;
         }
         /// <summary>
-        /// Конструктор DatabaseWriterConfiguration
+        /// DatabaseWriterConfiguration constructor
         /// </summary>
-        /// <param name="level">Уровень логирования</param>
-        /// <param name="connectionString">Строка соединения</param>
+        /// <param name="level">Log level</param>
+        /// <param name="connectionString">Connection string</param>
         public DatabaseWriterConfiguration(LogLevel level, string connectionString)
             : this(level, connectionString, DefaultStoredProcedureName)
         {
         }
         /// <summary>
-        /// Конструктор DatabaseWriterConfiguration
+        /// DatabaseWriterConfiguration constructor
         /// </summary>
-        /// <param name="connectionString">Строка соединения</param>
+        /// <param name="connectionString">Connection string</param>
         public DatabaseWriterConfiguration(string connectionString)
             : this(LogLevel.FullLog, connectionString, DefaultStoredProcedureName)
         {
         }
         /// <summary>
-        /// Конструктор DatabaseWriterConfiguration
+        /// DatabaseWriterConfiguration constructor
         /// </summary>
         public DatabaseWriterConfiguration()
             : this(DefaultConnectionString)
@@ -811,14 +859,30 @@ namespace Qoollo.Logger.Configuration
         }
 
         /// <summary>
-        /// Строка подключения к БД
+        /// Connection string
         /// </summary>
         public string ConnectionString { get; private set; }
 
         /// <summary>
-        /// Имя хранимой процедуры для вставки в БД
+        /// Stored procedure name to insert logs
         /// </summary>
         public string StoredProcedureName { get; private set; }
+    }
+
+
+    /// <summary>
+    /// Base class for user custom writer configuration
+    /// </summary>
+    public abstract class CustomWriterConfiguration: LogWriterConfiguration
+    {
+        /// <summary>
+        /// CustomWriterConfiguration constructor
+        /// </summary>
+        /// <param name="level">Log level</param>
+        public CustomWriterConfiguration(LogLevel level)
+            : base(level, WriterTypeEnum.CustomWriter)
+        {
+        }
     }
 
     #endregion
