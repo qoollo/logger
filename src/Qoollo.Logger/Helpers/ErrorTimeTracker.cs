@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Qoollo.Logger.Helpers
 {
     /// <summary>
-    /// Отслеживание периода логирования при ошибках
+    /// Time tracker to log errors
     /// </summary>
     internal class ErrorTimeTracker
     {

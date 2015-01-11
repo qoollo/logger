@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Qoollo.Logger.Configuration.LoggerConfigurationV2
 {
     /// <summary>
-    /// Преобразователь форматов конфигураций
+    /// Logger configuration formats converter
     /// </summary>
     internal class ConfigurationFormatConverter
     {

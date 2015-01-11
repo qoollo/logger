@@ -7,21 +7,21 @@ using System.Threading.Tasks;
 namespace Qoollo.Logger.Exceptions
 {
     /// <summary>
-    /// Ошибка записи лога в файл.
+    /// File writer exception
     /// </summary>
     [Serializable]
     public class LoggerFileWriteException : LoggerException
     {
         /// <summary>
-        /// Конструктор LoggerFileWriteException
+        /// LoggerFileWriteException constructor
         /// </summary>
-        /// <param name="message">Сообщение</param>
+        /// <param name="message">A message that describes the error</param>
         public LoggerFileWriteException(string message) : base(message) { }
         /// <summary>
-        /// Конструктор LoggerFileWriteException
+        /// LoggerFileWriteException constructor
         /// </summary>
-        /// <param name="message">Сообщение</param>
-        /// <param name="innerException">Внутреннее исключение</param>
+        /// <param name="message">A message that describes the error</param>
+        /// <param name="innerException">The exception that is the cause of the current exception</param>
         public LoggerFileWriteException(string message, Exception innerException) : base(message, innerException) { }
     }
 }

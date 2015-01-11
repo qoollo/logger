@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 namespace Qoollo.Logger.LoggingEventConverters
 {
     /// <summary>
-    /// Фабрика конвертеров старого формата
+    /// Converter factory for Legacy format
     /// </summary>
     public class LegacyConverterFactory : ConverterFactory
     {
         /// <summary>
-        /// Создание ковертора для получения строкого представления исключения
+        /// Creates converter for Exception
         /// </summary>
         /// <returns></returns>
         public override LoggingEventConverterBase CreateExceptionConverter()
@@ -21,7 +21,7 @@ namespace Qoollo.Logger.LoggingEventConverters
             return new LegacyExceptionConverter();
         }
         /// <summary>
-        /// Создание ковертора для получения строки из списка StackSource
+        /// Creates converter for StackSource
         /// </summary>
         /// <returns></returns>
         public override LoggingEventConverterBase CreateStackSourceConverter()

@@ -5,15 +5,15 @@ using Qoollo.Logger.Common;
 namespace Qoollo.Logger.LoggingEventConverters
 {
     /// <summary>
-    /// Фабрика для создания конвертеров,
-    /// необходимых для преобразования логируемых данных в строки для вывода в файл или консоль
+    /// Factory that creates concrete converters for different parameters of LoggingEvent. 
+    /// These converters transforms parameters to its string representations.
     /// </summary>
     public class ConverterFactory
     {
         private static readonly ConverterFactory _default = new ConverterFactory();
 
         /// <summary>
-        /// Инстанс фабрики по-умолчанию
+        /// Default converter factory
         /// </summary>
         public static ConverterFactory Default { get { return _default; } }
 

@@ -18,7 +18,7 @@ namespace Qoollo.Logger.Helpers
         private static int _processId;
 
         /// <summary>
-        /// Имя машины
+        /// Machine name
         /// </summary>
         public static string MachineName
         {
@@ -55,7 +55,7 @@ namespace Qoollo.Logger.Helpers
         }
 
         /// <summary>
-        /// Адрес машины
+        /// Machine address (ip)
         /// </summary>
         public static string MachineAddress
         {
@@ -68,7 +68,7 @@ namespace Qoollo.Logger.Helpers
         }
 
         /// <summary>
-        /// Объединённое имя машины
+        /// Machine name and Machine address
         /// </summary>
         public static string CombinedMachineName
         {
@@ -83,7 +83,7 @@ namespace Qoollo.Logger.Helpers
 
 
         /// <summary>
-        /// Имя процесса
+        /// Process name
         /// </summary>
         public static string ProcessName
         {
@@ -101,7 +101,7 @@ namespace Qoollo.Logger.Helpers
 
 
         /// <summary>
-        /// ID процесса
+        /// Process ID
         /// </summary>
         public static int ProcessId
         {

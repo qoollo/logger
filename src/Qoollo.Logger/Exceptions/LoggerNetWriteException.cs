@@ -7,21 +7,21 @@ using System.Threading.Tasks;
 namespace Qoollo.Logger.Exceptions
 {
     /// <summary>
-    /// Ошибка передачи лога по сети.
+    /// NetWriter exception
     /// </summary>
     [Serializable]
     public class LoggerNetWriteException : LoggerException
     {
         /// <summary>
-        /// Конструктор LoggerNetWriteException
+        /// LoggerNetWriteException constructor
         /// </summary>
-        /// <param name="message">Сообщение</param>
+        /// <param name="message">A message that describes the error</param>
         public LoggerNetWriteException(string message) : base(message) { }
         /// <summary>
-        /// Конструктор LoggerNetWriteException
+        /// LoggerNetWriteException constructor
         /// </summary>
-        /// <param name="message">Сообщение</param>
-        /// <param name="innerException">Внутреннее исключение</param>
+        /// <param name="message">A message that describes the error</param>
+        /// <param name="innerException">The exception that is the cause of the current exception</param>
         public LoggerNetWriteException(string message, Exception innerException) : base(message, innerException) { }
     }
 }
