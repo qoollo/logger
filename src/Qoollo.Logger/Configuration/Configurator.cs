@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Qoollo.Logger.Configuration
@@ -8,6 +9,28 @@ namespace Qoollo.Logger.Configuration
     /// </summary>
     public static class Configurator
     {
+        /// <summary>
+        /// Register new converter from CustomAppConfigWriterConfiguration to concrete configuration object
+        /// </summary>
+        /// <param name="writerType">Writer type string</param>
+        /// <param name="converter">Conversion function</param>
+        public static void RegisterConverter(string writerType, Func<CustomAppConfigWriterConfiguration, CustomWriterConfiguration> converter)
+        {
+            CustomAppConfigWriterConfigurationConverter.RegisterConverter(writerType, converter);
+        }
+        /// <summary>
+        /// Unregister converter
+        /// </summary>
+        /// <param name="writerType">Writer type string</param>
+        /// <returns>true if the element is successfully found and removed</returns>
+        public static bool UnregisterConverter(string writerType)
+        {
+            return CustomAppConfigWriterConfigurationConverter.UnregisterConverter(writerType);
+        }
+
+
+
+
         /// <summary>
         /// Loads logger configuration from App.config
         /// </summary>

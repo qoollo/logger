@@ -137,4 +137,10 @@ namespace Qoollo.Logger.Configuration.LoggerConfigurationV2
         string ConnectionString { get; }
         string StoredProcedureName { get; }
     }
+
+    interface ICustomWriter: ILoggerWriterConfiguration
+    {
+        string Type { get; }
+        Dictionary<string, string> Parameters { get; }
+    }
 }

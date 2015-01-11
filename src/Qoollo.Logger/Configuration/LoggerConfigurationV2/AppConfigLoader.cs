@@ -51,7 +51,7 @@ namespace Qoollo.Logger.Configuration.LoggerConfigurationV2
             var configuration = ConfigurationFormatConverter.Convert(section);
 
             if (configuration == null)
-                throw new Qoollo.Logger.Exceptions.LoggerConfigurationException("Ошбка конфигурирования логгера");
+                throw new Qoollo.Logger.Exceptions.LoggerConfigurationException("Logger configuration error");
 
             return configuration;
         }
