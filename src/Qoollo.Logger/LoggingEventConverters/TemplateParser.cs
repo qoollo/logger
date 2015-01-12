@@ -9,15 +9,14 @@ using Qoollo.Logger.Exceptions;
 namespace Qoollo.Logger.LoggingEventConverters
 {
     /// <summary>
-    /// Ключи для указания вида формата выводимой строки
-    /// Все ключи указываются в фигурных скобках например: {Level}
+    /// Parser for log template strings. 
+    /// Creates LoggingEventConvers chain from source template string.
+    /// Template string can contain substitution tokens ({Level}, ...) and special symbols.
     /// </summary>
     /// <summary>
-    /// В ручную настраивомый вывод даты и времени
-    /// Пример "{DateTime:yyyy-MM-dd hh:mm:ss}"
-    /// Date.ToString(string format) - соответственно нужные ключи смотрим на MSDN
-    /// выбор  громаден, 
-    /// Пример использования самих ключей (с MSDN):
+    /// DATETIME, DateTime, datetime - token for Date and Time substitution.
+    /// Supports format string: {DateTime, format='yyyy-MM-dd hh:mm:ss'} 
+    /// Format string parameters from MSDN:
     /// This example displays the following output to the console:
     ///  d: 6/15/2008
     ///  D: Sunday, June 15, 2008
@@ -43,29 +42,43 @@ namespace Qoollo.Logger.LoggingEventConverters
     ///  'HH:mm:ss.ffffzzz': 21:15:07.0000-07:00
     /// </summary>
     /// <summary>
-    /// LEVEL, Level, level - вывод текущего уровня логирования
+    /// LEVEL, Level, level - substitution tokens for LogLevel
     /// </summary>
     /// <summary>
-    /// STACKSOURCE, StackSource, stacksource - вывод цепочки имен модулей от которых происходит логирование
-    /// Пример вывода - NetworkSystem.ReceptionModule
+    /// CONTEXT, Context, context - substitution tokens for Context
     /// </summary>
     /// <summary>
-    /// CLASS, Class, class - вывод полного имени класса в котором вызывается мотод логирования
+    /// STACKSOURCE, StackSource, stacksource, SOURCES, Sources, sources  - substitution tokens for StackSource
     /// </summary>
     /// <summary>
-    /// METHOD, Method, method - вывод имени метода в котором вызывается мотод логирования
+    /// CLASS, Class, class - substitution tokens for Class
     /// </summary>
     /// <summary>
-    /// MESSAGE, Message, message - вывод логирующего сообщения
+    /// METHOD, Method, method - substitution tokens for Method
     /// </summary>
     /// <summary>
-    /// EXCEPTION, Exception, exception - вывод логирующего сообщения
+    /// MESSAGE, Message, message, Msg, msg - substitution tokens for user Message
     /// </summary>
     /// <summary>
-    /// NAMESPACE, Namespace, namespace - вывод сообщения о пространстве имён
+    /// EXCEPTION, Exception, exception, EX, Ex, ex - substitution tokens for Exception
     /// </summary>
     /// <summary>
-    /// ASSEMBLY, Assembly, assembly - вывод сообщения о сборке
+    /// NAMESPACE, Namespace, namespace - substitution tokens for Namespace
+    /// </summary>
+    /// <summary>
+    /// ASSEMBLY, Assembly, assembly - substitution tokens for Assembly
+    /// </summary>
+    /// <summary>
+    /// MACHINENAME, MachineName, Machinename, machinename, MACHINE, Machine, machine - substitution tokens for MachineName
+    /// </summary>
+    /// <summary>
+    /// PROCESSNAME, ProcessName, Processname, processname, PROCESS, Process, process - substitution tokens for ProcessName
+    /// </summary>
+    /// <summary>
+    /// PROCESSID, ProcessId, Processid, processid - substitution tokens for ProcessId
+    /// </summary>
+    /// <summary>
+    /// ASSEMBLY, Assembly, assembly - substitution tokens for Assembly
     /// </summary>
     public static class TemplateParser
     {
@@ -174,12 +187,12 @@ namespace Qoollo.Logger.LoggingEventConverters
 
 
         /// <summary>
-        /// Преобразование строки в конвертер для получения строки из логируемых данных 
+        /// Parse supplied template string and creates the chain of converters using specified 'factory'
         /// </summary>
-        /// <param name="template">шаблон строки</param>
-        /// <param name="factory">фабрика</param>
-        /// <returns></returns>
-        /// <exception cref="LoggerMessageTemplateParsingException"></exception>
+        /// <param name="template">Template string</param>
+        /// <param name="factory">Factory to create converters</param>
+        /// <returns>Final combined converter</returns>
+        /// <exception cref="LoggerMessageTemplateParsingException">Exception for any parsing error</exception>
         public static LoggingEventConverterBase Parse(string template, ConverterFactory factory)
         {
             Contract.Requires(template != null);
@@ -225,14 +238,14 @@ namespace Qoollo.Logger.LoggingEventConverters
 
             SkipSpaces(data, ref curPos);
             if (curPos >= data.Length)
-                throw new LoggerMessageTemplateParsingException("Невозможно прочесть информацию о конвертере, т.к. строка закончилась. Строка: '" + data + "', позиция: " + curPos.ToString());
+                throw new LoggerMessageTemplateParsingException("Unexpected end of string. Substitution token end was not found. String: '" + data + "', Position: " + curPos.ToString());
 
 
             string key = ReadTerm(data, ref curPos);
             SkipSpaces(data, ref curPos);
 
             if (curPos >= data.Length)
-                throw new LoggerMessageTemplateParsingException("Не обнаружен конец конвертера ('}'). Конвертер: '" + data.Substring(startPos) + "', строка: '" + data + "', позиция: " + curPos.ToString());
+                throw new LoggerMessageTemplateParsingException("Unexpected end of string. Closing brace for substitution token not found ('}'). Token: '" + data.Substring(startPos) + "', String: '" + data + "', Postion: " + curPos.ToString());
 
             ParsedConverterParams parsedParams = new ParsedConverterParams();
 
@@ -249,12 +262,12 @@ namespace Qoollo.Logger.LoggingEventConverters
                         FillParsedConverterParams(parsedParams, keyValue, data.Substring(startPos));
                         break;
                     default:
-                        throw new LoggerMessageTemplateParsingException("Обнаружен некорректный символ при разборе конвертера ('" + data[curPos].ToString() + "'). Ожидалось '}' или ','. Конвертер: '" + data.Substring(startPos) + "', строка: '" + data + "', позиция: " + curPos.ToString());
+                        throw new LoggerMessageTemplateParsingException("Incorrect symbol during parsing token parameters ('" + data[curPos].ToString() + "'). '}' or ',' expected. Token: '" + data.Substring(startPos) + "', String: '" + data + "', Position: " + curPos.ToString());
                 }
                 SkipSpaces(data, ref curPos);
             }
 
-            throw new LoggerMessageTemplateParsingException("Не обнаружен конец конвертера ('}'). Конвертер: '" + data.Substring(startPos) + "', строка: '" + data + "', позиция: " + curPos.ToString());
+            throw new LoggerMessageTemplateParsingException("Unexpected end of string. Closing brace for substitution token not found ('}'). Token: '" + data.Substring(startPos) + "', String: '" + data + "', Postion: " + curPos.ToString());
         }
 
 
@@ -267,7 +280,7 @@ namespace Qoollo.Logger.LoggingEventConverters
             ConverterTypes type;
 
             if (!Substitutions.TryGetValue(key, out type))
-                throw new LoggerMessageTemplateParsingException("Неизвестное наименование конвертера: " + key);
+                throw new LoggerMessageTemplateParsingException("Incorrect or unsupported token name: " + key);
             
             switch (type)
             {
@@ -311,7 +324,7 @@ namespace Qoollo.Logger.LoggingEventConverters
                     return factory.CreateDateConverter(parsedParams.Format);
 
                 default:
-                    throw new ArgumentException(string.Format("Неизвестный тип конвертера \"{0}\"", type.ToString()));
+                    throw new ArgumentException(string.Format("Unknown ConverterTypes value: \"{0}\"", type.ToString()));
             }
         }
 
@@ -363,7 +376,7 @@ namespace Qoollo.Logger.LoggingEventConverters
                     parsedParams.Suffix = val.Value;
                     break;
                 default:
-                    throw new LoggerMessageTemplateParsingException("Обнаружен некорректный параметр конвертера ('" + val.Key + "'). Ожидалось 'Format', 'ValueOnNull', 'Prefix' или 'Suffix'. Контекст: " + context);
+                    throw new LoggerMessageTemplateParsingException("Incorrect or unsupported token parameter ('" + val.Key + "'). Possible values: 'Format', 'ValueOnNull', 'Prefix' or 'Suffix'. Context: " + context);
             }
         }
 
@@ -375,27 +388,27 @@ namespace Qoollo.Logger.LoggingEventConverters
 
             SkipSpaces(data, ref curPos);
             if (curPos >= data.Length)
-                throw new LoggerMessageTemplateParsingException("Не обнаружено наименование параметра. Начало: '" + data.Substring(startPos) + "', строка: '" + data + "', позиция: " + curPos.ToString());
+                throw new LoggerMessageTemplateParsingException("Key name of token parameter not found. Parameter starts here: '" + data.Substring(startPos) + "', Full string: '" + data + "', Position: " + curPos.ToString());
 
             string key = ReadTerm(data, ref curPos);
             string value = null;
 
             SkipSpaces(data, ref curPos);
             if (curPos >= data.Length || data[curPos] != '=')
-                throw new LoggerMessageTemplateParsingException("Не обнаружено значение параметра (ожидалось '='). Начало: '" + data.Substring(startPos) + "', строка: '" + data + "', позиция: " + curPos.ToString());
+                throw new LoggerMessageTemplateParsingException("Value of token parameter not found ('=' expected). Parameter starts here: '" + data.Substring(startPos) + "', Full string: '" + data + "', Position: " + curPos.ToString());
 
             curPos++;
 
             SkipSpaces(data, ref curPos);
             if (curPos >= data.Length)
-                throw new LoggerMessageTemplateParsingException("Не обнаружено значение параметра. Начало: '" + data.Substring(startPos) + "', строка: '" + data + "', позиция: " + curPos.ToString());
+                throw new LoggerMessageTemplateParsingException("Value of token parameter not found. Parameter starts here: '" + data.Substring(startPos) + "', Full string: '" + data + "', Position: " + curPos.ToString());
 
             if (data[curPos] == '\'')
             {
                 curPos++;
                 value = ReadString(data, ref curPos, new char[] { '\'' });
                 if (curPos >= data.Length || data[curPos] != '\'')
-                    throw new LoggerMessageTemplateParsingException("Не обнаружен конец значения параметра (ожидалось '''). Начало: '" + data.Substring(startPos) + "', строка: '" + data + "', позиция: " + curPos.ToString());
+                    throw new LoggerMessageTemplateParsingException("End of the token parameter not found (''' expected). Parameter starts here: '" + data.Substring(startPos) + "', Full string: '" + data + "', Position: " + curPos.ToString());
                 curPos++;
             }
             else
@@ -421,7 +434,7 @@ namespace Qoollo.Logger.LoggingEventConverters
         private static string ReadTerm(string data, ref int curPos)
         {
             if (curPos >= data.Length)
-                throw new LoggerMessageTemplateParsingException("Невозможно прочесть терм за границей строки. Строка: " + data + ", позиция: " + curPos.ToString());
+                throw new LoggerMessageTemplateParsingException("Unexpected end of string. Term can't be read. String: " + data + ", Position: " + curPos.ToString());
 
             int startPos = curPos;
             while (curPos < data.Length)
@@ -465,7 +478,7 @@ namespace Qoollo.Logger.LoggingEventConverters
         private static string ReadScreenedSymbol(string data, ref int curPos)
         {
             if (curPos >= data.Length)
-                throw new LoggerMessageTemplateParsingException("Неверное положение экранируемого символа. Строка: " + data + ", позиция: " + curPos.ToString());
+                throw new LoggerMessageTemplateParsingException("Incorrect escape sequence. String: " + data + ", Position: " + curPos.ToString());
 
             switch (data[curPos])
             {
