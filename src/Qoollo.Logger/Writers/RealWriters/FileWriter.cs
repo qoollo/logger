@@ -63,7 +63,7 @@ namespace Qoollo.Logger.Writers
             if (_isDisposed)
             {
                 if (_errorTracker.CanWriteErrorGetAndUpdate())
-                    _thisClassSupportLogger.Error("Попытка записи логирующего сообщения при освобожденных ресурсах");
+                    _thisClassSupportLogger.Error("Attempt to write LoggingEvent in Disposed state");
 
                 return false;
             }
@@ -96,12 +96,12 @@ namespace Qoollo.Logger.Writers
                 catch (IOException ex)
                 {
                     if (_errorTracker.CanWriteErrorGetAndUpdate())
-                        _thisClassSupportLogger.Error(ex, "Ошибка записи в файл: " + _lastFilename);
+                        _thisClassSupportLogger.Error(ex, "Error writing LoggingEvent to file: " + _lastFilename);
                 }
                 catch (Exception ex)
                 {
-                    _thisClassSupportLogger.Error(ex, "Непоправимая ошибка записи в файл: " + _lastFilename);
-                    throw new LoggerFileWriteException("Непоправимая ошибка записи в файл: " + _lastFilename, ex);
+                    _thisClassSupportLogger.Error(ex, "Fatal error while writing LoggingEvent to file: " + _lastFilename);
+                    throw new LoggerFileWriteException("Fatal error while writing LoggingEvent to file: " + _lastFilename, ex);
                 }
             }
 
@@ -126,22 +126,22 @@ namespace Qoollo.Logger.Writers
                 catch (UnauthorizedAccessException ex)
                 {
                     if (_errorTracker.CanWriteErrorGetAndUpdate())
-                        _thisClassSupportLogger.Error(ex, "Ошибка открытия файла: " + filename);
+                        _thisClassSupportLogger.Error(ex, "File opening error: " + filename);
                 }
                 catch (SecurityException ex)
                 {
                     if (_errorTracker.CanWriteErrorGetAndUpdate())
-                        _thisClassSupportLogger.Error(ex, "Ошибка открытия файла: " + filename);
+                        _thisClassSupportLogger.Error(ex, "File opening error: " + filename);
                 }
                 catch (PathTooLongException ex)
                 {
-                    _thisClassSupportLogger.Error(ex, "Ошибка открытия файла: " + filename);
-                    throw new LoggerFileWriteException("Ошибка открытия файла: " + filename, ex);
+                    _thisClassSupportLogger.Error(ex, "Fatal file opening error: " + filename);
+                    throw new LoggerFileWriteException("Fatal file opening error: " + filename, ex);
                 }
                 catch (IOException ex)
                 {
                     if (_errorTracker.CanWriteErrorGetAndUpdate())
-                        _thisClassSupportLogger.Error(ex, "Ошибка открытия файла: " + filename);
+                        _thisClassSupportLogger.Error(ex, "File opening error: " + filename);
                 }
 
                 return false;

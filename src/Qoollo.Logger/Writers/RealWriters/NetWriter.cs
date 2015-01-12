@@ -51,7 +51,7 @@ namespace Qoollo.Logger.Writers
             if (_isDisposed)
             {
                 if (_errorTracker.CanWriteErrorGetAndUpdate())
-                    _thisClassSupportLogger.Error("Попытка записи логирующего сообщения при освобожденных ресурсах");
+                    _thisClassSupportLogger.Error("Attempt to write LoggingEvent in Disposed state");
 
                 return false;
             }
@@ -74,7 +74,7 @@ namespace Qoollo.Logger.Writers
                     if (!_writer.HasConnection)
                     {
                         if (_errorTracker.CanWriteErrorGetAndUpdate())
-                            _thisClassSupportLogger.Error("В данный момент нет подключения к серверу логирования: " + _writer.RemoteSideName);
+                            _thisClassSupportLogger.Error("Connection to network logger server is not established: " + _writer.RemoteSideName);
 
                         return false;
                     }
@@ -86,22 +86,22 @@ namespace Qoollo.Logger.Writers
             catch (SocketException ex)
             {
                 if (_errorTracker.CanWriteErrorGetAndUpdate())
-                    _thisClassSupportLogger.Error(ex, "Ошибка отправки сообщения на сервер логирования: " + _writer.RemoteSideName);
+                    _thisClassSupportLogger.Error(ex, "Error while sending data to remote logger server: " + _writer.RemoteSideName);
             }
             catch (CommunicationException ex)
             {
                 if (_errorTracker.CanWriteErrorGetAndUpdate())
-                    _thisClassSupportLogger.Error(ex, "Ошибка отправки сообщения на сервер логирования: " + _writer.RemoteSideName);
+                    _thisClassSupportLogger.Error(ex, "Error while sending data to remote logger server: " + _writer.RemoteSideName);
             }
             catch (TimeoutException ex)
             {
                 if (_errorTracker.CanWriteErrorGetAndUpdate())
-                    _thisClassSupportLogger.Error(ex, "Ошибка отправки сообщения на сервер логирования: " + _writer.RemoteSideName);
+                    _thisClassSupportLogger.Error(ex, "Error while sending data to remote logger server: " + _writer.RemoteSideName);
             }
             catch (Exception ex)
             {
-                _thisClassSupportLogger.Error(ex, "Непоправимая ошибка отправки сообщения на сервер логирования: " + _writer.RemoteSideName);
-                throw new LoggerNetWriteException("Непоправимая ошибка отправки сообщения на сервер логирования: " + _writer.RemoteSideName, ex);
+                _thisClassSupportLogger.Error(ex, "Fatal error while sending data to remote logger server: " + _writer.RemoteSideName);
+                throw new LoggerNetWriteException("Fatal error while sending data to remote logger server: " + _writer.RemoteSideName, ex);
             }
 
             return result;

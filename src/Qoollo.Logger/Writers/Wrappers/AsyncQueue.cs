@@ -65,7 +65,7 @@ namespace Qoollo.Logger.Writers
         {
             if (_isDisposed)
             {
-                _thisClassSupportLogger.Error("Попытка записи логирующего сообщения при освобожденных ресурсах");
+                _thisClassSupportLogger.Error("Attempt to write LoggingEvent in Disposed state");
                 return false;
             }
 
@@ -80,14 +80,14 @@ namespace Qoollo.Logger.Writers
                     if (ElementCount < _borderOverflow
                         && Interlocked.CompareExchange(ref _isOverflowed, IS_NOT_OVERFLOWED, IS_OVERFLOWED) == IS_OVERFLOWED)
                     {
-                        _thisClassSupportLogger.Info("Освобождение очереди для поддержания ассинхронности");
+                        _thisClassSupportLogger.Info("Async queue now is not overflowed");
                     }
                 }
                 else
                 {
                     if (Interlocked.CompareExchange(ref _isOverflowed, IS_OVERFLOWED, IS_NOT_OVERFLOWED) == IS_NOT_OVERFLOWED)
                     {
-                        _thisClassSupportLogger.Info("Переполнение очереди для поддержания ассинхронности");
+                        _thisClassSupportLogger.Info("Async queue overflow detected");
                     }
 
                     if (_isDiscardExcess)

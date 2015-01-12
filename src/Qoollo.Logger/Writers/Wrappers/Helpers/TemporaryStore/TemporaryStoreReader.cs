@@ -84,7 +84,7 @@ namespace Qoollo.Logger.Writers.Wrappers.Helpers.TemporaryStore
             }
             catch (IOException ex)
             {
-                _thisClassSupportLogger.Error(ex, "Ошибка при считывании данных из временного хранилища логов");
+                _thisClassSupportLogger.Error(ex, "Error while reading data from reliable log storage file");
             }
 
             return null;
@@ -112,7 +112,7 @@ namespace Qoollo.Logger.Writers.Wrappers.Helpers.TemporaryStore
             }
             catch (IOException ex)
             {
-                _thisClassSupportLogger.Error(ex, "Ошибка при переходе на следующую запись во временном хранилище логов");
+                _thisClassSupportLogger.Error(ex, "Error while moving to next record in reliable log storage file");
             }
         }
 
@@ -160,12 +160,12 @@ namespace Qoollo.Logger.Writers.Wrappers.Helpers.TemporaryStore
             catch (LoggerSerializationException ex)
             {
                 _thisClassSupportLogger.ErrorFormat(ex,
-                    "Ошибка при считывании данных из временного хранилища \'{0}\'. Хранилище будет удалено.", stream.Name);
+                    "Error reading data from reliable log storage file \'{0}\'. This file will be deleted.", stream.Name);
             }
             catch (IOException ex)
             {
                 _thisClassSupportLogger.ErrorFormat(ex,
-                    "Ошибка при считывании данных из временного хранилища \'{0}\'. Хранилище будет удалено.", stream.Name);
+                    "Error reading data from reliable log storage file \'{0}\'. This file will be deleted.", stream.Name);
             }
 
             isCorrupted = true;

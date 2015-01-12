@@ -383,7 +383,7 @@ namespace Qoollo.Logger.Writers.Wrappers.Helpers.TemporaryStore
             }
             catch (IOException ex)
             {
-                _thisClassSupportLogger.ErrorFormat(ex, "Ошибка при проверке временного хранилища \'{0}\'. Хранилище будет удалено.", stream.Name);
+                _thisClassSupportLogger.ErrorFormat(ex, "Reliable log storage file check failed for \'{0}\'. This file will be deleted (some logs could be lost).", stream.Name);
             }
             finally
             {
