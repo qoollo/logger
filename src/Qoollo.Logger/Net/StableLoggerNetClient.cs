@@ -9,17 +9,18 @@ using System.Threading.Tasks;
 namespace Qoollo.Logger.Net
 {
     /// <summary>
-    /// Клиент сетевого логгера
+    /// Stable network logger client (WCF).
+    /// Automatically reopen connection on fault
     /// </summary>
     public class StableLoggerNetClient: INetService, IDisposable
     {
         /// <summary>
-        /// Создать клиент на TCP
+        /// Create TCP client
         /// </summary>
-        /// <param name="address">Адрес</param>
-        /// <param name="port">Порт</param>
-        /// <param name="serviceName">Имя сервиса WCF</param>
-        /// <returns>Созданный клиент</returns>
+        /// <param name="address">Server address</param>
+        /// <param name="port">Server TCP port</param>
+        /// <param name="serviceName">WCF Service name</param>
+        /// <returns>Created client</returns>
         public static StableLoggerNetClient CreateOnTcp(string address, int port, string serviceName = "LoggingService")
         {
             EndpointAddress addr = new EndpointAddress(string.Format("net.tcp://{0}:{1}/{2}", address, port, serviceName));
@@ -29,11 +30,11 @@ namespace Qoollo.Logger.Net
         }
 
         /// <summary>
-        /// Создать клиент логгера на Pipe
+        /// Create Pipe client
         /// </summary>
-        /// <param name="address">Адрес</param>
-        /// <param name="pipeName">Имя пайпа</param>
-        /// <returns>Созданный клиент</returns>
+        /// <param name="address">Server address</param>
+        /// <param name="pipeName">Pipe name</param>
+        /// <returns>Created client</returns>
         public static StableLoggerNetClient CreateOnPipe(string address, string pipeName = "LoggingService")
         {
             EndpointAddress addr = new EndpointAddress(string.Format("net.pipe://{0}/{1}", address, pipeName));
@@ -59,10 +60,10 @@ namespace Qoollo.Logger.Net
         private readonly int _connectionTestTimeMsMax;
 
         /// <summary>
-        /// Конструктор StableLoggerNetClient
+        /// StableLoggerNetClient constructor
         /// </summary>
-        /// <param name="endpointConfigurationName">Имя конфигурации Endpoint</param>
-        /// <param name="connectionTestTimeMs">Период проверки наличия соединения</param>
+        /// <param name="endpointConfigurationName">The name of the endpoint in the application configuration file</param>
+        /// <param name="connectionTestTimeMs">Max reconnection period in milliseconds</param>
         public StableLoggerNetClient(string endpointConfigurationName, int connectionTestTimeMs)
         {
             _crEnpointConfigName = endpointConfigurationName;
@@ -71,11 +72,11 @@ namespace Qoollo.Logger.Net
             _connectionTestTimeMsMax = connectionTestTimeMs;
         }
         /// <summary>
-        /// Конструктор StableLoggerNetClient
+        /// StableLoggerNetClient constructor
         /// </summary>
-        /// <param name="endpointConfigurationName">Имя конфигурации Endpoint</param>
-        /// <param name="remoteAddress">Адрес</param>
-        /// <param name="connectionTestTimeMs">Период проверки наличия соединения</param>
+        /// <param name="endpointConfigurationName">The name of the endpoint in the application configuration file</param>
+        /// <param name="remoteAddress">The address of the service endpoint</param>
+        /// <param name="connectionTestTimeMs">Max reconnection period in milliseconds</param>
         public StableLoggerNetClient(string endpointConfigurationName, string remoteAddress, int connectionTestTimeMs) 
         {
             _crEnpointConfigName = endpointConfigurationName;
@@ -85,11 +86,11 @@ namespace Qoollo.Logger.Net
             _connectionTestTimeMsMax = connectionTestTimeMs;
         }
         /// <summary>
-        /// Конструктор StableLoggerNetClient
+        /// StableLoggerNetClient constructor
         /// </summary>
-        /// <param name="endpointConfigurationName">Имя конфигурации Endpoint</param>
-        /// <param name="remoteAddress">Адрес</param>
-        /// <param name="connectionTestTimeMs">Период проверки наличия соединения</param>
+        /// <param name="endpointConfigurationName">The name of the endpoint in the application configuration file</param>
+        /// <param name="remoteAddress">The address of the service endpoint</param>
+        /// <param name="connectionTestTimeMs">Max reconnection period in milliseconds</param>
         public StableLoggerNetClient(string endpointConfigurationName, System.ServiceModel.EndpointAddress remoteAddress, int connectionTestTimeMs)
         {
             _crEnpointConfigName = endpointConfigurationName;
@@ -99,11 +100,11 @@ namespace Qoollo.Logger.Net
             _connectionTestTimeMsMax = connectionTestTimeMs;
         }
         /// <summary>
-        /// Конструктор StableLoggerNetClient
+        /// StableLoggerNetClient constructor
         /// </summary>
-        /// <param name="binding">binding</param>
-        /// <param name="remoteAddress">Адрес</param>
-        /// <param name="connectionTestTimeMs">Период проверки наличия соединения</param>
+        /// <param name="binding">The binding with which to make calls to the service</param>
+        /// <param name="remoteAddress">The address of the service endpoint</param>
+        /// <param name="connectionTestTimeMs">Max reconnection period in milliseconds</param>
         public StableLoggerNetClient(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress, int connectionTestTimeMs)
         {
             _crBinding = binding;
@@ -114,7 +115,7 @@ namespace Qoollo.Logger.Net
         }
 
         /// <summary>
-        /// Имя RemoteSide
+        /// RemoteSide name
         /// </summary>
         public string RemoteSideName
         {
@@ -128,7 +129,7 @@ namespace Qoollo.Logger.Net
         }
 
         /// <summary>
-        /// Установлено ли соединение в данный момент
+        /// Is connection in Opened state
         /// </summary>
         public bool HasConnection
         {
@@ -141,7 +142,7 @@ namespace Qoollo.Logger.Net
         }
         
         /// <summary>
-        /// Запущен ли
+        /// Is client started
         /// </summary>
         public bool IsStarted
         {
@@ -152,28 +153,28 @@ namespace Qoollo.Logger.Net
         }
 
         /// <summary>
-        /// Залогировать ошибку
+        /// Log error
         /// </summary>
-        /// <param name="ex">Исключение (если есть)</param>
-        /// <param name="message">Сообщение</param>
+        /// <param name="ex">Exception (can be null)</param>
+        /// <param name="message">User message</param>
         protected virtual void LogError(Exception ex, string message)
         {
 
         }
         /// <summary>
-        /// Залогировать предупреждение
+        /// Log warning
         /// </summary>
-        /// <param name="ex">Исключение (если есть)</param>
-        /// <param name="message">Сообщение</param>
+        /// <param name="ex">Exception (can be null)</param>
+        /// <param name="message">User message</param>
         protected virtual void LogWarn(Exception ex, string message)
         {
 
         }
 
         /// <summary>
-        /// Отправить пакет данных
+        /// Sends LoggingEvent to service
         /// </summary>
-        /// <param name="data">Пакет логирования</param>
+        /// <param name="data">Logging event</param>
         public void SendData(Qoollo.Logger.Common.LoggingEvent data)
         {
             if (data == null)
@@ -195,7 +196,7 @@ namespace Qoollo.Logger.Net
 
 
         /// <summary>
-        /// Запустить
+        /// Open connection
         /// </summary>
         public void Start()
         {
@@ -212,7 +213,7 @@ namespace Qoollo.Logger.Net
         }
 
         /// <summary>
-        /// Остановить
+        /// Close connection
         /// </summary>
         public void Stop()
         {
@@ -347,7 +348,7 @@ namespace Qoollo.Logger.Net
         }
 
         /// <summary>
-        /// Освободить ресурсы
+        /// Close connection and clean-up all resources
         /// </summary>
         public void Dispose()
         {

@@ -97,7 +97,7 @@ namespace Qoollo.Logger.Writers.Wrappers.Helpers.TemporaryStore
             if (TryAcquireDirectoryLock(path, out dirLockObj))
                 return path;
 
-            _thisClassSupportLogger.WarnFormat("Не получается заблокировать директорию для временного хранения логов: {0}. Вместо неё будет использована поддиректория.", path);
+            _thisClassSupportLogger.WarnFormat("Can't acquire direcotry lock: '{0}'. Instead the subdirectory will be used to store files.", path);
 
             DirectoryInfo rootDirInfo = new DirectoryInfo(path);
             int maxIndex = 0;

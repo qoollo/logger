@@ -9,15 +9,15 @@ using System.Text;
 namespace Qoollo.Logger.Net
 {
     /// <summary>
-    /// Простой интерфейс для передачи данных по сети
+    /// Logger network API
     /// </summary>
     [ServiceContract]
     public interface INetService
     {
         /// <summary>
-        /// Передаем данные на сервер
+        /// Sends LoggingEvent to service
         /// </summary>
-        /// <param name="data">Событие лога</param>
+        /// <param name="data">Logging event</param>
         [OperationContract(IsOneWay = true)]
         void SendData(LoggingEvent data);
     }

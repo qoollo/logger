@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Qoollo.Logger.Configuration.LoggerConfigurationV2
 {
     /// <summary>
-    /// Преобразователь форматов конфигураций
+    /// Logger configuration formats converter
     /// </summary>
     internal class ConfigurationFormatConverter
     {
@@ -124,18 +124,25 @@ namespace Qoollo.Logger.Configuration.LoggerConfigurationV2
                 if (elem is IPatternMatchingMatch)
                 {
                     if (matchCfg.ContainsKey((elem as IPatternMatchingMatch).Value))
-                        throw new LoggerConfigurationException("Повторяющиеся ключи в PatternMatchingWrapper: " + (elem as IPatternMatchingMatch).Value);
+                        throw new LoggerConfigurationException("Repeated keys in PatternMatchingWrapper: " + (elem as IPatternMatchingMatch).Value);
                     matchCfg.Add((elem as IPatternMatchingMatch).Value, CreateLoggerConfigurationInstanceCommon((elem as IPatternMatchingMatch).Writer));
                 }
                 else if (elem is IPatternMatchingDefault)
                 {
                     if (defaultCfg != null)
-                        throw new LoggerConfigurationException("Элемент 'default' встетился более одного раза в PatternMatchingWrapper.");
+                        throw new LoggerConfigurationException("Element 'default' appeared more than once in PatternMatchingWrapper.");
                     defaultCfg = CreateLoggerConfigurationInstanceCommon((elem as IPatternMatchingDefault).Writer);
                 }
             }
 
             return new PatternMatchingWrapperConfiguration(config.Pattern, matchCfg, defaultCfg);
+        }
+
+
+        private static CustomWriterConfiguration CreateLoggerConfigurationInstance(ICustomWriter config)
+        {
+            CustomAppConfigWriterConfiguration src = new CustomAppConfigWriterConfiguration(ConvertLogLevel(config.LogLevel), config.Type, config.Parameters);
+            return CustomAppConfigWriterConfigurationConverter.Convert(src);
         }
 
 
@@ -177,7 +184,11 @@ namespace Qoollo.Logger.Configuration.LoggerConfigurationV2
             if (baseConfig is IEmptyWriter)
                 return CreateLoggerConfigurationInstance(baseConfig as IEmptyWriter);
 
-            throw new ArgumentException("Неизвестный тип конфигурации");
+            if (baseConfig is ICustomWriter)
+                return CreateLoggerConfigurationInstance(baseConfig as ICustomWriter);
+
+
+            throw new ArgumentException("Unknown configuration type: " + baseConfig.GetType().Name);
         }
 
 

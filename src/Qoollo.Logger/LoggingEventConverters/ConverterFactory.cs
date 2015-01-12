@@ -5,65 +5,59 @@ using Qoollo.Logger.Common;
 namespace Qoollo.Logger.LoggingEventConverters
 {
     /// <summary>
-    /// Фабрика для создания конвертеров,
-    /// необходимых для преобразования логируемых данных в строки для вывода в файл или консоль
+    /// Factory that creates concrete converters for different parameters of LoggingEvent. 
+    /// These converters transform parameters to its string representations.
     /// </summary>
     public class ConverterFactory
     {
         private static readonly ConverterFactory _default = new ConverterFactory();
 
         /// <summary>
-        /// Инстанс фабрики по-умолчанию
+        /// Default converter factory
         /// </summary>
         public static ConverterFactory Default { get { return _default; } }
 
         /// <summary>
-        /// Создание результирующего конвертора,
-        /// содержащего последовательность конверторов, 
-        /// с помощью которых он получает результирующую строку
+        /// Creates aggreagated converter (combine sequence converters into one)
         /// </summary>
-        /// <param name="converters">Пооследовательность конвертеров</param>
-        /// <returns></returns>
+        /// <param name="converters">Converter sequence</param>
+        /// <returns>Created converter</returns>
         public virtual LoggingEventConverterBase CreateLoggingEventConverter(List<LoggingEventConverterBase> converters)
         {
             return new LoggingEventConverter(converters);
         }
 
         /// <summary>
-        /// Создание конвертора для статической части шаблона
-        /// Пример
-        /// Для шаблона "-- {Msg} " - Потребуется два статичных конвертора
-        /// 1) Возвращает строку "-- "
-        /// 2) Возвращает " "
+        /// Creates converter for constant string (by default it should return this string without changes)
         /// </summary>
-        /// <param name="constString">строка</param>
-        /// <returns></returns>
+        /// <param name="constString">String</param>
+        /// <returns>Created converter</returns>
         public virtual LoggingEventConverterBase CreateConstConverter(string constString)
         {
             return new ConstConverter(constString);
         }
 
         /// <summary>
-        /// Создание конвертора для контекста
+        /// Creates converter for 'Context' property of LoggingEvent
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Created converter</returns>
         public virtual LoggingEventConverterBase CreateContextConverter()
         {
             return new ContextConverter();
         }
 
         /// <summary>
-        /// Создание ковертора для преобразования даты в строковый формат
+        /// Creates converter for 'Date' property of LoggingEvent
         /// </summary>
-        /// <param name="format">Формат даты и времени</param>
-        /// <returns></returns>
+        /// <param name="format">DateTime format string</param>
+        /// <returns>Created converter</returns>
         public virtual LoggingEventConverterBase CreateDateConverter(string format)
         {
             return new DateConverter(format);
         }
 
         /// <summary>
-        /// Создание ковертора для получения строки из уровня логирования
+        /// Creates converter for 'Level' property of LoggingEvent
         /// </summary>
         /// <returns></returns>
         public virtual LoggingEventConverterBase CreateLevelConverter()
@@ -72,90 +66,90 @@ namespace Qoollo.Logger.LoggingEventConverters
         }
 
         /// <summary>
-        /// Создание конвертера для получения имени машины
+        /// Creates converter for 'MachineName' property of LoggingEvent
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Created converter</returns>
         public virtual LoggingEventConverterBase CreateMachineNameConverter()
         {
             return new MachineNameConverter();
         }
 
         /// <summary>
-        /// Создание конвертера для получения имени процесса
+        /// Creates converter for 'ProcessName' property of LoggingEvent
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Created converter</returns>
         public virtual LoggingEventConverterBase CreateProcessNameConverter()
         {
             return new ProcessNameConverter();
         }
 
         /// <summary>
-        /// Создание конвертера для получения идентификатора процесса
+        /// Creates converter for 'ProcessId' property of LoggingEvent
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Created converter</returns>
         public virtual LoggingEventConverterBase CreateProcessIdConverter()
         {
             return new ProcessIdConverter();
         }
 
         /// <summary>
-        /// Создание конвертера для получения имени сборки
+        /// Creates converter for 'Assembly' property of LoggingEvent
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Created converter</returns>
         public virtual LoggingEventConverterBase CreateAssemblyConverter()
         {
             return new AssemblyConverter();
         }
 
         /// <summary>
-        /// Создание конвертера для получения пространства имён
+        /// Creates converter for 'Namespace' property of LoggingEvent
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Created converter</returns>
         public virtual LoggingEventConverterBase CreateNamespaceConverter()
         {
             return new NamespaceConverter();
         }
 
         /// <summary>
-        /// Создание ковертора для получения имени класса
+        /// Creates converter for 'Clazz' property of LoggingEvent
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Created converter</returns>
         public virtual LoggingEventConverterBase CreateClassConverter()
         {
             return new ClassConverter();
         }
 
         /// <summary>
-        /// Создание ковертора для получения имени метода
+        /// Creates converter for 'Method' property of LoggingEvent
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Created converter</returns>
         public virtual LoggingEventConverterBase CreateMethodConverter()
         {
             return new MethodConverter();
         }
 
         /// <summary>
-        /// Создание ковертора для получения строки сообщения
+        /// Creates converter for 'Message' property of LoggingEvent
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Created converter</returns>
         public virtual LoggingEventConverterBase CreateMessageConverter()
         {
             return new MessageConverter();
         }
 
         /// <summary>
-        /// Создание ковертора для получения строкого представления исключения
+        /// Creates converter for 'Exception' property of LoggingEvent
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Created converter</returns>
         public virtual LoggingEventConverterBase CreateExceptionConverter()
         {
             return new ExceptionConverter();
         }
 
         /// <summary>
-        /// Создание ковертора для получения строки из списка StackSource
+        /// Creates converter for 'StackSources' property of LoggingEvent
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Created converter</returns>
         public virtual LoggingEventConverterBase CreateStackSourceConverter()
         {
             return new StackSourceConverter();

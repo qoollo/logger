@@ -53,6 +53,13 @@ namespace Qoollo.Logger.Configuration
         ILoggerWriterWrapperConfiguration Logger { get; }
     }
 
+    public interface IReliableWrapper : ILoggerWriterWrapperConfiguration
+    {
+        string FolderForTemporaryStore { get; }
+        long MaxFileSize { get; }
+        ILoggerWriterWrapperConfiguration Logger { get; }
+    }
+
 
     public interface IGroupWrapper : ILoggerWriterWrapperConfiguration
     {
@@ -127,5 +134,12 @@ namespace Qoollo.Logger.Configuration
     {
         string ConnectionString { get; }
         string StoredProcedureName { get; }
+    }
+
+
+    public interface ICustomWriter : ILoggerWriterConfiguration
+    {
+        string Type { get; }
+        Dictionary<string, string> Parameters { get; }
     }
 }

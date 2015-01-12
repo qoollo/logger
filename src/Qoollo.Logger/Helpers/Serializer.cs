@@ -15,7 +15,7 @@ using Qoollo.Logger.Exceptions;
 namespace Qoollo.Logger.Helpers
 {
     /// <summary>
-    /// Сериализатор
+    /// Log message serializer
     /// </summary>
     internal static class Serializer
     {
@@ -94,7 +94,7 @@ namespace Qoollo.Logger.Helpers
             }
             catch (System.Runtime.Serialization.SerializationException ex)
             {
-                throw new LoggerSerializationException("Ошибка при десериализации.", ex);
+                throw new LoggerSerializationException("Unexpected message deserialization error.", ex);
             }
         }
 

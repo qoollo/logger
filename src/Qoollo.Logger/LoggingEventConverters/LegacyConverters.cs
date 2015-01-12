@@ -8,22 +8,22 @@ using System.Threading.Tasks;
 namespace Qoollo.Logger.LoggingEventConverters
 {
     /// <summary>
-    /// Фабрика конвертеров старого формата
+    /// Converter factory for Legacy format
     /// </summary>
     public class LegacyConverterFactory : ConverterFactory
     {
         /// <summary>
-        /// Создание ковертора для получения строкого представления исключения
+        /// Creates converter for 'Exception' property of LoggingEvent
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Created converter</returns>
         public override LoggingEventConverterBase CreateExceptionConverter()
         {
             return new LegacyExceptionConverter();
         }
         /// <summary>
-        /// Создание ковертора для получения строки из списка StackSource
+        /// Creates converter for 'StackSources' property of LoggingEvent
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Created converter</returns>
         public override LoggingEventConverterBase CreateStackSourceConverter()
         {
             return new LegacyExceptionConverter();
@@ -39,7 +39,7 @@ namespace Qoollo.Logger.LoggingEventConverters
         }
 
         /// <summary>
-        /// Старый конвертор ошибки в строку - можно сказать он дефолтный и самый разумный
+        /// Old converter
         /// </summary>
         /// <param name="ex"></param>
         /// <returns></returns>
@@ -68,11 +68,10 @@ namespace Qoollo.Logger.LoggingEventConverters
         }
 
         /// <summary>
-        /// Преобразование информации об исключительной ситуации в строковый вид
-        /// С поддежки LogReader
+        /// New converter
         /// </summary>
-        /// <param name="error">Информация об ошибке</param>
-        /// <param name="methodName">Имя метода, где возникла ошибка</param>
+        /// <param name="error">Error</param>
+        /// <param name="methodName">Method name</param>
         /// <returns></returns>
         public string Convert(Error error, string methodName = null)
         {
@@ -129,9 +128,9 @@ namespace Qoollo.Logger.LoggingEventConverters
         }
 
         /// <summary>
-        /// Преобразование списка в строковый вид
+        /// Convert list of strings to single string (sample: 'a1:a2:a3')
         /// </summary>
-        /// <param name="arr">Массив строк</param>
+        /// <param name="arr">source list</param>
         /// <returns></returns>
         public static string Convert(List<string> arr)
         {

@@ -71,11 +71,11 @@ namespace Qoollo.Logger.Writers.Wrappers.Helpers.TemporaryStore
             }
             catch (IOException ex)
             {
-                _thisClassSupportLogger.Error(ex, "Ошибка записи во временное хранилище логов: " + _folderName);
+                _thisClassSupportLogger.Error(ex, "Error writing data to reliable log storage file: " + _folderName);
             }
             catch (Exception ex)
             {
-                _thisClassSupportLogger.Error(ex, "Непоправимая ошибка записи во временное хранилище логов: " + _folderName);
+                _thisClassSupportLogger.Error(ex, "Fatal error writing data to reliable log storage file: " + _folderName);
                 throw;
             }
 
@@ -106,7 +106,7 @@ namespace Qoollo.Logger.Writers.Wrappers.Helpers.TemporaryStore
             }
             catch (IOException ex)
             {
-                _thisClassSupportLogger.Error(ex, "Ошибка записи во временное хранилище логов");
+                _thisClassSupportLogger.Error(ex, "Error writing data to reliable log storage file");
             }
 
             return _storeStream;

@@ -8,15 +8,15 @@ using System.Threading.Tasks;
 namespace Qoollo.Logger.Net
 {
     /// <summary>
-    /// Сервер сетевого логгера
+    /// Network logger server (WCF)
     /// </summary>
     public class LoggerServer : IDisposable
     {
         /// <summary>
-        /// Создать сервис на основе конифга в app.config
+        /// Create service from app.config
         /// </summary>
-        /// <param name="singleton">Синглтон хэндлера</param>
-        /// <returns>Созданный сервер</returns>
+        /// <param name="singleton">Service handler</param>
+        /// <returns>Created server</returns>
         public static LoggerServer Create(INetService singleton)
         {
             ServiceHost host = new ServiceHost(singleton);
@@ -25,12 +25,12 @@ namespace Qoollo.Logger.Net
         }
 
         /// <summary>
-        /// Создать сервис на TCP
+        /// Creates WCF service on TCP
         /// </summary>
-        /// <param name="singleton">Синглтон хэндлера</param>
-        /// <param name="port">Порт</param>
-        /// <param name="serviceName">Имя сервиса WCF</param>
-        /// <returns>Созданный сервер</returns>
+        /// <param name="singleton">Service handler singleton</param>
+        /// <param name="port">TCP port</param>
+        /// <param name="serviceName">Service name (WCF)</param>
+        /// <returns>Created server</returns>
         public static LoggerServer CreateOnTcp(INetService singleton, int port, string serviceName = "LoggingService")
         {
             Uri baseAddr = new Uri(string.Format("net.tcp://0.0.0.0:{0}/{1}", port, serviceName));
@@ -51,11 +51,11 @@ namespace Qoollo.Logger.Net
         }
 
         /// <summary>
-        /// Создать сервис на Pipe
+        /// Creates WCF service on Pipe
         /// </summary>
-        /// <param name="singleton">Синглтон хэндлера</param>
-        /// <param name="pipeName">Имя пайпа</param>
-        /// <returns>Созданный сервер</returns>
+        /// <param name="singleton">Service handler singleton</param>
+        /// <param name="pipeName">Pipe name</param>
+        /// <returns>Created server</returns>
         public static LoggerServer CreateOnPipe(INetService singleton, string pipeName = "LoggingService")
         {
             Uri baseAddr = new Uri(string.Format("net.pipe://localhost/{0}", pipeName));
@@ -79,9 +79,9 @@ namespace Qoollo.Logger.Net
         private ServiceHost _host;
 
         /// <summary>
-        /// Конструктор LoggerServer
+        /// LoggerServer constructor
         /// </summary>
-        /// <param name="host">Хост</param>
+        /// <param name="host">Host</param>
         protected LoggerServer(ServiceHost host)
         {
             if (host == null)
@@ -91,7 +91,7 @@ namespace Qoollo.Logger.Net
         }
 
         /// <summary>
-        /// Открыть сервис
+        /// Open server (start listerning)
         /// </summary>
         public void Open()
         {
@@ -101,7 +101,7 @@ namespace Qoollo.Logger.Net
 
        
         /// <summary>
-        /// Освободить ресурсы
+        /// Clean-up server resource
         /// </summary>
         public void Dispose()
         {

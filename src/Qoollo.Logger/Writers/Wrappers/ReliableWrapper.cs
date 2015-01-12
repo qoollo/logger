@@ -58,6 +58,12 @@ namespace Qoollo.Logger.Writers
 
         public bool Write(Common.LoggingEvent data)
         {
+            if (_isDisposed)
+            {
+                _thisClassSupportLogger.Error("Attempt to write LoggingEvent in Disposed state");
+                return false;
+            }
+
             if (!_logger.Write(data))
             {
                 lock (_writer)
@@ -90,7 +96,7 @@ namespace Qoollo.Logger.Writers
                 }
                 catch (Exception ex)
                 {
-                    _thisClassSupportLogger.Error(ex, "Ошибка доступа к временному хранилищу");
+                    _thisClassSupportLogger.Error(ex, "Error while working with temporary reliable storage of logs");
                     throw;
                 }
             }

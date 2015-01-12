@@ -6,21 +6,21 @@ using System.Text;
 namespace Qoollo.Logger.Exceptions
 {
     /// <summary>
-    /// Ошибка конфигации логгера.
+    /// Error in logger configuration
     /// </summary>
     [Serializable]
     public class LoggerConfigurationException : LoggerException
     {
         /// <summary>
-        /// Конструктор LoggerConfigurationException
+        /// LoggerConfigurationException constructor
         /// </summary>
-        /// <param name="message">Сообщение</param>
+        /// <param name="message">A message that describes the error</param>
         public LoggerConfigurationException(string message) : base(message) { }
         /// <summary>
-        /// Конструктор LoggerConfigurationException
+        /// LoggerConfigurationException constructor
         /// </summary>
-        /// <param name="message">Сообщение</param>
-        /// <param name="innerException">Внутреннее исключение</param>
+        /// <param name="message">A message that describes the error</param>
+        /// <param name="innerException">The exception that is the cause of the current exception</param>
         public LoggerConfigurationException(string message, Exception innerException) : base(message, innerException) { }
     }
 }

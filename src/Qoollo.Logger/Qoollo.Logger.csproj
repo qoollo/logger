@@ -205,6 +205,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\CustomWritersHandling.cs" />
     <Compile Include="Configuration\LoggerConfiguration.cs" />
     <Compile Include="Configuration\LoggerConfigurationV2\ILoggerConfigurationSection_AppConfigLoader.cs" />
     <Compile Include="Exceptions\LoggerConfigurationException.cs" />

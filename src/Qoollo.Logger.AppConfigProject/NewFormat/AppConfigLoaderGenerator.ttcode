@@ -113,6 +113,7 @@
 	[ConfigSubstituteTypeAttribute(typeof(IPipeWriter))]
 	[ConfigSubstituteTypeAttribute(typeof(INetworkWriter))]
 	[ConfigSubstituteTypeAttribute(typeof(IDatabaseWriter))]
+	[ConfigSubstituteTypeAttribute(typeof(ICustomWriter))]
     interface ILoggerWriterWrapperConfiguration
     {
     }
@@ -272,6 +273,15 @@
 
 		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "[dbo].[LogInsert]")]
         string StoredProcedureName { get; }
+    }
+
+
+	interface ICustomWriter: ILoggerWriterConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute)]
+        string Type { get; }
+
+        Dictionary<string, string> Parameters { get; }
     }
 	
 #>

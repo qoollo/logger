@@ -8,41 +8,41 @@ using System.Threading.Tasks;
 namespace Qoollo.Logger.Net
 {
     /// <summary>
-    /// Клиент сетевого логгера
+    /// Network logger client (WCF)
     /// </summary>
     public class LoggerNetClient: System.ServiceModel.ClientBase<INetService>
     {
         /// <summary>
-        /// Конструктор LoggerNetClient
+        /// LoggerNetClient constructor
         /// </summary>
-        /// <param name="endpointConfigurationName">Имя конфигурации Endpoint</param>
+        /// <param name="endpointConfigurationName">The name of the endpoint in the application configuration file</param>
         public LoggerNetClient(string endpointConfigurationName) :
             base(endpointConfigurationName)
         {
         }
         /// <summary>
-        /// Конструктор LoggerNetClient
+        /// LoggerNetClient constructor
         /// </summary>
-        /// <param name="endpointConfigurationName">Имя конфигурации Endpoint</param>
-        /// <param name="remoteAddress">Адрес</param>
+        /// <param name="endpointConfigurationName">The name of the endpoint in the application configuration file</param>
+        /// <param name="remoteAddress">The address of the service endpoint</param>
         public LoggerNetClient(string endpointConfigurationName, string remoteAddress) :
             base(endpointConfigurationName, remoteAddress)
         {
         }
         /// <summary>
-        /// Конструктор LoggerNetClient
+        /// LoggerNetClient constructor
         /// </summary>
-        /// <param name="endpointConfigurationName">Имя конфигурации Endpoint</param>
-        /// <param name="remoteAddress">Адрес</param>
+        /// <param name="endpointConfigurationName">The name of the endpoint in the application configuration file</param>
+        /// <param name="remoteAddress">The address of the service endpoint</param>
         public LoggerNetClient(string endpointConfigurationName, System.ServiceModel.EndpointAddress remoteAddress) :
             base(endpointConfigurationName, remoteAddress)
         {
         }
         /// <summary>
-        /// Конструктор LoggerNetClient
+        /// LoggerNetClient constructor
         /// </summary>
-        /// <param name="binding">binding</param>
-        /// <param name="remoteAddress">Адрес</param>
+        /// <param name="binding">The binding with which to make calls to the service</param>
+        /// <param name="remoteAddress">The address of the service endpoint</param>
         public LoggerNetClient(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) :
             base(binding, remoteAddress)
         {
@@ -55,7 +55,7 @@ namespace Qoollo.Logger.Net
         //}
 
         /// <summary>
-        /// API удалённой стороны
+        /// Remote side API
         /// </summary>
         public INetService RemoteSide
         {

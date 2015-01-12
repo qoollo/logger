@@ -192,33 +192,35 @@ namespace Qoollo.Logger.Configuration
         {
         	if (src == null)
         		return null;
-        
-        	if (src.GetType() == typeof(LoggerWriterWrapperConfigurationImplement))
-        		return ((LoggerWriterWrapperConfigurationImplement)src).Copy();
-        	if (src.GetType() == typeof(GroupWrapperImplement))
-        		return ((GroupWrapperImplement)src).Copy();
-        	if (src.GetType() == typeof(AsyncReliableQueueWrapperImplement))
-        		return ((AsyncReliableQueueWrapperImplement)src).Copy();
-        	if (src.GetType() == typeof(ReliableWrapperImplement))
-        		return ((ReliableWrapperImplement)src).Copy();
-        	if (src.GetType() == typeof(NetworkWriterImplement))
-        		return ((NetworkWriterImplement)src).Copy();
-        	if (src.GetType() == typeof(AsyncQueueWrapperImplement))
-        		return ((AsyncQueueWrapperImplement)src).Copy();
-        	if (src.GetType() == typeof(PatternMatchingWrapperImplement))
-        		return ((PatternMatchingWrapperImplement)src).Copy();
-        	if (src.GetType() == typeof(EmptyWriterImplement))
-        		return ((EmptyWriterImplement)src).Copy();
-        	if (src.GetType() == typeof(ConsoleWriterImplement))
-        		return ((ConsoleWriterImplement)src).Copy();
-        	if (src.GetType() == typeof(FileWriterImplement))
-        		return ((FileWriterImplement)src).Copy();
-        	if (src.GetType() == typeof(DatabaseWriterImplement))
-        		return ((DatabaseWriterImplement)src).Copy();
-        	if (src.GetType() == typeof(PipeWriterImplement))
-        		return ((PipeWriterImplement)src).Copy();
-        	if (src.GetType() == typeof(RoutingWrapperImplement))
-        		return ((RoutingWrapperImplement)src).Copy();
+
+            if (src.GetType() == typeof(LoggerWriterWrapperConfigurationImplement))
+                return ((LoggerWriterWrapperConfigurationImplement)src).Copy();
+            if (src.GetType() == typeof(GroupWrapperImplement))
+                return ((GroupWrapperImplement)src).Copy();
+            if (src.GetType() == typeof(ReliableWrapperImplement))
+                return ((ReliableWrapperImplement)src).Copy();
+            if (src.GetType() == typeof(PipeWriterImplement))
+                return ((PipeWriterImplement)src).Copy();
+            if (src.GetType() == typeof(AsyncReliableQueueWrapperImplement))
+                return ((AsyncReliableQueueWrapperImplement)src).Copy();
+            if (src.GetType() == typeof(PatternMatchingWrapperImplement))
+                return ((PatternMatchingWrapperImplement)src).Copy();
+            if (src.GetType() == typeof(EmptyWriterImplement))
+                return ((EmptyWriterImplement)src).Copy();
+            if (src.GetType() == typeof(ConsoleWriterImplement))
+                return ((ConsoleWriterImplement)src).Copy();
+            if (src.GetType() == typeof(FileWriterImplement))
+                return ((FileWriterImplement)src).Copy();
+            if (src.GetType() == typeof(RoutingWrapperImplement))
+                return ((RoutingWrapperImplement)src).Copy();
+            if (src.GetType() == typeof(NetworkWriterImplement))
+                return ((NetworkWriterImplement)src).Copy();
+            if (src.GetType() == typeof(DatabaseWriterImplement))
+                return ((DatabaseWriterImplement)src).Copy();
+            if (src.GetType() == typeof(AsyncQueueWrapperImplement))
+                return ((AsyncQueueWrapperImplement)src).Copy();
+            if (src.GetType() == typeof(CustomWriterImplement))
+                return ((CustomWriterImplement)src).Copy();
         
         	throw new Exception("Unknown type: " + src.GetType().ToString());
         }
@@ -608,6 +610,85 @@ namespace Qoollo.Logger.Configuration
         		return ((AsyncQueueWrapperImplement)src).Copy();
         
         	throw new Exception("Unknown type: " + src.GetType().ToString());
+        }
+    }
+
+    internal class CustomWriterImplement : ICustomWriter
+    {
+        public CustomWriterImplement()
+        {
+            this._logLevel = CfgLogLevel.TRACE;
+        }
+
+        private String _type;
+        public String GetTypeVal()
+        {
+            return _type;
+        }
+        public void SetTypeVal(String value)
+        {
+            _type = value;
+        }
+        String ICustomWriter.Type
+        {
+            get { return _type; }
+        }
+
+        private Dictionary<String, String> _parameters;
+        public Dictionary<String, String> GetParametersVal()
+        {
+            return _parameters;
+        }
+        public void SetParametersVal(Dictionary<String, String> value)
+        {
+            _parameters = value;
+        }
+        Dictionary<String, String> ICustomWriter.Parameters
+        {
+            get { return _parameters; }
+        }
+
+        private CfgLogLevel _logLevel;
+        public CfgLogLevel GetLogLevelVal()
+        {
+            return _logLevel;
+        }
+        public void SetLogLevelVal(CfgLogLevel value)
+        {
+            _logLevel = value;
+        }
+        CfgLogLevel ILoggerWriterConfiguration.LogLevel
+        {
+            get { return _logLevel; }
+        }
+
+
+        public CustomWriterImplement Copy()
+        {
+            var res = new CustomWriterImplement();
+
+            res._type = this._type;
+            if (this._parameters == null)
+                res._parameters = null;
+            else
+                res._parameters = _parameters.ToDictionary(o => o.Key, o => o.Value);
+
+            res._logLevel = this._logLevel;
+
+            return res;
+        }
+
+        public static ICustomWriter CopyInh(ICustomWriter src)
+        {
+            if (src == null)
+                return null;
+
+            if (src.GetType() == typeof(CustomWriterImplement))
+                return ((CustomWriterImplement)src).Copy();
+            if (src.GetType() == typeof(CustomWriterImplement))
+                return ((CustomWriterImplement)src).Copy();
+
+            throw new Exception("Unknown type: " + src.GetType().ToString());
         }
     }
 
@@ -1734,6 +1815,8 @@ namespace Qoollo.Logger.Configuration
                     return DeserializeIPipeWriterElem(reader);
                 case "routingWrapper":
                     return DeserializeIRoutingWrapperElem(reader);
+                case "customWriter":
+                    return DeserializeICustomWriterElem(reader);
                 default:
                     throw new System.Configuration.ConfigurationErrorsException("Unknown child type name: '" + reader.Name + "' for base type 'ILoggerWriterWrapperConfiguration'", reader);
             }
@@ -2143,6 +2226,106 @@ namespace Qoollo.Logger.Configuration
                     return DeserializeIAsyncQueueWrapperElem(reader);
                 default:
                     throw new System.Configuration.ConfigurationErrorsException("Unknown child type name: '" + reader.Name + "' for base type 'IAsyncQueueWrapper'", reader);
+            }
+        }
+
+
+
+        private ICustomWriter DeserializeICustomWriterElem(System.Xml.XmlReader reader)
+        {
+            var res = new CustomWriterImplement();
+
+            HashSet<string> parsedElements = new HashSet<string>();
+
+            string attribGenTempVal = null;
+            attribGenTempVal = reader.GetAttribute("type");
+            if (attribGenTempVal != null)
+                res.SetTypeVal(Parse<String>(attribGenTempVal));
+            else
+                throw new System.Configuration.ConfigurationErrorsException("Attribute 'type for element 'ICustomWriter' not defined", reader);
+
+            attribGenTempVal = reader.GetAttribute("logLevel");
+            if (attribGenTempVal != null)
+                res.SetLogLevelVal(Parse<CfgLogLevel>(attribGenTempVal));
+
+            // !!!!!!!!! Inserted manually !!!!!!!!!
+            Dictionary<string, string> allAttributes = new Dictionary<string, string>();
+            for (int i = 0; i < reader.AttributeCount; i++)
+            {
+                reader.MoveToAttribute(i);
+                allAttributes.Add(reader.Name, reader.Value);
+            }
+            reader.MoveToElement();
+            res.SetParametersVal(allAttributes);
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+            if (reader.IsEmptyElement)
+            {
+                reader.Skip();
+            }
+            else
+            {
+                string initialName = reader.Name;
+                reader.ReadStartElement();
+                do
+                {
+                    if (reader.NodeType != System.Xml.XmlNodeType.Element)
+                    {
+                        reader.Skip();
+                    }
+                    else
+                    {
+                        switch (reader.Name)
+                        {
+                            case "add":
+                                string addKey = reader.GetAttribute("key");
+                                if (addKey == null)
+                                    throw new System.Configuration.ConfigurationErrorsException("Key not found for 'add' inside element 'ICustomWriter'", reader);
+
+                                switch (addKey)
+                                {
+                                    default:
+                                        throw new System.Configuration.ConfigurationErrorsException("Unknown key " + addKey + " inside element 'ICustomWriter'", reader);
+                                }
+                            default:
+                                throw new System.Configuration.ConfigurationErrorsException("Unknown element inside 'ICustomWriter': " + reader.Name, reader);
+                        }
+                    }
+                }
+                while (reader.NodeType != System.Xml.XmlNodeType.EndElement || reader.Name != initialName);
+
+                reader.ReadEndElement();
+            }
+
+            HashSet<string> restElems = new HashSet<string>();
+            restElems.RemoveWhere(o => parsedElements.Contains(o));
+            if (restElems.Count > 0)
+                throw new System.Configuration.ConfigurationErrorsException("Not all required properties readed: " + string.Join(", ", restElems));
+            return res;
+        }
+
+        private ICustomWriter DeserializeICustomWriterElem(System.Xml.XmlReader reader, string expectedName)
+        {
+            if (reader.NodeType != System.Xml.XmlNodeType.Element)
+                throw new System.Configuration.ConfigurationErrorsException("Expected Element node type", reader);
+
+            if (expectedName != null && reader.Name != expectedName)
+                throw new System.Configuration.ConfigurationErrorsException("Unexpected element name for type 'ICustomWriter': " + reader.Name, reader);
+
+            return DeserializeICustomWriterElem(reader);
+        }
+
+        private ICustomWriter DeserializeICustomWriterElemWithInh(System.Xml.XmlReader reader)
+        {
+            if (reader.NodeType != System.Xml.XmlNodeType.Element)
+                throw new System.Configuration.ConfigurationErrorsException("Not an Element node type", reader);
+
+            switch (reader.Name)
+            {
+                case "customWriter":
+                    return DeserializeICustomWriterElem(reader);
+                default:
+                    throw new System.Configuration.ConfigurationErrorsException("Unknown child type name: '" + reader.Name + "' for base type 'ICustomWriter'", reader);
             }
         }
 

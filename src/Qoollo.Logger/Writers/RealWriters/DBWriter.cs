@@ -57,7 +57,7 @@ namespace Qoollo.Logger.Writers
             catch (SqlException ex)
             {
                 if (_errorTracker.CanWriteErrorGetAndUpdate())
-                    _thisClassSupportLogger.ErrorFormat(ex, "Ошибка при инициализаци Базы данных \"{0}\"", _conn.Database);
+                    _thisClassSupportLogger.ErrorFormat(ex, "Can't open connection to SQL Server. Database: \"{0}\"", _conn.Database);
                 return false;
             }
         }
@@ -86,7 +86,7 @@ namespace Qoollo.Logger.Writers
             if (_isDisposed)
             {
                 if (_errorTracker.CanWriteErrorGetAndUpdate())
-                    _thisClassSupportLogger.Error("Попытка записи логирующего сообщения при освобожденных ресурсах");
+                    _thisClassSupportLogger.Error("Attempt to write LoggingEvent in Disposed state.");
 
                 return false;
             }
@@ -107,124 +107,71 @@ namespace Qoollo.Logger.Writers
                     if (!ConnectCheck())
                     {
                         if (_errorTracker.CanWriteErrorGetAndUpdate())
-                            _thisClassSupportLogger.Error("Не удалось подключиться к Базе данных.");
+                            _thisClassSupportLogger.Error("Can't open connection to MS SQL Server.");
                         return false;
                     }
 
-                    var comm = CreateCommand(data);
-
-                    comm.ExecuteNonQuery();
-                    result = true;
+                    using (var comm = CreateCommand(data))
+                    {
+                        comm.ExecuteNonQuery();
+                        result = true;
+                    }
                 }
             }
             catch (SqlException ex)
             {
                 if (_errorTracker.CanWriteErrorGetAndUpdate())
-                    _thisClassSupportLogger.Error(ex, "Ошибка при записи логирующего сообщения в Базу данных");
+                    _thisClassSupportLogger.Error(ex, "Error during exection the command that insert log message to database");
 
                 result = false;
             }
             catch (IOException ex)
             {
                 if (_errorTracker.CanWriteErrorGetAndUpdate())
-                    _thisClassSupportLogger.Error(ex, "Ошибка при записи логирующего сообщения в Базу данных");
+                    _thisClassSupportLogger.Error(ex, "Error during exection the command that insert log message to database");
 
                 result = false;
             }
             catch (Exception ex)
             {
-                _thisClassSupportLogger.Error(ex, "Непоправимая ошибка при записи логирующего сообщения в Базу данных");
-                throw new LoggerDBWriteException("Непоправимая ошибка при записи логирующего сообщения в Базу данных", ex);
+                _thisClassSupportLogger.Error(ex, "Fatal error while inserting log message to database");
+                throw new LoggerDBWriteException("Fatal error while inserting log message to database", ex);
             }
 
             return result;
         }
 
 
+        private static SqlParameter AddParameter(SqlCommand cmd, SqlDbType type, int size, bool isNullable, string name, object value)
+        {
+            if (value == null)
+                value = DBNull.Value;
+
+            return cmd.Parameters.Add(new SqlParameter(name, type, size) { IsNullable = isNullable, Value = value });
+        }
+
+
         private SqlCommand CreateCommand(LoggingEvent data)
         {
-            var comm = new SqlCommand(_storeProcedureName, _conn) {CommandType = CommandType.StoredProcedure};
+            var cmd = new SqlCommand(_storeProcedureName, _conn) { CommandType = CommandType.StoredProcedure };
 
-            comm.Parameters.Add("@Time", SqlDbType.DateTime);
-            comm.Parameters.Add("@Level", SqlDbType.TinyInt);
-            comm.Parameters.Add("@Class", SqlDbType.VarChar, 100);
-            comm.Parameters.Add("@Method", SqlDbType.VarChar, 50);
-            comm.Parameters.Add("@Message", SqlDbType.VarChar);
-            comm.Parameters.Add("@Exception", SqlDbType.VarChar);
-            comm.Parameters.Add("@Stacksources", SqlDbType.VarChar);
-            comm.Parameters.Add("@Context", SqlDbType.VarChar);
-            comm.Parameters.Add("@FilePath", SqlDbType.VarChar);
-            comm.Parameters.Add("@LineNumber", SqlDbType.Int);
+            AddParameter(cmd, SqlDbType.DateTime,  0,      false, "@Date",         data.Date);
+            AddParameter(cmd, SqlDbType.TinyInt,   0,      false, "@Level",        (byte)data.Level.Level);
+            AddParameter(cmd, SqlDbType.NVarChar,  0,      true , "@Context",      data.Context);
+            AddParameter(cmd, SqlDbType.NVarChar,  255,    true , "@Class",        data.Clazz);
+            AddParameter(cmd, SqlDbType.NVarChar,  255,    true , "@Method",       data.Method);
+            AddParameter(cmd, SqlDbType.NVarChar,  0,      true , "@FilePath",     data.FilePath);
+            AddParameter(cmd, SqlDbType.Int,       0,      true , "@LineNumber",   data.LineNumber < 0 ? (object)null : data.LineNumber);
+            AddParameter(cmd, SqlDbType.NVarChar,  0,      false, "@Message",      data.Message);
+            AddParameter(cmd, SqlDbType.NVarChar,  0,      true , "@Exception",    data.Exception != null ? _exceptionConverterBase.Convert(data) : null);
+            AddParameter(cmd, SqlDbType.NVarChar,  0,      true , "@StackSources", data.StackSources != null ? _sourcesConverterBase.Convert(data) : null);
+            AddParameter(cmd, SqlDbType.NVarChar,  0,      true , "@Namespace",    data.Namespace);
+            AddParameter(cmd, SqlDbType.NVarChar,  0,      true , "@Assembly",     data.Assembly);
+            AddParameter(cmd, SqlDbType.NVarChar,  255,    true , "@MachineName",  data.MachineName);
+            AddParameter(cmd, SqlDbType.NVarChar,  255,    true , "@ProcessName",  data.ProcessName);
+            AddParameter(cmd, SqlDbType.Int,       0,      true , "@ProcessId",    data.ProcessId < 0 ? (object)null : data.ProcessId);
 
-            comm.Parameters["@Class"].IsNullable = true;
-            comm.Parameters["@Method"].IsNullable = true;
-            comm.Parameters["@Exception"].IsNullable = true;
-            comm.Parameters["@Stacksources"].IsNullable = true;
-            comm.Parameters["@Context"].IsNullable = true;
-            comm.Parameters["@FilePath"].IsNullable = true;
-            comm.Parameters["@LineNumber"].IsNullable = true;
-
-            comm.Parameters["@Time"].Value = data.Date;
-            comm.Parameters["@Level"].Value = (byte) data.Level.Level;
-            comm.Parameters["@Message"].Value = data.Message;
-
-            if (data.Clazz == null)
-            {
-                comm.Parameters["@Class"].Value = DBNull.Value;
-            }
-            else
-            {
-                comm.Parameters["@Class"].Value = data.Clazz;
-            }
-
-            if (data.Method == null)
-            {
-                comm.Parameters["@Method"].Value = DBNull.Value;
-            }
-            else
-            {
-                comm.Parameters["@Method"].Value = data.Method;
-            }
-
-            if (data.Exception == null)
-            {
-                comm.Parameters["@Exception"].Value = DBNull.Value;
-            }
-            else
-            {
-                comm.Parameters["@Exception"].Value = _exceptionConverterBase.Convert(data);
-            }
-
-            if (data.StackSources == null)
-            {
-                comm.Parameters["@Stacksources"].Value = DBNull.Value;
-            }
-            else
-            {
-                comm.Parameters["@Stacksources"].Value = _sourcesConverterBase.Convert(data);
-            }
-
-            if (data.Context == null)
-            {
-                comm.Parameters["@Context"].Value = DBNull.Value;
-            }
-            else
-            {
-                comm.Parameters["@Context"].Value = data.Context;
-            }
-
-            if (data.FilePath == null)
-            {
-                comm.Parameters["@FilePath"].Value = DBNull.Value;
-            }
-            else
-            {
-                comm.Parameters["@FilePath"].Value = data.FilePath;
-            }
-
-            comm.Parameters["@LineNumber"].Value = data.LineNumber;
-
-            return comm;
+            return cmd;
         }
 
         public override void SetConverterFactory(ConverterFactory factory)

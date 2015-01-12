@@ -42,7 +42,7 @@ namespace Qoollo.Logger.Writers.RealWriters.Helpers
         }
 
         /// <summary>
-        /// Запросить файл из пула
+        /// Request FileStream from pool
         /// </summary>
         /// <param name="name">Путь до файла</param>
         /// <param name="releaseName">Имя файла для освобождения</param>

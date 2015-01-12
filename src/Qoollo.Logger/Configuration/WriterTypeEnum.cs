@@ -3,70 +3,83 @@
 namespace Qoollo.Logger.Configuration
 {
     /// <summary>
-    /// Тип писателя
+    /// Supported writer/wrapper types
     /// </summary>
     public enum WriterTypeEnum
     {
         /// <summary>
-        /// Логгер для сложной настройки роутинга собщений между внутренними логгерами
+        /// Empty writer (sepcial writer that do not perform any actions)
         /// </summary>
         EmptyWriter,
 
 
         /// <summary>
-        /// Очередь для поддержания ассинхронности
+        /// Asynchronous wrapper with queue
         /// </summary>
         AsyncQueueWrapper,
 
         /// <summary>
-        /// Очередь для поддержания ассинхронности и надежной доставки логов.
-        /// Использует дополнительное хранилище на диске для записи логов, которые не удается отправить в данный момент
+        /// Asynchronous wrapper with reliable queue. 
+        /// If writer currently can't write a message, this wrapper save log message to the file on the disk. 
+        /// Later it read logs and try to send them to writer again.
         /// </summary>
         AsyncQueueWithReliableSendingWrapper,
 
         /// <summary>
-        /// Консольный логгер
+        /// Writer for Console
         /// </summary>
         ConsoleWriter,
 
         /// <summary>
-        /// Логгер для записи в файл
+        /// Writer for text file
         /// </summary>
         FileWriter,
 
         /// <summary>
-        /// Логгер для БД
+        /// Writer for Database (MS SQL Server)
         /// </summary>
         DBWriter,
 
         /// <summary>
-        /// Логгер для локального сервера - подключение по пайпу
+        /// Writer that sends logs to server through Pipe (WCF)
         /// </summary>
         PipeWriter,
 
         /// <summary>
-        /// Логгер для ссетевого сервера - подключение по tcp
+        /// Writer that sends logs to server through Network (WCF)
         /// </summary>
         NetWriter,
 
         /// <summary>
-        /// Логгер для передачи сообщений группе внутренних логгеров
+        /// Wrapper that aggregate several other writers/wrappers
         /// </summary>
         GroupWrapper,
 
         /// <summary>
-        /// Логгер для сложной настройки роутинга собщений между внутренними логгерами
+        /// Wrapper to route messages in per Module manner
         /// </summary>
         RoutingWrapper,
 
         /// <summary>
-        /// Враппер с маршрутизацией на основе сравнения паттернов
+        /// Simple pattern-matching router for log messages
         /// </summary>
         PatternMatchingWrapper,
 
         /// <summary>
-        /// Враппер для предотвращения потерь логов (ведёт локальное хранилище)
+        /// Reliable wrapper (stores messages on the disk if they temporary can't be written by inner writer)
         /// </summary>
         ReliableWrapper,
+
+
+
+        /// <summary>
+        /// Custom user wrapper configuration
+        /// </summary>
+        CustomWrapper,
+
+        /// <summary>
+        /// Custom user writer configuration
+        /// </summary>
+        CustomWriter,
     }
 }

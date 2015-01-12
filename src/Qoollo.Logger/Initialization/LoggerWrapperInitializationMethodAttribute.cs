@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Qoollo.Logger
 {
     /// <summary>
-    /// Атрибут для указания метода инициализации логгера
+    /// Indicates logger initialization method
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     public class LoggerWrapperInitializationMethodAttribute: Attribute

@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Qoollo.Logger.Helpers
 {
+    /// <summary>
+    /// Local machine info
+    /// </summary>
     internal static class LocalMachineInfo
     {
         private static string _machineName;
@@ -15,7 +18,7 @@ namespace Qoollo.Logger.Helpers
         private static int _processId;
 
         /// <summary>
-        /// Имя машины
+        /// Machine name
         /// </summary>
         public static string MachineName
         {
@@ -27,32 +30,45 @@ namespace Qoollo.Logger.Helpers
             }
         }
 
+
         /// <summary>
-        /// Адрес машины
+        /// Init MachineAddress
+        /// </summary>
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private static void InitMachineAddress()
+        {
+            if (_machineAddress == null)
+            {
+                if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+                {
+                    var host = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName());
+                    var ipAddr = host.AddressList.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+                    if (ipAddr != null)
+                        _machineAddress = ipAddr.ToString();
+                }
+
+                if (_machineAddress == null)
+                    _machineAddress = "<no network>";
+
+                System.Threading.Thread.MemoryBarrier();
+            }
+        }
+
+        /// <summary>
+        /// Machine address (ip)
         /// </summary>
         public static string MachineAddress
         {
             get
             {
                 if (_machineAddress == null)
-                {
-                    if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
-                    {
-                        var host = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName());
-                        var ipAddr = host.AddressList.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
-                        if (ipAddr != null)
-                            _machineAddress = ipAddr.ToString();
-                    }
-
-                    if (_machineAddress == null)
-                        _machineAddress = "<no network>";
-                }
+                    InitMachineAddress();
                 return _machineAddress;
             }
         }
 
         /// <summary>
-        /// Объединённое имя машины
+        /// Machine name and Machine address
         /// </summary>
         public static string CombinedMachineName
         {
@@ -67,7 +83,7 @@ namespace Qoollo.Logger.Helpers
 
 
         /// <summary>
-        /// Имя процесса
+        /// Process name
         /// </summary>
         public static string ProcessName
         {
@@ -85,7 +101,7 @@ namespace Qoollo.Logger.Helpers
 
 
         /// <summary>
-        /// ID процесса
+        /// Process ID
         /// </summary>
         public static int ProcessId
         {

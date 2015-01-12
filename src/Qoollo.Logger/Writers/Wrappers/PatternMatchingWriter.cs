@@ -50,7 +50,7 @@ namespace Qoollo.Logger.Writers
         {
             if (_isDisposed)
             {
-                _thisClassSupportLogger.Error("Попытка записи логирующего сообщения при освобожденных ресурсах");
+                _thisClassSupportLogger.Error("Attempt to write LoggingEvent in Disposed state");
                 return false;
             }
 

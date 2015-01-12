@@ -7,28 +7,28 @@ using System.Text;
 namespace Qoollo.Logger
 {
     /// <summary>
-    /// Базовый класс для исключений бросаемых логгером
+    /// Base class for logger exceptions
     /// </summary>
     [Serializable]
     public class LoggerException : ApplicationException
     {
         /// <summary>
-        /// Конструктор LoggerException
+        /// LoggerException constructor
         /// </summary>
         public LoggerException() { }
         /// <summary>
-        /// Конструктор LoggerException
+        /// LoggerException constructor
         /// </summary>
-        /// <param name="message">Сообщение</param>
+        /// <param name="message">A message that describes the error</param>
         public LoggerException(string message) : base(message) { }
         /// <summary>
-        /// Конструктор LoggerException
+        /// LoggerException constructor
         /// </summary>
-        /// <param name="message">Сообщение</param>
-        /// <param name="innerException">Внутреннее исключение</param>
+        /// <param name="message">A message that describes the error</param>
+        /// <param name="innerException">The exception that is the cause of the current exception</param>
         public LoggerException(string message, Exception innerException) : base(message, innerException) { }
         /// <summary>
-        /// Конструктор LoggerException для десериализации
+        /// LoggerException constructor
         /// </summary>
         /// <param name="info">info</param>
         /// <param name="context">context</param>

@@ -7,51 +7,51 @@ using System.Diagnostics.Contracts;
 namespace Qoollo.Logger
 {
     /// <summary>
-    /// Интерфейс для писателя сообщений лога
+    /// Interface for log writer/wrapper
     /// </summary>
     [ContractClass(typeof(ILoggingEventWriterContract))]
     public interface ILoggingEventWriter : IDisposable
     {
         /// <summary>
-        /// Устанавливает фабрику для создания конвертеров,
-        /// необходимых для преобразования логируемых данных в строки для вывода в файл или консоль
+        /// Set the factory to create converters from log message to string.
+        /// Required for FileWriter and ConsoleWriter.
         /// </summary>
-        /// <param name="factory"></param>
+        /// <param name="factory">Factory to create particular converters</param>
         void SetConverterFactory(ConverterFactory factory);
 
         /// <summary>
-        /// Логирование
+        /// Write the log message
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">Log message</param>
         bool Write(LoggingEvent data);
     }
 
 
 
     /// <summary>
-    /// Общий интерфейс логгера
+    /// Common logger interface
     /// </summary>
     public interface ILogger : ILoggingEventWriter
     {
         /// <summary>
-        /// Возвращает уровень логирования
+        /// Log level
         /// </summary>
         LogLevel Level { get; }
 
         /// <summary>
-        /// Разрешено ли извлекать расширенную информацию об источнике логирования
+        /// Is stack trace extraction enabled
         /// </summary>
         bool AllowStackTraceInfoExtraction { get; }
 
 
         /// <summary>
-        /// Возвращает цепочку вложенности программных модулей
+        /// Returns the chain of modules through which this logger was initialized (logger stacking order)
         /// </summary>
-        /// <returns>Список модулей. Первый элемент - внутренний модуль, последний - внешний.</returns>
+        /// <returns>Chain of modules names. First element - inner module, last - outer.</returns>
         List<string> GetStackSources();
 
         /// <summary>
-        /// Обновление цепочки вложенности программных модулей (StackSources) 
+        /// Refresh StackSources chain
         /// </summary>
         void Refresh();
     }
