@@ -6,12 +6,11 @@ using System.Diagnostics.Contracts;
 namespace Qoollo.Logger.Writers
 {
     /// <summary>
-    /// Базовый класс для всех писателей.
-    /// От него наследуются классы отвечающие за отправку логов в консоль, в файл и в сеть...
+    /// Base class for writers
     /// </summary>
     internal abstract class Writer : ILoggingEventWriter
     {
-        protected const string CLOSING = "Завершение работы программы.";
+        protected const string CLOSING = "Application closed normally.";
         protected const string DISPOSE = "Dispose";
 
         public Writer(LogLevel level)
@@ -24,14 +23,18 @@ namespace Qoollo.Logger.Writers
         public ConverterFactory ConverterFactory { get; private set; }
         public LogLevel Level { get; private set; }
 
-        public abstract bool Write(LoggingEvent data);
-
 
         /// <summary>
-        /// Устанавливает фабрику для создания конвертеров,
-        /// необходимых для преобразования логируемых данных в строки для вывода в файл или консоль
+        /// Write the log message
         /// </summary>
-        /// <param name="factory"></param>
+        /// <param name="data">Log message</param>
+        public abstract bool Write(LoggingEvent data);
+
+        /// <summary>
+        /// Set the factory to create converters from log message to string.
+        /// Required for FileWriter and ConsoleWriter.
+        /// </summary>
+        /// <param name="factory">Factory to create particular converters</param>
         public virtual void SetConverterFactory(ConverterFactory factory)
         {
             ConverterFactory = factory;
@@ -42,7 +45,11 @@ namespace Qoollo.Logger.Writers
         {
         }
 
-        public virtual void Dispose()
+
+        /// <summary>
+        /// Clean-up resources
+        /// </summary>
+        public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
