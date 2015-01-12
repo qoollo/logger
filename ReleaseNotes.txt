@@ -1,0 +1,10 @@
+v2.1 (12.01.2015)
+- Public surface comments translated to English
+- DBWriter updated to the latest format of LogginEvent
+- Format log methods turned into generic
+- Extensibility: since now you can add custom writers/wrappers and read custom writers configuration from App.config
+- Minor performance improvements and refactoring
+
+
+v2.0 (24.12.2014)
+Initial version
