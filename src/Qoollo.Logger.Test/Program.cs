@@ -68,6 +68,8 @@ namespace Qoollo.Logger.Test
 
         static void Main(string[] args)
         {
+            Qoollo.Logger.LoggerDefault.Instance.Error("");
+
             UseLogger();
 
             GC.Collect();

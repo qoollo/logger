@@ -56,6 +56,26 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
+        /// Init default logger instance
+        /// </summary>
+        private static void CreateDefaultLogger()
+        {
+            if (_defaultInstance == null)
+            {
+                lock (_lockCreation)
+                {
+                    if (_defaultInstance == null)
+                    {
+                        if (Configurator.HasConfiguration("LoggerConfigurationSection"))
+                            LoadInstanceFromAppConfig();
+                        else
+                            SetInstance(ConsoleLogger);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Empty logger (not writes any message)
         /// </summary>
         public static Logger EmptyLogger
@@ -91,7 +111,8 @@ namespace Qoollo.Logger
             get
             {
                 if (_defaultInstance == null)
-                    System.Threading.Interlocked.CompareExchange(ref _defaultInstance, ConsoleLogger, null);
+                    CreateDefaultLogger();
+
                 return _defaultInstance;
             }
         }

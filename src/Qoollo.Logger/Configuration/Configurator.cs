@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace Qoollo.Logger.Configuration
@@ -30,6 +31,31 @@ namespace Qoollo.Logger.Configuration
 
 
 
+        /// <summary>
+        /// Check whether configuration section exists
+        /// </summary>
+        /// <param name="sectionName">Configuration section name in App.config</param>
+        /// <returns>Is section exists</returns>
+        public static bool HasConfiguration(string sectionName)
+        {
+            Contract.Requires<ArgumentNullException>(sectionName != null);
+
+            return Qoollo.Logger.Configuration.LoggerConfigurationV2.AppConfigLoader.HasConfiguration(sectionName);
+        }
+        /// <summary>
+        /// Check whether configuration section exists
+        /// </summary>
+        /// <param name="sectionGroupName">Configuration section group name in App.config</param>
+        /// <param name="sectionName">Configuration section name in App.config</param>
+        /// <returns>Is section exists</returns>
+        public static bool HasConfiguration(string sectionGroupName, string sectionName)
+        {
+            Contract.Requires<ArgumentNullException>(sectionGroupName != null);
+            Contract.Requires<ArgumentNullException>(sectionName != null);
+
+            return Qoollo.Logger.Configuration.LoggerConfigurationV2.AppConfigLoader.HasConfiguration(sectionGroupName, sectionName);
+        }
+
 
         /// <summary>
         /// Loads logger configuration from App.config
@@ -38,6 +64,8 @@ namespace Qoollo.Logger.Configuration
         /// <returns>Loaded configuration object</returns>
         public static LoggerConfiguration LoadConfiguration(string sectionName)
         {
+            Contract.Requires<ArgumentNullException>(sectionName != null);
+
             return Qoollo.Logger.Configuration.LoggerConfigurationV2.AppConfigLoader.GetConfiguration(sectionName);
         }
         /// <summary>
@@ -48,6 +76,9 @@ namespace Qoollo.Logger.Configuration
         /// <returns>Loaded configuration object</returns>
         public static LoggerConfiguration LoadConfiguration(string sectionGroupName, string sectionName)
         {
+            Contract.Requires<ArgumentNullException>(sectionGroupName != null);
+            Contract.Requires<ArgumentNullException>(sectionName != null);
+
             return Qoollo.Logger.Configuration.LoggerConfigurationV2.AppConfigLoader.GetConfiguration(sectionGroupName, sectionName);
         }
     }

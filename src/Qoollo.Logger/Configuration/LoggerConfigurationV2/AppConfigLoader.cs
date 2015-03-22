@@ -19,6 +19,9 @@ namespace Qoollo.Logger.Configuration.LoggerConfigurationV2
         {
             var cfgSec = (Qoollo.Logger.Configuration.LoggerConfigurationSectionConfigClass)ConfigurationManager.GetSection(sectionName);
 
+            if (cfgSec == null)
+                return null;
+
             return cfgSec.ExtractConfigData();
         }
 
@@ -32,9 +35,37 @@ namespace Qoollo.Logger.Configuration.LoggerConfigurationV2
         {
             var cfgSec = (Qoollo.Logger.Configuration.LoggerConfigurationSectionConfigClass)ConfigurationManager.GetSection(string.Format("{0}/{1}", sectionGroup, sectionName));
 
+            if (cfgSec == null)
+                return null;
+
             return cfgSec.ExtractConfigData();
         }
 
+
+        /// <summary>
+        /// Check whether configuration section exists
+        /// </summary>
+        /// <param name="sectionName">Configuration section name in App.config</param>
+        /// <returns>Is section exists</returns>
+        public static bool HasConfiguration(string sectionName)
+        {
+            Contract.Requires(sectionName != null, "sectionName");
+
+            return ConfigurationManager.GetSection(sectionName) != null;
+        }
+        /// <summary>
+        /// Check whether configuration section exists
+        /// </summary>
+        /// <param name="sectionGroupName">Configuration section group name in App.config</param>
+        /// <param name="sectionName">Configuration section name in App.config</param>
+        /// <returns>Is section exists</returns>
+        public static bool HasConfiguration(string sectionGroupName, string sectionName)
+        {
+            Contract.Requires(sectionGroupName != null, "sectionGroupName");
+            Contract.Requires(sectionName != null, "sectionName");
+
+            return ConfigurationManager.GetSection(string.Format("{0}/{1}", sectionGroupName, sectionName)) != null;
+        }
 
 
         /// <summary>
@@ -48,7 +79,8 @@ namespace Qoollo.Logger.Configuration.LoggerConfigurationV2
 
             var section = LoadSection(sectionName);
 
-            Contract.Assume(section != null, "section");
+            if (section == null)
+                throw new Qoollo.Logger.Exceptions.LoggerConfigurationException("Logger configuration section not found");
 
             var configuration = ConfigurationFormatConverter.Convert(section);
 
