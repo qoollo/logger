@@ -10,7 +10,7 @@ namespace Qoollo.Logger.Test
     {
         static void UseLogger()
         {
-            Qoollo.Logger.LoggerDefault.LoadInstanceFromAppConfig();
+            //Qoollo.Logger.LoggerDefault.LoadInstanceFromAppConfig();
             var log1 = Qoollo.Logger.LoggerFactory.CreateLoggerFromAppConfig("123", "LoggerConfigurationSection");
             var log2 = Qoollo.Logger.LoggerFactory.CreateLoggerFromAppConfig("321", "LoggerConfigurationSection");
             var logger = Qoollo.Logger.LoggerDefault.Instance.GetThisClassLogger();
@@ -68,8 +68,6 @@ namespace Qoollo.Logger.Test
 
         static void Main(string[] args)
         {
-            Qoollo.Logger.LoggerDefault.Instance.Error("");
-
             UseLogger();
 
             GC.Collect();
