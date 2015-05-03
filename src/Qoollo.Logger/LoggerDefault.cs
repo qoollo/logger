@@ -76,6 +76,21 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
+        /// Automatic logger dispose on ProcessExit event
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="args">Event args</param>
+        private static void FreeDefaultLogger(object sender, EventArgs args)
+        {
+            if (_defaultInstance != null && _defaultInstance != _consoleInstance && _defaultInstance != _emptyInstance)
+            {
+                var oldLogger = System.Threading.Interlocked.Exchange(ref _defaultInstance, _consoleInstance);
+                if (oldLogger != null && oldLogger != _consoleInstance && oldLogger != _emptyInstance)
+                    oldLogger.Dispose();
+            }
+        }
+
+        /// <summary>
         /// Empty logger (not writes any message)
         /// </summary>
         public static Logger EmptyLogger
@@ -124,11 +139,13 @@ namespace Qoollo.Logger
         public static void SetInstance(Logger newDefault)
         {
             if (newDefault == null)
-                newDefault = ConsoleLogger;
+                newDefault = EmptyLogger;
 
             var oldLogger = System.Threading.Interlocked.Exchange(ref _defaultInstance, newDefault);
-            if (oldLogger != null && oldLogger != ConsoleLogger && oldLogger != EmptyLogger)
+            if (oldLogger != null && oldLogger != _consoleInstance && oldLogger != _emptyInstance)
                 oldLogger.Dispose();
+
+            AppDomain.CurrentDomain.ProcessExit += FreeDefaultLogger;
         }
         /// <summary>
         /// Reset global logger singleton
