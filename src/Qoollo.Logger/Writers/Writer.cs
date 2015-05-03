@@ -41,17 +41,25 @@ namespace Qoollo.Logger.Writers
         }
 
 
-        protected virtual void Dispose(bool disposing)
+        protected virtual void Dispose(DisposeReason reason)
         {
         }
 
+        /// <summary>
+        /// Close writer. All pending messages should be processed
+        /// </summary>
+        public void Close()
+        {
+            Dispose(DisposeReason.Close);
+            GC.SuppressFinalize(this);
+        }
 
         /// <summary>
         /// Clean-up resources
         /// </summary>
         public void Dispose()
         {
-            Dispose(true);
+            Dispose(DisposeReason.Dispose);
             GC.SuppressFinalize(this);
         }
     }

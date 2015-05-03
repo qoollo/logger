@@ -108,18 +108,24 @@ namespace Qoollo.Logger.Writers
         }
 
 
-        protected override void Dispose(bool isUserCall)
+        protected override void Dispose(DisposeReason reason)
         {
             if (!_isDisposed)
             {
                 _isDisposed = true;
 
-                lock (_lockWrite)
+                if (reason != DisposeReason.Finalize)
+                {
+                    lock (_lockWrite)
+                    {
+                        if (_writer != null)
+                            _writer.Dispose();
+                    }
+                }
+                else
                 {
                     if (_writer != null)
-                    {
-                        _writer.Dispose();
-                    }
+                        _writer.FinalizeFast();
                 }
             }
         }

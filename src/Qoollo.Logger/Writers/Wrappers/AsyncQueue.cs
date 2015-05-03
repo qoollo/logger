@@ -110,21 +110,36 @@ namespace Qoollo.Logger.Writers
         }
 
 
-        /// <summary>
-        /// Основной код освобождения ресурсов
-        /// </summary>
-        /// <param name="isUserCall">Вызвано ли освобождение пользователем. False - деструктор</param>
-        protected override void Dispose(bool isUserCall)
+        protected void Dispose(DisposeReason reason)
         {
             if (!_isDisposed)
             {
                 _isDisposed = true;
 
-                if (isUserCall)
+                if (reason == DisposeReason.Dispose)
+                    _logger.Dispose();
+                else if (reason == DisposeReason.Close)
                     _logger.Dispose();
             }
+        }
 
+        public void Close()
+        {
+            this.Stop(true, true, false);
+            Dispose(DisposeReason.Close);
+        }
+
+        /// <summary>
+        /// Main clean-up code
+        /// </summary>
+        /// <param name="isUserCall">Is called by user. False - from finalizer</param>
+        protected override void Dispose(bool isUserCall)
+        {
             base.Dispose(isUserCall);
+            if (isUserCall)
+                this.Dispose(DisposeReason.Dispose);
+            else
+                this.Dispose(DisposeReason.Finalize);
         }
     }
 }
