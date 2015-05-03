@@ -70,6 +70,9 @@ namespace Qoollo.Logger.Test
         {
             UseLogger();
 
+            //LoggerDefault.Instance.Debug("Stuff");
+            //System.Threading.Thread.Sleep(1000);
+
             GC.Collect();
             GC.WaitForPendingFinalizers();
             GC.Collect();

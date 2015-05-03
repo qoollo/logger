@@ -9,7 +9,7 @@
     <licenseUrl>https://github.com/qoollo/logger/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/qoollo/logger</projectUrl>
     <!--<iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>-->
-    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Powerful logger for .NET applications</description>
     <releaseNotes>v2.1</releaseNotes>
     <copyright>Copyright 2014</copyright>

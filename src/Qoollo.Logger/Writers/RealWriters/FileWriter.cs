@@ -26,11 +26,10 @@ namespace Qoollo.Logger.Writers
         private LoggingEventConverterBase _filenameConverter;
 
         private readonly string _rawTemplate;
-        protected LoggingEventConverterBase _templateConverter;
+        private LoggingEventConverterBase _templateConverter;
 
         private string _lastFilename;
-        protected FileStream _fileStream;
-        protected StreamWriter _writer;
+        private FileWriterFilePool.FileStreamAndWriter _fileStreamAndWriter;
         private FileWriterFilePool _filePool;
 
         protected readonly object _lockWrite = new object();
@@ -53,7 +52,7 @@ namespace Qoollo.Logger.Writers
             _isNeedFileRotate = config.IsNeedFileRotate;
             _rawFilename = config.FileNameTemplate;
           
-            _filePool = new FileWriterFilePool(TimeSpan.FromMinutes(10));
+            _filePool = new FileWriterFilePool(TimeSpan.FromMinutes(10), config.Encoding);
             SetConverterFactory(ConverterFactory.Default);
         }
 
@@ -85,11 +84,12 @@ namespace Qoollo.Logger.Writers
 
                 try
                 {
-                    _writer.WriteLine(line);
+                    _fileStreamAndWriter.WriteLine(line);
                     if (data.Level >= LogLevel.Info)
-                        _writer.Flush();
-                    if (data.Level >= LogLevel.Fatal)
-                        _fileStream.Flush(true);
+                    {
+                        bool flushToDisk = data.Level >= LogLevel.Fatal;
+                        _fileStreamAndWriter.Flush(flushToDisk);
+                    }
 
                     return true;
                 }
@@ -113,12 +113,11 @@ namespace Qoollo.Logger.Writers
             var filename = _isNeedFileRotate ? _filenameConverter.Convert(data) : _rawFilename;
 
 
-            if (filename != _lastFilename || _fileStream == null)
+            if (filename != _lastFilename || !_fileStreamAndWriter.IsInitialized)
             {
                 try
                 {
-                    _fileStream = _filePool.RequestFile(filename, _fileStream, _lastFilename);
-                    _writer = new StreamWriter(_fileStream, _encoding);
+                    _fileStreamAndWriter = _filePool.RequestFile(filename, _fileStreamAndWriter, _lastFilename);
                     _lastFilename = filename;
 
                     return true;
@@ -188,11 +187,11 @@ namespace Qoollo.Logger.Writers
                 {
                     lock (_lockWrite)
                     {
-                        if (_fileStream != null)
-                            _fileStream = null;
-
-                        if (_writer != null)
-                            _writer = null;
+                        if (_fileStreamAndWriter.IsInitialized)
+                        {
+                            _fileStreamAndWriter.Flush(false);
+                            _fileStreamAndWriter = new FileWriterFilePool.FileStreamAndWriter();
+                        }
 
                         _filePool.Dispose();
                     }
