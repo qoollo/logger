@@ -97,10 +97,10 @@ namespace Qoollo.Logger.Writers
                 else if (reason == DisposeReason.Close)
                 {
                     foreach (var elem in _match)
-                        elem.Value.Dispose();
+                        elem.Value.Close();
 
                     if (_default != null)
-                        _default.Dispose();
+                        _default.Close();
                 }
             }
         }

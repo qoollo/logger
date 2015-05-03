@@ -410,7 +410,8 @@ namespace Qoollo.Logger
         /// Main clean-up code
         /// </summary>
         /// <param name="isUserCall">Is called by user</param>
-        protected void Dispose(bool isUserCall)
+        /// <param name="isClose">Is called from Close method</param>
+        private void Dispose(bool isUserCall, bool isClose)
         {
             if (!_isDisposed)
             {
@@ -419,7 +420,12 @@ namespace Qoollo.Logger
                 if (isUserCall)
                 {
                     if (_logger != null)
-                        _logger.Dispose();
+                    {
+                        if (isClose)
+                            _logger.Close();
+                        else
+                            _logger.Dispose();
+                    }
                 }
             }
         }
@@ -429,6 +435,7 @@ namespace Qoollo.Logger
         /// Wirte passed message at Info level and then dispose the logger.
         /// Helps to distinct cases of expected closing of application and unexpected (by unhandled exception)
         /// </summary>
+        /// <param name="msg">Message to write</param>
         public void Close(string msg)
         {
             if (!_isDisposed)
@@ -440,17 +447,27 @@ namespace Qoollo.Logger
                     thisType.Assembly.FullName, thisType.Namespace, thisType.Name, "Close", null, -1);
 
                 (this as ILogger).Write(data);
-                Dispose(true);
+                this.Close();
             }
+        }
+
+        /// <summary>
+        /// Close logger and clean-up all resources.
+        /// It guarantee that all pending messages will be processed.
+        /// </summary>
+        public void Close()
+        {
+            Dispose(true, isClose: true);
+            GC.SuppressFinalize(this);
         }
 
 
         /// <summary>
-        /// Clean up logger resources (see also 'void Close(string msg)')
+        /// Clean up logger resources (see also 'void Close()')
         /// </summary>
         public void Dispose()
         {
-            Dispose(true);
+            Dispose(true, isClose: false);
             GC.SuppressFinalize(this);
         }
 

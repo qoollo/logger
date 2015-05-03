@@ -143,7 +143,7 @@ namespace Qoollo.Logger
 
             var oldLogger = System.Threading.Interlocked.Exchange(ref _defaultInstance, newDefault);
             if (oldLogger != null && oldLogger != _consoleInstance && oldLogger != _emptyInstance)
-                oldLogger.Dispose();
+                oldLogger.Close();
 
             AppDomain.CurrentDomain.ProcessExit += FreeDefaultLogger;
         }

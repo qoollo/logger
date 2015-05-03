@@ -24,6 +24,12 @@ namespace Qoollo.Logger
         /// </summary>
         /// <param name="data">Log message</param>
         bool Write(LoggingEvent data);
+
+        /// <summary>
+        /// Close logger and clean-up all resources.
+        /// It guarantee that all pending messages will be processed.
+        /// </summary>
+        void Close();
     }
 
 
@@ -71,6 +77,11 @@ namespace Qoollo.Logger
         bool ILoggingEventWriter.Write(LoggingEvent data)
         {
             Contract.Requires(data != null);
+            throw new NotImplementedException();
+        }
+
+        void ILoggingEventWriter.Close()
+        {
             throw new NotImplementedException();
         }
 

@@ -61,8 +61,8 @@ namespace Qoollo.Logger.Test
                 logger.Fatal(realExc, "fatal sample: " + i.ToString());
             }
 
-            log1.Dispose();
-            log2.Dispose();
+            log1.Close();
+            log2.Close();
             Qoollo.Logger.LoggerDefault.ResetInstance();
         }
 
@@ -72,6 +72,8 @@ namespace Qoollo.Logger.Test
 
             //LoggerDefault.Instance.Debug("Stuff");
            // System.Threading.Thread.Sleep(1000);
+
+            Console.WriteLine("finished");
 
             GC.Collect();
             GC.WaitForPendingFinalizers();

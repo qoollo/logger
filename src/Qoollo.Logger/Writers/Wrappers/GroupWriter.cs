@@ -77,7 +77,7 @@ namespace Qoollo.Logger.Writers
                 else if (reason == DisposeReason.Close)
                 {
                     for (int i = 0; i < _all.Count; i++)
-                        _all[i].Dispose();
+                        _all[i].Close();
                 }
             }
         }

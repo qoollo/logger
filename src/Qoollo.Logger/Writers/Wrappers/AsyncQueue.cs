@@ -119,7 +119,7 @@ namespace Qoollo.Logger.Writers
                 if (reason == DisposeReason.Dispose)
                     _logger.Dispose();
                 else if (reason == DisposeReason.Close)
-                    _logger.Dispose();
+                    _logger.Close();
             }
         }
 

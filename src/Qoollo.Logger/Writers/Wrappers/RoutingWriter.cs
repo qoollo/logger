@@ -129,15 +129,15 @@ namespace Qoollo.Logger.Writers
                 else if (reason == DisposeReason.Close)
                 {
                     for (int i = 0; i < _all.Count; i++)
-                        _all[i].Dispose();
+                        _all[i].Close();
 
                     for (int i = 0; i < _others.Count; i++)
-                        _others[i].Dispose();
+                        _others[i].Close();
 
                     foreach (var elem in _routingLoggers)
                     {
                         foreach (var item in elem.Value)
-                            item.Dispose();
+                            item.Close();
                     }
                 }
             }
