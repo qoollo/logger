@@ -51,6 +51,12 @@ namespace Qoollo.Logger.LoggingEventConverters
     /// STACKSOURCE, StackSource, stacksource, SOURCES, Sources, sources  - substitution tokens for StackSource
     /// </summary>
     /// <summary>
+    /// STACKSOURCEHEAD, StackSourceHead, stacksourcehead, SOURCESHEAD, SourcesHead, sourceshead  - substitution tokens for the first element of StackSource
+    /// </summary>
+    /// <summary>
+    /// STACKSOURCETAIL, StackSourceTail, stacksourcetail, SOURCESTAIL, SourcesTail, sourcestail  - substitution tokens for the last element of StackSource
+    /// </summary>
+    /// <summary>
     /// CLASS, Class, class - substitution tokens for Class
     /// </summary>
     /// <summary>
@@ -86,75 +92,89 @@ namespace Qoollo.Logger.LoggingEventConverters
 
         private static readonly Dictionary<string, ConverterTypes> Substitutions = new Dictionary<string, ConverterTypes>
             {
-                {"Level",       ConverterTypes.LevelConverter},
-                {"level",       ConverterTypes.LevelConverter},
-                {"LEVEL",       ConverterTypes.LevelConverter},
+                {"Level",           ConverterTypes.LevelConverter},
+                {"level",           ConverterTypes.LevelConverter},
+                {"LEVEL",           ConverterTypes.LevelConverter},
 
-                {"StackSource", ConverterTypes.StackSourceConverter},
-                {"stacksource", ConverterTypes.StackSourceConverter},
-                {"STACKSOURCE", ConverterTypes.StackSourceConverter},
-                {"SOURCES",     ConverterTypes.StackSourceConverter},
-                {"Sources",     ConverterTypes.StackSourceConverter},
-                {"sources",     ConverterTypes.StackSourceConverter},
+                {"StackSource",     ConverterTypes.StackSourceConverter},
+                {"stacksource",     ConverterTypes.StackSourceConverter},
+                {"STACKSOURCE",     ConverterTypes.StackSourceConverter},
+                {"SOURCES",         ConverterTypes.StackSourceConverter},
+                {"Sources",         ConverterTypes.StackSourceConverter},
+                {"sources",         ConverterTypes.StackSourceConverter},
 
-                {"MACHINENAME", ConverterTypes.MachineNameConverter},
-                {"MachineName", ConverterTypes.MachineNameConverter},
-                {"Machinename", ConverterTypes.MachineNameConverter},
-                {"machinename", ConverterTypes.MachineNameConverter},
-                {"MACHINE",     ConverterTypes.MachineNameConverter},
-                {"Machine",     ConverterTypes.MachineNameConverter},
-                {"machine",     ConverterTypes.MachineNameConverter},
+                {"StackSourceHead", ConverterTypes.StackSourceHeadConverter},
+                {"stacksourcehead", ConverterTypes.StackSourceHeadConverter},
+                {"STACKSOURCEHEAD", ConverterTypes.StackSourceHeadConverter},
+                {"SOURCESHEAD",     ConverterTypes.StackSourceHeadConverter},
+                {"SourcesHead",     ConverterTypes.StackSourceHeadConverter},
+                {"sourceshead",     ConverterTypes.StackSourceHeadConverter},
 
-                {"PROCESSNAME", ConverterTypes.ProcessNameConverter},
-                {"ProcessName", ConverterTypes.ProcessNameConverter},
-                {"Processname", ConverterTypes.ProcessNameConverter},
-                {"processname", ConverterTypes.ProcessNameConverter},
-                {"PROCESS",     ConverterTypes.ProcessNameConverter},
-                {"Process",     ConverterTypes.ProcessNameConverter},
-                {"process",     ConverterTypes.ProcessNameConverter},
+                {"StackSourceTail", ConverterTypes.StackSourceTailConverter},
+                {"stacksourcetail", ConverterTypes.StackSourceTailConverter},
+                {"STACKSOURCETAIL", ConverterTypes.StackSourceTailConverter},
+                {"SOURCESTAIL",     ConverterTypes.StackSourceTailConverter},
+                {"SourcesTail",     ConverterTypes.StackSourceTailConverter},
+                {"sourcestail",     ConverterTypes.StackSourceTailConverter},
 
-                {"PROCESSID",   ConverterTypes.ProcessIdConverter},
-                {"ProcessId",   ConverterTypes.ProcessIdConverter},
-                {"Processid",   ConverterTypes.ProcessIdConverter},
-                {"processid",   ConverterTypes.ProcessIdConverter},
+                {"MACHINENAME",     ConverterTypes.MachineNameConverter},
+                {"MachineName",     ConverterTypes.MachineNameConverter},
+                {"Machinename",     ConverterTypes.MachineNameConverter},
+                {"machinename",     ConverterTypes.MachineNameConverter},
+                {"MACHINE",         ConverterTypes.MachineNameConverter},
+                {"Machine",         ConverterTypes.MachineNameConverter},
+                {"machine",         ConverterTypes.MachineNameConverter},
 
-                {"ASSEMBLY",    ConverterTypes.AssemblyConverter},
-                {"Assembly",    ConverterTypes.AssemblyConverter},
-                {"assembly",    ConverterTypes.AssemblyConverter},
+                {"PROCESSNAME",     ConverterTypes.ProcessNameConverter},
+                {"ProcessName",     ConverterTypes.ProcessNameConverter},
+                {"Processname",     ConverterTypes.ProcessNameConverter},
+                {"processname",     ConverterTypes.ProcessNameConverter},
+                {"PROCESS",         ConverterTypes.ProcessNameConverter},
+                {"Process",         ConverterTypes.ProcessNameConverter},
+                {"process",         ConverterTypes.ProcessNameConverter},
 
-                {"NAMESPACE",   ConverterTypes.NamespaceConverter},
-                {"Namespace",   ConverterTypes.NamespaceConverter},
-                {"namespace",   ConverterTypes.NamespaceConverter},
+                {"PROCESSID",       ConverterTypes.ProcessIdConverter},
+                {"ProcessId",       ConverterTypes.ProcessIdConverter},
+                {"Processid",       ConverterTypes.ProcessIdConverter},
+                {"processid",       ConverterTypes.ProcessIdConverter},
 
-                {"Class",       ConverterTypes.ClassConverter},
-                {"class",       ConverterTypes.ClassConverter},
-                {"CLASS",       ConverterTypes.ClassConverter},
+                {"ASSEMBLY",        ConverterTypes.AssemblyConverter},
+                {"Assembly",        ConverterTypes.AssemblyConverter},
+                {"assembly",        ConverterTypes.AssemblyConverter},
 
-                {"Method",      ConverterTypes.MethodConverter},
-                {"method",      ConverterTypes.MethodConverter},
-                {"METHOD",      ConverterTypes.MethodConverter},
+                {"NAMESPACE",       ConverterTypes.NamespaceConverter},
+                {"Namespace",       ConverterTypes.NamespaceConverter},
+                {"namespace",       ConverterTypes.NamespaceConverter},
 
-                {"Message",     ConverterTypes.MessageConverter},
-                {"message",     ConverterTypes.MessageConverter},
-                {"MESSAGE",     ConverterTypes.MessageConverter},
-                {"Msg",         ConverterTypes.MessageConverter},
-                {"msg",         ConverterTypes.MessageConverter},
+                {"Class",           ConverterTypes.ClassConverter},
+                {"class",           ConverterTypes.ClassConverter},
+                {"CLASS",           ConverterTypes.ClassConverter},
 
-                {"Context",     ConverterTypes.ContextConverter},
-                {"context",     ConverterTypes.ContextConverter},
-                {"CONTEXT",     ConverterTypes.ContextConverter},
+                {"Method",          ConverterTypes.MethodConverter},
+                {"method",          ConverterTypes.MethodConverter},
+                {"METHOD",          ConverterTypes.MethodConverter},
 
-                {"Exception",   ConverterTypes.ExceptionConverter},
-                {"exception",   ConverterTypes.ExceptionConverter},
-                {"EXCEPTION",   ConverterTypes.ExceptionConverter},
+                {"Message",         ConverterTypes.MessageConverter},
+                {"message",         ConverterTypes.MessageConverter},
+                {"MESSAGE",         ConverterTypes.MessageConverter},
+                {"Msg",             ConverterTypes.MessageConverter},
+                {"msg",             ConverterTypes.MessageConverter},
 
-                {"Ex",          ConverterTypes.ExceptionConverter},
-                {"ex",          ConverterTypes.ExceptionConverter},
-                {"EX",          ConverterTypes.ExceptionConverter},
+                {"Context",         ConverterTypes.ContextConverter},
+                {"context",         ConverterTypes.ContextConverter},
+                {"CONTEXT",         ConverterTypes.ContextConverter},
 
-                {"DateTime",    ConverterTypes.DateConverter},
-                {"datetime",    ConverterTypes.DateConverter},
-                {"DATETIME",    ConverterTypes.DateConverter},
+                {"Exception",       ConverterTypes.ExceptionConverter},
+                {"exception",       ConverterTypes.ExceptionConverter},
+                {"EXCEPTION",       ConverterTypes.ExceptionConverter},
+
+                {"Ex",              ConverterTypes.ExceptionConverter},
+                {"ex",              ConverterTypes.ExceptionConverter},
+                {"EX",              ConverterTypes.ExceptionConverter},
+
+                {"DateTime",        ConverterTypes.DateConverter},
+                {"datetime",        ConverterTypes.DateConverter},
+                {"DATETIME",        ConverterTypes.DateConverter},
             };
 
         enum ConverterTypes
@@ -171,7 +191,9 @@ namespace Qoollo.Logger.LoggingEventConverters
             ContextConverter,
             DateConverter,
             ExceptionConverter,
-            StackSourceConverter
+            StackSourceConverter,
+            StackSourceHeadConverter,
+            StackSourceTailConverter
         }
 
         #endregion
@@ -319,6 +341,12 @@ namespace Qoollo.Logger.LoggingEventConverters
 
                 case ConverterTypes.StackSourceConverter:
                     return WrapByParsedParams(factory.CreateStackSourceConverter(), parsedParams, "??");
+
+                case ConverterTypes.StackSourceHeadConverter:
+                    return WrapByParsedParams(factory.CreateStackSourceHeadConverter(), parsedParams, null);
+
+                case ConverterTypes.StackSourceTailConverter:
+                    return WrapByParsedParams(factory.CreateStackSourceTailConverter(), parsedParams, null);
 
                 case ConverterTypes.DateConverter:
                     return factory.CreateDateConverter(parsedParams.Format);

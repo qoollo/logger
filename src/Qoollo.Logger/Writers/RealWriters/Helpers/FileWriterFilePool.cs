@@ -37,11 +37,17 @@ namespace Qoollo.Logger.Writers.RealWriters.Helpers
                 _writer.WriteLine(line);
             }
 
-            public void Flush(bool onDisk)
+            public void RefreshPosition()
             {
                 _writer.Flush();
-                if (onDisk)
-                    _file.Flush(onDisk);
+                _file.Seek(0, SeekOrigin.End);
+            }
+
+            public void Flush(bool toDisk)
+            {
+                _writer.Flush();
+                if (toDisk)
+                    _file.Flush(toDisk);
             }
         }
 

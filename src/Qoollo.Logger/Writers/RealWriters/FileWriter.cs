@@ -86,10 +86,7 @@ namespace Qoollo.Logger.Writers
                 {
                     _fileStreamAndWriter.WriteLine(line);
                     if (data.Level >= LogLevel.Info)
-                    {
-                        bool flushToDisk = data.Level >= LogLevel.Fatal;
-                        _fileStreamAndWriter.Flush(flushToDisk);
-                    }
+                        _fileStreamAndWriter.Flush(toDisk: data.Level >= LogLevel.Fatal);
 
                     return true;
                 }

@@ -231,4 +231,26 @@ namespace Qoollo.Logger.LoggingEventConverters
             return builder.ToString();
         }
     }
+
+    internal class StackSourceHeadConverter: LoggingEventConverterBase
+    {
+        public override string Convert(LoggingEvent data)
+        {
+            if (data.StackSources == null || data.StackSources.Count == 0)
+                return null;
+
+            return data.StackSources[0];
+        }
+    }
+
+    internal class StackSourceTailConverter : LoggingEventConverterBase
+    {
+        public override string Convert(LoggingEvent data)
+        {
+            if (data.StackSources == null || data.StackSources.Count == 0)
+                return null;
+
+            return data.StackSources[data.StackSources.Count - 1];
+        }
+    }
 }

@@ -154,5 +154,23 @@ namespace Qoollo.Logger.LoggingEventConverters
         {
             return new StackSourceConverter();
         }
+
+        /// <summary>
+        /// Creates converter for 'StackSources[0]' property of LoggingEvent
+        /// </summary>
+        /// <returns>Created converter</returns>
+        public virtual LoggingEventConverterBase CreateStackSourceHeadConverter()
+        {
+            return new StackSourceHeadConverter();
+        }
+
+        /// <summary>
+        /// Creates converter for 'StackSources[end]' property of LoggingEvent
+        /// </summary>
+        /// <returns>Created converter</returns>
+        public virtual LoggingEventConverterBase CreateStackSourceTailConverter()
+        {
+            return new StackSourceTailConverter();
+        }
     }
 }
