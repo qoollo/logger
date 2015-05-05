@@ -14,7 +14,7 @@ namespace Qoollo.Logger.LoggingEventConverters
     /// Template string can contain substitution tokens ({Level}, ...) and special symbols.
     /// </summary>
     /// <summary>
-    /// DATETIME, DateTime, datetime - token for Date and Time substitution.
+    /// DateTime - token for Date and Time substitution.
     /// Supports format string: {DateTime, format='yyyy-MM-dd hh:mm:ss'} 
     /// Format string parameters from MSDN:
     /// This example displays the following output to the console:
@@ -42,49 +42,49 @@ namespace Qoollo.Logger.LoggingEventConverters
     ///  'HH:mm:ss.ffffzzz': 21:15:07.0000-07:00
     /// </summary>
     /// <summary>
-    /// LEVEL, Level, level - substitution tokens for LogLevel
+    /// Level - substitution tokens for LogLevel
     /// </summary>
     /// <summary>
-    /// CONTEXT, Context, context - substitution tokens for Context
+    /// Context - substitution tokens for Context
     /// </summary>
     /// <summary>
-    /// STACKSOURCE, StackSource, stacksource, SOURCES, Sources, sources  - substitution tokens for StackSource
+    /// StackSource, Sources  - substitution tokens for StackSource
     /// </summary>
     /// <summary>
-    /// STACKSOURCEHEAD, StackSourceHead, stacksourcehead, SOURCESHEAD, SourcesHead, sourceshead  - substitution tokens for the first element of StackSource
+    /// StackSourceHead, SourcesHead  - substitution tokens for the first element of StackSource
     /// </summary>
     /// <summary>
-    /// STACKSOURCETAIL, StackSourceTail, stacksourcetail, SOURCESTAIL, SourcesTail, sourcestail  - substitution tokens for the last element of StackSource
+    /// StackSourceTail, SourcesTail  - substitution tokens for the last element of StackSource
     /// </summary>
     /// <summary>
-    /// CLASS, Class, class - substitution tokens for Class
+    /// Class - substitution tokens for Class
     /// </summary>
     /// <summary>
-    /// METHOD, Method, method - substitution tokens for Method
+    /// Method - substitution tokens for Method
     /// </summary>
     /// <summary>
-    /// MESSAGE, Message, message, Msg, msg - substitution tokens for user Message
+    /// Message, Msg - substitution tokens for user Message
     /// </summary>
     /// <summary>
-    /// EXCEPTION, Exception, exception, EX, Ex, ex - substitution tokens for Exception
+    /// Exception, Ex - substitution tokens for Exception
     /// </summary>
     /// <summary>
-    /// NAMESPACE, Namespace, namespace - substitution tokens for Namespace
+    /// Namespace - substitution tokens for Namespace
     /// </summary>
     /// <summary>
-    /// ASSEMBLY, Assembly, assembly - substitution tokens for Assembly
+    /// Assembly - substitution tokens for Assembly
     /// </summary>
     /// <summary>
-    /// MACHINENAME, MachineName, Machinename, machinename, MACHINE, Machine, machine - substitution tokens for MachineName
+    /// MachineName, Machine - substitution tokens for MachineName
     /// </summary>
     /// <summary>
-    /// PROCESSNAME, ProcessName, Processname, processname, PROCESS, Process, process - substitution tokens for ProcessName
+    /// ProcessName, Process - substitution tokens for ProcessName
     /// </summary>
     /// <summary>
-    /// PROCESSID, ProcessId, Processid, processid - substitution tokens for ProcessId
+    /// ProcessId - substitution tokens for ProcessId
     /// </summary>
     /// <summary>
-    /// ASSEMBLY, Assembly, assembly - substitution tokens for Assembly
+    /// Assembly - substitution tokens for Assembly
     /// </summary>
     public static class TemplateParser
     {
@@ -92,89 +92,42 @@ namespace Qoollo.Logger.LoggingEventConverters
 
         private static readonly Dictionary<string, ConverterTypes> Substitutions = new Dictionary<string, ConverterTypes>
             {
-                {"Level",           ConverterTypes.LevelConverter},
                 {"level",           ConverterTypes.LevelConverter},
-                {"LEVEL",           ConverterTypes.LevelConverter},
 
-                {"StackSource",     ConverterTypes.StackSourceConverter},
                 {"stacksource",     ConverterTypes.StackSourceConverter},
-                {"STACKSOURCE",     ConverterTypes.StackSourceConverter},
-                {"SOURCES",         ConverterTypes.StackSourceConverter},
-                {"Sources",         ConverterTypes.StackSourceConverter},
                 {"sources",         ConverterTypes.StackSourceConverter},
 
-                {"StackSourceHead", ConverterTypes.StackSourceHeadConverter},
                 {"stacksourcehead", ConverterTypes.StackSourceHeadConverter},
-                {"STACKSOURCEHEAD", ConverterTypes.StackSourceHeadConverter},
-                {"SOURCESHEAD",     ConverterTypes.StackSourceHeadConverter},
-                {"SourcesHead",     ConverterTypes.StackSourceHeadConverter},
                 {"sourceshead",     ConverterTypes.StackSourceHeadConverter},
 
-                {"StackSourceTail", ConverterTypes.StackSourceTailConverter},
                 {"stacksourcetail", ConverterTypes.StackSourceTailConverter},
-                {"STACKSOURCETAIL", ConverterTypes.StackSourceTailConverter},
-                {"SOURCESTAIL",     ConverterTypes.StackSourceTailConverter},
-                {"SourcesTail",     ConverterTypes.StackSourceTailConverter},
                 {"sourcestail",     ConverterTypes.StackSourceTailConverter},
 
-                {"MACHINENAME",     ConverterTypes.MachineNameConverter},
-                {"MachineName",     ConverterTypes.MachineNameConverter},
-                {"Machinename",     ConverterTypes.MachineNameConverter},
                 {"machinename",     ConverterTypes.MachineNameConverter},
-                {"MACHINE",         ConverterTypes.MachineNameConverter},
-                {"Machine",         ConverterTypes.MachineNameConverter},
                 {"machine",         ConverterTypes.MachineNameConverter},
 
-                {"PROCESSNAME",     ConverterTypes.ProcessNameConverter},
-                {"ProcessName",     ConverterTypes.ProcessNameConverter},
-                {"Processname",     ConverterTypes.ProcessNameConverter},
                 {"processname",     ConverterTypes.ProcessNameConverter},
-                {"PROCESS",         ConverterTypes.ProcessNameConverter},
-                {"Process",         ConverterTypes.ProcessNameConverter},
                 {"process",         ConverterTypes.ProcessNameConverter},
 
-                {"PROCESSID",       ConverterTypes.ProcessIdConverter},
-                {"ProcessId",       ConverterTypes.ProcessIdConverter},
-                {"Processid",       ConverterTypes.ProcessIdConverter},
                 {"processid",       ConverterTypes.ProcessIdConverter},
 
-                {"ASSEMBLY",        ConverterTypes.AssemblyConverter},
-                {"Assembly",        ConverterTypes.AssemblyConverter},
                 {"assembly",        ConverterTypes.AssemblyConverter},
 
-                {"NAMESPACE",       ConverterTypes.NamespaceConverter},
-                {"Namespace",       ConverterTypes.NamespaceConverter},
                 {"namespace",       ConverterTypes.NamespaceConverter},
 
-                {"Class",           ConverterTypes.ClassConverter},
                 {"class",           ConverterTypes.ClassConverter},
-                {"CLASS",           ConverterTypes.ClassConverter},
 
-                {"Method",          ConverterTypes.MethodConverter},
                 {"method",          ConverterTypes.MethodConverter},
-                {"METHOD",          ConverterTypes.MethodConverter},
 
-                {"Message",         ConverterTypes.MessageConverter},
                 {"message",         ConverterTypes.MessageConverter},
-                {"MESSAGE",         ConverterTypes.MessageConverter},
-                {"Msg",             ConverterTypes.MessageConverter},
                 {"msg",             ConverterTypes.MessageConverter},
 
-                {"Context",         ConverterTypes.ContextConverter},
                 {"context",         ConverterTypes.ContextConverter},
-                {"CONTEXT",         ConverterTypes.ContextConverter},
 
-                {"Exception",       ConverterTypes.ExceptionConverter},
                 {"exception",       ConverterTypes.ExceptionConverter},
-                {"EXCEPTION",       ConverterTypes.ExceptionConverter},
-
-                {"Ex",              ConverterTypes.ExceptionConverter},
                 {"ex",              ConverterTypes.ExceptionConverter},
-                {"EX",              ConverterTypes.ExceptionConverter},
 
-                {"DateTime",        ConverterTypes.DateConverter},
                 {"datetime",        ConverterTypes.DateConverter},
-                {"DATETIME",        ConverterTypes.DateConverter},
             };
 
         enum ConverterTypes
@@ -301,7 +254,7 @@ namespace Qoollo.Logger.LoggingEventConverters
 
             ConverterTypes type;
 
-            if (!Substitutions.TryGetValue(key, out type))
+            if (!Substitutions.TryGetValue(key.ToLowerInvariant(), out type))
                 throw new LoggerMessageTemplateParsingException("Incorrect or unsupported token name: " + key);
             
             switch (type)
