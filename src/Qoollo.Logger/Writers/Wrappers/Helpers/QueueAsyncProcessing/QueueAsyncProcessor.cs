@@ -275,7 +275,6 @@ namespace Qoollo.Logger.Writers.Wrappers.Helpers.QueueAsyncProcessing
         private void ThreadProcFunc()
         {
             CancellationToken token = ExtractToken();
-            bool iterateOverException = true;
 
             object state = null;
 
@@ -285,41 +284,63 @@ namespace Qoollo.Logger.Writers.Wrappers.Helpers.QueueAsyncProcessing
 
                 state = Prepare();
 
-                while ((!token.IsCancellationRequested || (_letFinishProccess && _queue.Count > 0)) && iterateOverException)
+
+                while (!token.IsCancellationRequested)
                 {
                     try
                     {
                         while (!token.IsCancellationRequested)
                         {
                             T elem = _queue.Take(token);
-                            Process(elem, state, token);
+                            this.Process(elem, state, token);
                         }
-
-                        if (_letFinishProccess)
-                        {
-                            T elem = default(T);
-                            while (_queue.TryTake(out elem))
-                            {
-                                Process(elem, state, token);
-                            }
-                        }
-                    }
-                    catch (ThreadAbortException)
-                    {
-                        iterateOverException = false;
-                    }
-                    catch (ThreadInterruptedException)
-                    {
-                        iterateOverException = false;
                     }
                     catch (OperationCanceledException opEx)
                     {
-                        if (opEx.CancellationToken != token)
-                            iterateOverException = ProcessThreadException(opEx);
+                        if (!token.IsCancellationRequested)
+                            if (!ProcessThreadException(opEx))
+                                throw new LoggerException("Unhandled exception in Logger async queue. For details look at InnerException.", opEx);
                     }
                     catch (Exception ex)
                     {
-                        iterateOverException = ProcessThreadException(ex);
+                        if (ex.GetType() == typeof(ThreadAbortException) || ex.GetType() == typeof(ThreadInterruptedException) || ex.GetType() == typeof(StackOverflowException) || ex.GetType() == typeof(OutOfMemoryException))
+                            throw;
+
+                        if (!ProcessThreadException(ex))
+                            throw new LoggerException("Unhandled exception in Logger async queue. For details look at InnerException.", ex);
+                    }
+                }
+
+
+                if (_letFinishProccess)
+                {
+                    while (!token.IsCancellationRequested)
+                    {
+                        try
+                        {
+                            T elem = default(T);
+                            while (!token.IsCancellationRequested && _queue.TryTake(out elem))
+                            {
+                                this.Process(elem, state, token);
+                            }
+
+                            if (_queue.Count == 0)
+                                break;
+                        }
+                        catch (OperationCanceledException opEx)
+                        {
+                            if (!token.IsCancellationRequested)
+                                if (!ProcessThreadException(opEx))
+                                    throw new LoggerException("Unhandled exception in Logger async queue. For details look at InnerException.", opEx);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (ex.GetType() == typeof(ThreadAbortException) || ex.GetType() == typeof(ThreadInterruptedException) || ex.GetType() == typeof(StackOverflowException) || ex.GetType() == typeof(OutOfMemoryException))
+                                throw;
+
+                            if (!ProcessThreadException(ex))
+                                throw new LoggerException("Unhandled exception in Logger async queue. For details look at InnerException.", ex);
+                        }
                     }
                 }
             }
@@ -348,7 +369,7 @@ namespace Qoollo.Logger.Writers.Wrappers.Helpers.QueueAsyncProcessing
         {
             Contract.Requires(ex != null);
 
-            throw new QueueAsyncProcessorException("QueueAsyncProcessor processing exception", ex);
+            return false;
         }
 
         /// <summary>

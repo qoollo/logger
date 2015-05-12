@@ -251,7 +251,6 @@
     <Compile Include="InnerSupportLogger.cs" />
     <Compile Include="Common\ParameterGuardClass.cs" />
     <Compile Include="Writers\Wrappers\Helpers\QueueAsyncProcessing\QueueAsyncProcessorBase.cs" />
-    <Compile Include="Writers\Wrappers\Helpers\QueueAsyncProcessing\QueueAsyncProcessorException.cs" />
     <Compile Include="LoggingEventConverters\TemplateParser.cs" />
     <Compile Include="Writers\Wrappers\Helpers\TemporaryStore\TemporaryStoreBase.cs" />
     <Compile Include="Writers\Wrappers\Helpers\TemporaryStore\TemporaryStoreLockFile.cs" />
