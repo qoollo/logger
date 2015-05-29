@@ -17,7 +17,7 @@ namespace Qoollo.Logger.Writers
     {
         private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(NetWriter));
 
-        private readonly InernalStableLoggerNetClient _writer;
+        private readonly InternalStableLoggerNetClient _writer;
 
         private readonly string _serverName;
         private readonly int _port;
@@ -37,7 +37,7 @@ namespace Qoollo.Logger.Writers
             _serverName = config.ServerAddress;
             _port = config.Port;
 
-            _writer = InernalStableLoggerNetClient.CreateOnTcpInternal(_serverName, _port);
+            _writer = InternalStableLoggerNetClient.CreateOnTcpInternal(_serverName, _port);
             _writer.Start();
         }
 

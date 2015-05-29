@@ -16,7 +16,7 @@ namespace Qoollo.Logger.Writers
     {
         private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(PipeWriter));
 
-        private readonly InernalStableLoggerNetClient _writer;
+        private readonly InternalStableLoggerNetClient _writer;
 
         private readonly object _lockWrite = new object();
         private readonly LogLevel _logLevel;
@@ -31,7 +31,7 @@ namespace Qoollo.Logger.Writers
             Contract.Requires(config != null);
 
             _logLevel = config.Level;
-            _writer = InernalStableLoggerNetClient.CreateOnPipeInternal(config.ServerName, config.PipeName);
+            _writer = InternalStableLoggerNetClient.CreateOnPipeInternal(config.ServerName, config.PipeName);
             _writer.Start();
         }
 
