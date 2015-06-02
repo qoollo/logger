@@ -81,5 +81,10 @@ namespace Qoollo.Logger.Configuration
         /// Custom user writer configuration
         /// </summary>
         CustomWriter,
+
+        /// <summary>
+        /// Custom tcp writer with user format
+        /// </summary>
+        TcpWriter,
     }
 }

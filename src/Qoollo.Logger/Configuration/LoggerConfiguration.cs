@@ -800,6 +800,77 @@ namespace Qoollo.Logger.Configuration
     }
 
     /// <summary>
+    /// Configuration for Network Writer (sends logs to server through Network)
+    /// </summary>
+    public class TcpWriterConfiguration : LogWriterConfiguration
+    {
+        /// <summary>
+        /// Default server TCP port
+        /// </summary>
+        public const int DefaultPort = 5001;
+        /// <summary>
+        /// Default server address/host
+        /// </summary>
+        public const string DefaultServerName = "127.0.0.1";
+
+        /// <summary>
+        /// TcpWriterConfiguration constructor
+        /// </summary>
+        /// <param name="level">Log level</param>
+        /// <param name="serverAddress">Server address/host</param>
+        /// <param name="port">Server TCP port</param>
+        public TcpWriterConfiguration(LogLevel level, string serverAddress, int port, string format)
+            : base(level, WriterTypeEnum.TcpWriter)
+        {
+            Contract.Requires<ArgumentNullException>(level != null);
+            Contract.Requires<ArgumentNullException>(serverAddress != null);
+            Contract.Requires<ArgumentException>(port > 0 && port < 65536);
+
+            ServerAddress = serverAddress;
+            Port = port;
+        }
+        /// <summary>
+        /// TcpWriterConfiguration constructor
+        /// </summary>
+        /// <param name="level">Log level</param>
+        /// <param name="serverAddress">Server address/host</param>
+        public TcpWriterConfiguration(LogLevel level, string serverAddress)
+            : this(level, serverAddress, DefaultPort, null)
+        {
+
+        }
+        /// <summary>
+        /// NetWriterConfiguration constructor
+        /// </summary>
+        /// <param name="serverAddress">Server address/host</param>
+        public TcpWriterConfiguration(string serverAddress)
+            : this(LogLevel.FullLog, serverAddress, DefaultPort, null)
+        {
+
+        }
+        /// <summary>
+        /// TcpWriterConfiguration constructor
+        /// </summary>
+        public TcpWriterConfiguration()
+            : this(LogLevel.FullLog, DefaultServerName, DefaultPort, null)
+        {
+
+        }
+
+        /// <summary>
+        /// Server address/host
+        /// </summary>
+        public string ServerAddress { get;  set; }
+
+        /// <summary>
+        /// Server TCP port
+        /// </summary>
+        public int Port { get;  set; }
+
+        public int ConnectionTestTimeMs { get; set; }
+    }
+
+    /// <summary>
     /// Configuration for Database writer (writes logs to MS SQL Server Database)
     /// </summary>
     public class DatabaseWriterConfiguration: LogWriterConfiguration

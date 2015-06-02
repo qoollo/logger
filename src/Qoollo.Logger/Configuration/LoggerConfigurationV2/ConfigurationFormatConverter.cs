@@ -172,6 +172,9 @@ namespace Qoollo.Logger.Configuration.LoggerConfigurationV2
             if (baseConfig is INetworkWriter)
                 return CreateLoggerConfigurationInstance(baseConfig as INetworkWriter);
 
+            if (baseConfig is ITcpWriter)
+                return CreateLoggerConfigurationInstance(baseConfig as INetworkWriter);
+
             if (baseConfig is IGroupWrapper)
                 return CreateLoggerConfigurationInstance(baseConfig as IGroupWrapper);
 

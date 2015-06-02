@@ -8,24 +8,27 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Qoollo.Logger.Common;
+using Qoollo.Logger.Configuration;
+using Qoollo.Logger.Helpers;
+using Qoollo.Logger.Net;
 
-namespace Qoollo.Logger.Writers.RealWriters
+namespace Qoollo.Logger.Writers
 {
-    public class TcpWriter:Writer
+   
+    internal class TcpWriter: Writer, IDisposable
     {
-        //<variable name="JsonLayout" value='{"timestamp8601":"${date:universalTime=true:format=o}","level":"${level}","message":"${json-encode:inner=${message}}","logger":"${logger}","exception":"${json-encode:inner=${exception:format=message,stacktrace:maxInnerExceptionLevel=5:innerFormat=message}}","machinename":"${machinename}"}' />
+        private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(TcpWriter));
+        private readonly InternalStableLoggerNetClient _writer;
 
-    
-        public override bool Write(Common.LoggingEvent data)
-        {
- 	        throw new NotImplementedException();
-        }
-        }
-
-    internal class GraphiteCountersStableNetClient:  IDisposable
-    {
         private readonly string _address;
+        private readonly string _serverName;
         private readonly int _port;
+        private readonly object _lockWrite = new object();
+        private readonly LogLevel _logLevel;
+
+        private ErrorTimeTracker _errorTracker = new ErrorTimeTracker(TimeSpan.FromMinutes(5));
+        private volatile bool _isDisposed = false;
+
 
         private TcpClient _curClient;
 
@@ -38,16 +41,19 @@ namespace Qoollo.Logger.Writers.RealWriters
 
         private volatile bool _wasReconnected = false;
 
-        public GraphiteCountersStableNetClient(string address, int port, int connectionTestTimeMs)
+        public TcpWriter(TcpWriterConfiguration config)
+            : base(config.Level)
         {
-            if (address == null)
-                throw new ArgumentNullException("address");
+            if (config.ServerAddress == null)
+                throw new ArgumentNullException("ServerAddress");
+            
+            _address = config.ServerAddress;
+            _port = config.Port;
 
-            _address = address;
-            _port = port;
+            _connectionTestTimeMsMin = Math.Max(500, config.ConnectionTestTimeMs / 32);
+            _connectionTestTimeMsMax = config.ConnectionTestTimeMs;
 
-            _connectionTestTimeMsMin = Math.Max(500, connectionTestTimeMs / 32);
-            _connectionTestTimeMsMax = connectionTestTimeMs;
+            Start();
         }
 
 
@@ -99,57 +105,6 @@ namespace Qoollo.Logger.Writers.RealWriters
 
 
 
-        /// <summary>
-        /// Переслать значения счётчиков
-        /// </summary>
-        /// <param name="time">Время выборки значений</param>
-        /// <param name="counters">Значения счётчиков</param>
-        public void SendCounterValues(DateTime time, LoggingEvent counters)
-        {
-            if (counters == null)
-                throw new ArgumentNullException("counters");
-
-            var localClient = Volatile.Read(ref _curClient);
-            if (localClient == null || !localClient.Connected)
-                throw new CommunicationException("Connection is not established. Can't perform SendCounterValues for GraphiteCounters Server: " + RemoteSideName);
-
-            lock (_syncObj)
-            {
-                localClient = Volatile.Read(ref _curClient);
-                if (localClient == null || !localClient.Connected)
-                    throw new CommunicationException("Connection is not established. Can't perform SendCounterValues for GraphiteCounters Server: " + RemoteSideName);
-
-                try
-                {
-                    SendSendCounterValuesInner(localClient.GetStream(), time, counters);
-                }
-                catch (SocketException sExc)
-                {
-                    throw new CommunicationException("Network error during sending Graphite counters server", sExc);
-                }
-                catch (IOException ioExc)
-                {
-                    throw new CommunicationException("Network error during sending Graphite counters server", ioExc);
-                }
-            }
-        }
-
-        private void SendSendCounterValuesInner(NetworkStream stream, DateTime time, LoggingEvent counters)
-        {
-            var writer = new StreamWriter(stream);
-            writer.Write(ConvertCounterDataToString(time, counters));
-
-            writer.Flush();
-        }
-
-        private string ConvertCounterDataToString(DateTime time, LoggingEvent counter)
-        {
-            int unixTimestamp = (Int32)(time.ToUniversalTime().Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-
-            return counter.FullName + " " + counter.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " + unixTimestamp.ToString() + "\n";
-        }
-
-
 
         /// <summary>
         /// Запустить
@@ -161,7 +116,7 @@ namespace Qoollo.Logger.Writers.RealWriters
 
             _procStopTokenSource = new CancellationTokenSource();
 
-            _connectToPerfCountersServerThread = new Thread(ConnectingToGraphitePerfCountersServerThreadFunc);
+            _connectToPerfCountersServerThread = new Thread(ConnectionWorker);
             _connectToPerfCountersServerThread.IsBackground = true;
             _connectToPerfCountersServerThread.Name = "GraphiteCounters connection thread: " + RemoteSideName;
 
@@ -199,7 +154,7 @@ namespace Qoollo.Logger.Writers.RealWriters
         }
 
 
-        private void ConnectingToGraphitePerfCountersServerThreadFunc()
+        private void ConnectionWorker()
         {
             var token = _procStopTokenSource.Token;
 
@@ -227,8 +182,9 @@ namespace Qoollo.Logger.Writers.RealWriters
                                 newClient.Connect(_address, _port);
                                 isConnected = true;
                             }
-                            catch (SocketException)
+                            catch (SocketException ex)
                             {
+                                _thisClassSupportLogger.Error(ex, "TcpWriter threw socket exception");
                             }
 
                             if (isConnected)
@@ -268,11 +224,129 @@ namespace Qoollo.Logger.Writers.RealWriters
         }
 
 
-
-
-        public void Dispose()
+        protected override void Dispose(DisposeReason reason)
         {
-            Stop();
+            if (!_isDisposed)
+            {
+                _isDisposed = true;
+
+                if (reason != DisposeReason.Finalize)
+                {
+                    lock (_lockWrite)
+                    {
+                        if (_writer != null)
+                            _writer.Dispose();
+                    }
+                }
+                else
+                {
+                    if (_writer != null)
+                        _writer.FinalizeFast();
+                }
+            }
+        }
+
+        public override bool Write(LoggingEvent data)
+        {         
+            if (data == null)
+            {
+                throw new ArgumentNullException("LoggingEvent data");
+            }
+
+            var localClient = Volatile.Read(ref _curClient);
+            if (localClient == null || !localClient.Connected)
+            {
+                _thisClassSupportLogger.Error("Connection is not established. Can't perform Write for tcp Server: " + RemoteSideName);
+                return false;
+            }
+            lock (_syncObj)
+            {
+                localClient = Volatile.Read(ref _curClient);
+                if (localClient == null || !localClient.Connected)
+                {
+                    _thisClassSupportLogger.Error("Connection is not established. Can't perform Write for tcp Server: " + RemoteSideName);
+                    return false;
+                }
+
+                try
+                {
+                    WriteToStream(localClient.GetStream(), DateTime.Now, data);
+                }
+                catch (SocketException sExc)
+                {
+                    _thisClassSupportLogger.Error(sExc, "Connection is not established. Can't perform Write for tcp Server: " + RemoteSideName);
+                    return false;
+                }
+                catch (IOException ioExc)
+                {
+                    _thisClassSupportLogger.Error(ioExc, "Network error. Can't perform Write for tcp Server: " + RemoteSideName);
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
+
+        private void WriteToStream(NetworkStream stream, DateTime time, LoggingEvent log)
+        {
+            var writer = new StreamWriter(stream);
+            writer.Write(ConvertToString(time, log));
+
+            writer.Flush();
+        }
+
+        protected string ConvertToString(DateTime time, LoggingEvent log)
+        {
+            int unixTimestamp = (Int32)(log.Date.ToUniversalTime().Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+
+            var sb = new StringBuilder(64);
+            sb = sb.Append("timestamp", unixTimestamp)
+                .Append("version", 1)
+                .Append("level", log.Level.ToString())
+                .Append("message", log.Message)
+                .Append("logger", log.ProcessName)
+                .Append("machinename", log.MachineName)
+                .Append("host", log.MachineName);
+
+            if (log.Exception != null)
+                sb = sb.Append("exception", log.Exception.ToString());
+//            var result=String.Format(@"{
+//                 'timestamp':'{0}',
+//                 'version':'1',
+//                 'level':'{1}',
+//                 'message':'{2}',
+//                 'logger':{3}',
+//                 'exception':'{4}',
+//                 'machinename':'{5}',
+//                 'host':'{6}'
+//                 }", unixTimestamp, log.Level,log.Message,log.Namespace,log.Exception,log.MachineName,log.MachineName);
+
+            return sb.AppendLine("").ToString();
+        }
+
+    }
+
+    internal static class Extentions
+    {
+        public static StringBuilder Append(this StringBuilder sb, string key, int value)
+        {
+            key = key.Trim('\'').Trim('"');
+            return AppendDict(sb, '"' + key + '"', value.ToString());
+        }
+
+        public static StringBuilder Append(this StringBuilder sb, string key, string value)
+        {
+            key = key.Trim('\'').Trim('"');
+            value = value.Trim('\'').Trim('"');
+            return AppendDict(sb,'"'+key+'"','"'+value+'"');
+        }
+
+        private static StringBuilder AppendDict(StringBuilder sb, string key, string value)
+        {
+            return sb.Append(key).Append(":").Append(value);
         }
     }
+
+
 }
