@@ -37,7 +37,7 @@ namespace Qoollo.Logger.Common
         /// <param name="lineNumber">Line number in source code</param>
         public LoggingEvent(DateTime date, string message, Exception exception, LogLevel level, string context,
                             List<string> stackSources, string machineName = null, string processName = null, int processId = 0, string assembly = null, string @namespace = null, string @class = null, string method = null,
-                            string filePath = null, int lineNumber = -1)
+                            string filePath = null, int lineNumber = -1, string ipV4 = null)
         {
             Date = date;
             Message = message;
@@ -53,6 +53,7 @@ namespace Qoollo.Logger.Common
             MachineName = machineName;
             ProcessName = processName;
             ProcessId = processId;
+            IPv4 = ipV4;
 
             if (exception != null)
                 Exception = new Error(exception);
@@ -77,7 +78,7 @@ namespace Qoollo.Logger.Common
         /// <param name="lineNumber">Line number in source code</param>
         public LoggingEvent(string message, Exception exception, LogLevel level, string context,
                             List<string> stackSources, string machineName = null, string processName = null, int processId = 0, string assembly = null, string @namespace = null, string @class = null, string method = null, string filePath = null,
-                            int lineNumber = -1)
+                            int lineNumber = -1, string ipV4 = null)
         {
             Date = DateTime.Now;
             Message = message;
@@ -93,6 +94,7 @@ namespace Qoollo.Logger.Common
             MachineName = machineName;
             ProcessName = processName;
             ProcessId = processId;
+            IPv4 = ipV4;
 
             if (exception != null)
                 Exception = new Error(exception);
@@ -191,6 +193,12 @@ namespace Qoollo.Logger.Common
         /// </summary>
         [DataMember(Order = 15)]
         public int ProcessId { get; private set; }
+
+        /// <summary>
+        /// First IP4 machine address
+        /// </summary>
+        [DataMember(Order = 16)]
+        public string IPv4 { get; private set; }
 
         #endregion
     }

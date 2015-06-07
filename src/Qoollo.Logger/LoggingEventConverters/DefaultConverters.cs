@@ -80,6 +80,14 @@ namespace Qoollo.Logger.LoggingEventConverters
         }
     }
 
+    internal class IPv4Converter : LoggingEventConverterBase
+    {
+        public override string Convert(LoggingEvent data)
+        {
+            return data.IPv4;
+        }
+    }
+
     internal class ProcessNameConverter : LoggingEventConverterBase
     {
         public override string Convert(LoggingEvent data)

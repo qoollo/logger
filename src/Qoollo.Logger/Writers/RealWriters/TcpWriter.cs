@@ -301,28 +301,20 @@ namespace Qoollo.Logger.Writers
             int unixTimestamp = (Int32)(log.Date.ToUniversalTime().Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
 
             var sb = new StringBuilder(64);
-            sb = sb.Append("timestamp", unixTimestamp)
-                .Append("version", 1)
+            sb = sb.Append("{")
+                .Append("timestamp", log.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))
+                .Append("@version", 1)
                 .Append("level", log.Level.ToString())
                 .Append("message", log.Message)
                 .Append("logger", log.ProcessName)
-                .Append("machinename", log.MachineName)
-                .Append("host", log.MachineName);
+                .Append("machinename", log.MachineName);
+                //.Append("host", log.MachineName);
 
             if (log.Exception != null)
                 sb = sb.Append("exception", log.Exception.ToString());
-//            var result=String.Format(@"{
-//                 'timestamp':'{0}',
-//                 'version':'1',
-//                 'level':'{1}',
-//                 'message':'{2}',
-//                 'logger':{3}',
-//                 'exception':'{4}',
-//                 'machinename':'{5}',
-//                 'host':'{6}'
-//                 }", unixTimestamp, log.Level,log.Message,log.Namespace,log.Exception,log.MachineName,log.MachineName);
 
-            return sb.AppendLine("").ToString();
+            var result = sb.ToString().TrimEnd(',') + "}\n";
+            return result;
         }
 
     }
@@ -332,19 +324,19 @@ namespace Qoollo.Logger.Writers
         public static StringBuilder Append(this StringBuilder sb, string key, int value)
         {
             key = key.Trim('\'').Trim('"');
-            return AppendDict(sb, '"' + key + '"', value.ToString());
+            return AppendDict(sb, String.Format("\"{0}\"", key), String.Format("\"{0}\"", value));
         }
 
         public static StringBuilder Append(this StringBuilder sb, string key, string value)
         {
             key = key.Trim('\'').Trim('"');
             value = value.Trim('\'').Trim('"');
-            return AppendDict(sb,'"'+key+'"','"'+value+'"');
+            return AppendDict(sb, String.Format("\"{0}\"", key), String.Format("\"{0}\"", value));
         }
 
         private static StringBuilder AppendDict(StringBuilder sb, string key, string value)
         {
-            return sb.Append(key).Append(":").Append(value);
+            return sb.Append(key).Append(":").Append(value).Append(",");
         }
     }
 

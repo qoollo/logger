@@ -75,6 +75,15 @@ namespace Qoollo.Logger.LoggingEventConverters
         }
 
         /// <summary>
+        /// Creates converter for 'IPv4' property of LoggingEvent
+        /// </summary>
+        /// <returns>Created converter</returns>
+        public virtual LoggingEventConverterBase CreateIPv4Converter()
+        {
+            return new IPv4Converter();
+        }
+
+        /// <summary>
         /// Creates converter for 'ProcessName' property of LoggingEvent
         /// </summary>
         /// <returns>Created converter</returns>
