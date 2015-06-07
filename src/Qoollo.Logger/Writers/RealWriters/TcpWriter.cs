@@ -16,9 +16,9 @@ using Qoollo.Logger.RealWriters.Helpers;
 namespace Qoollo.Logger.Writers
 {
    
-    internal class TcpWriter: Writer, IDisposable
+    internal class LogstashWriter: Writer, IDisposable
     {
-        private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(TcpWriter));
+        private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(LogstashWriter));
         private readonly TcpHelper _writer;
 
         private readonly LogLevel _logLevel;
@@ -27,7 +27,7 @@ namespace Qoollo.Logger.Writers
         private volatile bool _isDisposed = false;
 
         
-        public TcpWriter(TcpWriterConfiguration config)
+        public LogstashWriter(LogstashWriterConfiguration config)
             : base(config.Level)
         {
             if (config.ServerAddress == null)

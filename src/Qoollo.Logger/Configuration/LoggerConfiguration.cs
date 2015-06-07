@@ -802,7 +802,7 @@ namespace Qoollo.Logger.Configuration
     /// <summary>
     /// Configuration for Network Writer (sends logs to server through Network)
     /// </summary>
-    public class TcpWriterConfiguration : LogWriterConfiguration
+    public class LogstashWriterConfiguration : LogWriterConfiguration
     {
         /// <summary>
         /// Default server TCP port
@@ -814,13 +814,13 @@ namespace Qoollo.Logger.Configuration
         public const string DefaultServerName = "127.0.0.1";
 
         /// <summary>
-        /// TcpWriterConfiguration constructor
+        /// LogstashWriterConfiguration constructor
         /// </summary>
         /// <param name="level">Log level</param>
         /// <param name="serverAddress">Server address/host</param>
         /// <param name="port">Server TCP port</param>
-        public TcpWriterConfiguration(LogLevel level, string serverAddress, int port, string format)
-            : base(level, WriterTypeEnum.TcpWriter)
+        public LogstashWriterConfiguration(LogLevel level, string serverAddress, int port, string format)
+            : base(level, WriterTypeEnum.LogstashWriter)
         {
             Contract.Requires<ArgumentNullException>(level != null);
             Contract.Requires<ArgumentNullException>(serverAddress != null);
@@ -830,11 +830,11 @@ namespace Qoollo.Logger.Configuration
             Port = port;
         }
         /// <summary>
-        /// TcpWriterConfiguration constructor
+        /// LogstashConfiguration constructor
         /// </summary>
         /// <param name="level">Log level</param>
         /// <param name="serverAddress">Server address/host</param>
-        public TcpWriterConfiguration(LogLevel level, string serverAddress)
+        public LogstashWriterConfiguration(LogLevel level, string serverAddress)
             : this(level, serverAddress, DefaultPort, null)
         {
 
@@ -843,15 +843,15 @@ namespace Qoollo.Logger.Configuration
         /// NetWriterConfiguration constructor
         /// </summary>
         /// <param name="serverAddress">Server address/host</param>
-        public TcpWriterConfiguration(string serverAddress)
+        public LogstashWriterConfiguration(string serverAddress)
             : this(LogLevel.FullLog, serverAddress, DefaultPort, null)
         {
 
         }
         /// <summary>
-        /// TcpWriterConfiguration constructor
+        /// LogstashWriterConfiguration constructor
         /// </summary>
-        public TcpWriterConfiguration()
+        public LogstashWriterConfiguration()
             : this(LogLevel.FullLog, DefaultServerName, DefaultPort, null)
         {
 

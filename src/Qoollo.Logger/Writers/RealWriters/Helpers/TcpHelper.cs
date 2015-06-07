@@ -18,7 +18,7 @@ namespace Qoollo.Logger.RealWriters.Helpers
    
     internal class TcpHelper: IDisposable
     {
-        private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(TcpWriter));
+        private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(LogstashWriter));
         private readonly InternalStableLoggerNetClient _writer;
 
         private readonly string _address;
@@ -184,7 +184,7 @@ namespace Qoollo.Logger.RealWriters.Helpers
                             }
                             catch (SocketException ex)
                             {
-                                _thisClassSupportLogger.Error(ex, "TcpWriter threw socket exception");
+                                _thisClassSupportLogger.Error(ex, "LogstashWriter threw socket exception");
                             }
 
                             if (isConnected)
