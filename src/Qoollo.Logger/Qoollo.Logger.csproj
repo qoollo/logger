@@ -220,7 +220,10 @@
     <Compile Include="LoggerDefault.cs" />
     <Compile Include="Net\InernalStableLoggerNetClient.cs" />
     <Compile Include="Writers\DisposeReason.cs" />
-    <Compile Include="Writers\RealWriters\TcpWriter.cs" />
+    <Compile Include="Writers\RealWriters\Helpers\TcpHelper.cs" />
+    <Compile Include="Writers\RealWriters\TcpWriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Writers\Wrappers\Helpers\QueueAsyncProcessing\QueueAsyncProcessor.cs">
       <SubType>Code</SubType>
     </Compile>
