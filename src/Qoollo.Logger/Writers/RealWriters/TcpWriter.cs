@@ -80,10 +80,10 @@ namespace Qoollo.Logger.Writers
                 .Append("timestamp", log.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))
                 .Append("@version", 1)
                 .Append("level", log.Level.ToString())
-                .Append("message", log.Message)
+                .Append("@message", log.Message)
                 .Append("logger", log.ProcessName)
-                .Append("machinename", log.MachineName);
-                //.Append("host", log.MachineName);
+                .Append("machinename", log.MachineName)
+                .Append("ip", log.IPv4);
 
             if (log.Exception != null)
                 sb = sb.Append("exception", log.Exception.ToString());

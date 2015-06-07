@@ -35,6 +35,7 @@ namespace Qoollo.Logger.Common
         /// <param name="method">Source Method name</param>
         /// <param name="filePath">Source code file name</param>
         /// <param name="lineNumber">Line number in source code</param>
+        /// <param name="ipV4">Ip4 address of the source machine</param>
         public LoggingEvent(DateTime date, string message, Exception exception, LogLevel level, string context,
                             List<string> stackSources, string machineName = null, string processName = null, int processId = 0, string assembly = null, string @namespace = null, string @class = null, string method = null,
                             string filePath = null, int lineNumber = -1, string ipV4 = null)
@@ -76,6 +77,7 @@ namespace Qoollo.Logger.Common
         /// <param name="method">Source Method name</param>
         /// <param name="filePath">Source code file name</param>
         /// <param name="lineNumber">Line number in source code</param>
+        /// <param name="ipV4">Ip4 address of the source machine</param>
         public LoggingEvent(string message, Exception exception, LogLevel level, string context,
                             List<string> stackSources, string machineName = null, string processName = null, int processId = 0, string assembly = null, string @namespace = null, string @class = null, string method = null, string filePath = null,
                             int lineNumber = -1, string ipV4 = null)
