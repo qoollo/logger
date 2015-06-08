@@ -398,7 +398,7 @@ namespace Qoollo.Logger
             string @namespace = null;
             ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
 
-            var data = new LoggingEvent(message, exception, level, context, _stackSources, LocalMachineInfo.MachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber, LocalMachineInfo.MachineAddress);
+            var data = new LoggingEvent(message, exception, level, context, _stackSources, LocalMachineInfo.MachineName, LocalMachineInfo.MachineAddress, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
             _logger.Write(data);
         }
 
@@ -443,8 +443,8 @@ namespace Qoollo.Logger
                 var thisType = this.GetType();
 
                 var data = new LoggingEvent(msg, null, LogLevel.Info, null, _stackSources,
-                    LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId,
-                    thisType.Assembly.FullName, thisType.Namespace, thisType.Name, "Close", null, -1, LocalMachineInfo.MachineAddress);
+                    LocalMachineInfo.MachineName, LocalMachineInfo.MachineAddress, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId,
+                    thisType.Assembly.FullName, thisType.Namespace, thisType.Name, "Close", null, -1);
 
                 (this as ILogger).Write(data);
                 this.Close();

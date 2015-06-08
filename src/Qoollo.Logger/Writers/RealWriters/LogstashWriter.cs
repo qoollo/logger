@@ -25,7 +25,9 @@ namespace Qoollo.Logger.Writers
 
         private ErrorTimeTracker _errorTracker = new ErrorTimeTracker(TimeSpan.FromMinutes(5));
         private volatile bool _isDisposed = false;
+        private readonly object _lockWrite = new object();
 
+        private const int connectionTestTimeoutMaxMs = 16000;
 
         public LogstashWriter(LogstashWriterConfiguration config)
             : base(config.Level)
@@ -33,7 +35,7 @@ namespace Qoollo.Logger.Writers
             if (config.ServerAddress == null)
                 throw new ArgumentNullException("ServerAddress");
 
-            _writer = new TcpHelper(config.ServerAddress, config.Port, config.ConnectionTestTimeMs);
+            _writer = new TcpHelper(config.ServerAddress, config.Port, connectionTestTimeoutMaxMs);
 
             _writer.Start();
         }
@@ -47,34 +49,86 @@ namespace Qoollo.Logger.Writers
 
                 if (reason != DisposeReason.Finalize)
                 {
-                    if (_writer != null)
+                    lock (_lockWrite)
                     {
-                        _writer.Stop();
-                        _writer.Dispose(reason);
+                        if (_writer != null)
+                        {
+                            _writer.Stop();
+                            _writer.Dispose();
+                        }
                     }
                 }
                 else
                 {
-                    //if (_writer != null)
-                    //  _writer.FinalizeFast();
+                    if (_writer != null)
+                        _writer.FinalizeFast();
                 }
             }
         }
 
         public override bool Write(LoggingEvent data)
         {
-            if (data == null)
+            if (_isDisposed)
             {
-                throw new ArgumentNullException("LoggingEvent data");
+                if (_errorTracker.CanWriteErrorGetAndUpdate())
+                    _thisClassSupportLogger.Error("Attempt to write LoggingEvent in Disposed state");
+
+                return false;
             }
 
-            return _writer.Write(ConvertToString(data));
+            if (data.Level < _logLevel)
+                return true;
+
+            bool result = false;
+
+            try
+            {
+                lock (_lockWrite)
+                {
+                    if (_isDisposed)
+                        return false;
+
+                    if (!_writer.IsStarted)
+                        _writer.Start();
+
+                    if (!_writer.HasConnection)
+                    {
+                        if (_errorTracker.CanWriteErrorGetAndUpdate())
+                            _thisClassSupportLogger.Error("Connection to network logger server is not established: " + _writer.RemoteSideName);
+
+                        return false;
+                    }
+
+                    _writer.Write(ConvertToString(data));
+                    result = true;
+                }
+            }
+            catch (SocketException ex)
+            {
+                if (_errorTracker.CanWriteErrorGetAndUpdate())
+                    _thisClassSupportLogger.Error(ex, "Error while sending data to remote logstash tcp server: " + _writer.RemoteSideName);
+            }
+            catch (CommunicationException ex)
+            {
+                if (_errorTracker.CanWriteErrorGetAndUpdate())
+                    _thisClassSupportLogger.Error(ex, "Error while sending data to remote logstash tcp server server: " + _writer.RemoteSideName);
+            }
+            catch (TimeoutException ex)
+            {
+                if (_errorTracker.CanWriteErrorGetAndUpdate())
+                    _thisClassSupportLogger.Error(ex, "Error while sending data to remote logstash tcp server server: " + _writer.RemoteSideName);
+            }
+            catch (Exception ex)
+            {
+                _thisClassSupportLogger.Error(ex, "Fatal error while sending data to remote logstash tcp server server: " + _writer.RemoteSideName);
+                throw new LoggerException("Fatal error while sending data to remote logstash tcp server server: " + _writer.RemoteSideName, ex);
+            }
+
+            return result;
         }
 
         protected virtual string ConvertToString(LoggingEvent log)
         {
-            int unixTimestamp = (Int32)(log.Date.ToUniversalTime().Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-
             var sb = new StringBuilder(64);
             sb = sb.Append("{")
                 .Append("timestamp", log.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))
@@ -83,7 +137,7 @@ namespace Qoollo.Logger.Writers
                 .Append("@message", log.Message)
                 .Append("logger", log.ProcessName)
                 .Append("machinename", log.MachineName)
-                .Append("ip", log.IPv4);
+                .Append("ip", log.MachineIpAddress);
 
             if (log.Exception != null)
                 sb = sb.Append("exception", log.Exception.ToString());

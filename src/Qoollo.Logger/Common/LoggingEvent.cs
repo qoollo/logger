@@ -35,10 +35,10 @@ namespace Qoollo.Logger.Common
         /// <param name="method">Source Method name</param>
         /// <param name="filePath">Source code file name</param>
         /// <param name="lineNumber">Line number in source code</param>
-        /// <param name="ipV4">Ip4 address of the source machine</param>
+        /// <param name="machineIpAddress">Ip4 address of the source machine</param>
         public LoggingEvent(DateTime date, string message, Exception exception, LogLevel level, string context,
-                            List<string> stackSources, string machineName = null, string processName = null, int processId = 0, string assembly = null, string @namespace = null, string @class = null, string method = null,
-                            string filePath = null, int lineNumber = -1, string ipV4 = null)
+                            List<string> stackSources, string machineName = null, string machineIpAddress = null, string processName = null, int processId = 0, string assembly = null, string @namespace = null, string @class = null, string method = null,
+                            string filePath = null, int lineNumber = -1)
         {
             Date = date;
             Message = message;
@@ -54,7 +54,7 @@ namespace Qoollo.Logger.Common
             MachineName = machineName;
             ProcessName = processName;
             ProcessId = processId;
-            IPv4 = ipV4;
+            MachineIpAddress = machineIpAddress;
 
             if (exception != null)
                 Exception = new Error(exception);
@@ -77,10 +77,10 @@ namespace Qoollo.Logger.Common
         /// <param name="method">Source Method name</param>
         /// <param name="filePath">Source code file name</param>
         /// <param name="lineNumber">Line number in source code</param>
-        /// <param name="ipV4">Ip4 address of the source machine</param>
+        /// <param name="machineIpAddress">Ip4 address of the source machine</param>
         public LoggingEvent(string message, Exception exception, LogLevel level, string context,
-                            List<string> stackSources, string machineName = null, string processName = null, int processId = 0, string assembly = null, string @namespace = null, string @class = null, string method = null, string filePath = null,
-                            int lineNumber = -1, string ipV4 = null)
+                            List<string> stackSources, string machineName = null, string machineIpAddress = null, string processName = null, int processId = 0, string assembly = null, string @namespace = null, string @class = null, string method = null, string filePath = null,
+                            int lineNumber = -1)
         {
             Date = DateTime.Now;
             Message = message;
@@ -96,7 +96,7 @@ namespace Qoollo.Logger.Common
             MachineName = machineName;
             ProcessName = processName;
             ProcessId = processId;
-            IPv4 = ipV4;
+            MachineIpAddress = machineIpAddress;
 
             if (exception != null)
                 Exception = new Error(exception);
@@ -185,6 +185,12 @@ namespace Qoollo.Logger.Common
         public string MachineName { get; private set; }
 
         /// <summary>
+        /// First IP4 address of source machine
+        /// </summary>
+        [DataMember(Order = 16)]
+        public string MachineIpAddress { get; private set; }
+
+        /// <summary>
         /// Source Process name
         /// </summary>
         [DataMember(Order = 14)]
@@ -195,12 +201,6 @@ namespace Qoollo.Logger.Common
         /// </summary>
         [DataMember(Order = 15)]
         public int ProcessId { get; private set; }
-
-        /// <summary>
-        /// First IP4 machine address
-        /// </summary>
-        [DataMember(Order = 16)]
-        public string IPv4 { get; private set; }
 
         #endregion
     }

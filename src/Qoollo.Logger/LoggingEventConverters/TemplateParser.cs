@@ -78,7 +78,7 @@ namespace Qoollo.Logger.LoggingEventConverters
     /// MachineName, Machine - substitution tokens for MachineName
     /// </summary>
     /// <summary>
-    /// Ip, Ipv4 - substitution tokens for IPv4
+    /// MachineIpAddres, MachineIp - substitution tokens for MachineIpAddress
     /// </summary>
     /// <summary>
     /// ProcessName, Process - substitution tokens for ProcessName
@@ -109,8 +109,8 @@ namespace Qoollo.Logger.LoggingEventConverters
                 {"machinename",     ConverterTypes.MachineNameConverter},
                 {"machine",         ConverterTypes.MachineNameConverter},
                 
-                {"ip",              ConverterTypes.IPv4Converter},
-                {"ipv4",            ConverterTypes.IPv4Converter},
+                {"machineipaddress",              ConverterTypes.MachineIpAddressConverter},
+                {"machineip",            ConverterTypes.MachineIpAddressConverter},
 
                 {"processname",     ConverterTypes.ProcessNameConverter},
                 {"process",         ConverterTypes.ProcessNameConverter},
@@ -153,7 +153,7 @@ namespace Qoollo.Logger.LoggingEventConverters
             StackSourceConverter,
             StackSourceHeadConverter,
             StackSourceTailConverter,
-            IPv4Converter
+            MachineIpAddressConverter
         }
 
         #endregion

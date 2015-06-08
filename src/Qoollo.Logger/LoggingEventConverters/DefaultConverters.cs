@@ -80,11 +80,11 @@ namespace Qoollo.Logger.LoggingEventConverters
         }
     }
 
-    internal class IPv4Converter : LoggingEventConverterBase
+    internal class MachineIpAddressConverter : LoggingEventConverterBase
     {
         public override string Convert(LoggingEvent data)
         {
-            return data.IPv4;
+            return data.MachineIpAddress;
         }
     }
 

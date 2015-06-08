@@ -7,33 +7,26 @@ using System.ServiceModel;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Qoollo.Logger.Common;
-using Qoollo.Logger.Configuration;
 using Qoollo.Logger.Helpers;
 using Qoollo.Logger.Net;
-using Qoollo.Logger.Writers;
 
 namespace Qoollo.Logger.RealWriters.Helpers
 {
    
     internal class TcpHelper: IDisposable
     {
-        private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(LogstashWriter));
-        private readonly InternalStableLoggerNetClient _writer;
+        private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(TcpHelper));
 
         private readonly string _address;
         private readonly string _serverName;
         private readonly int _port;
-        private readonly object _lockWrite = new object();
-        private readonly LogLevel _logLevel;
 
-        private ErrorTimeTracker _errorTracker = new ErrorTimeTracker(TimeSpan.FromMinutes(5));
         private volatile bool _isDisposed = false;
 
 
         private TcpClient _curClient;
 
-        private Thread _connectToPerfCountersServerThread;
+        private Thread _connectionThread;
         private CancellationTokenSource _procStopTokenSource = new CancellationTokenSource();
         private object _syncObj = new object();
 
@@ -52,8 +45,7 @@ namespace Qoollo.Logger.RealWriters.Helpers
 
             _connectionTestTimeMsMin = Math.Max(500, timeoutMs / 32);
             _connectionTestTimeMsMax = timeoutMs;
-
-            Start();
+      
         }
 
 
@@ -87,7 +79,7 @@ namespace Qoollo.Logger.RealWriters.Helpers
         {
             get
             {
-                return _connectToPerfCountersServerThread != null;
+                return _connectionThread != null;
             }
         }
 
@@ -111,16 +103,16 @@ namespace Qoollo.Logger.RealWriters.Helpers
         /// </summary>
         public void Start()
         {
-            if (_connectToPerfCountersServerThread != null)
-                throw new InvalidOperationException("Performance counters Graphite network client is already started");
+            if (_connectionThread != null)
+                throw new InvalidOperationException("Network client is already started");
 
             _procStopTokenSource = new CancellationTokenSource();
 
-            _connectToPerfCountersServerThread = new Thread(ConnectionWorker);
-            _connectToPerfCountersServerThread.IsBackground = true;
-            _connectToPerfCountersServerThread.Name = "GraphiteCounters connection thread: " + RemoteSideName;
+            _connectionThread = new Thread(ConnectionWorker);
+            _connectionThread.IsBackground = true;
+            _connectionThread.Name = "Tcp connection thread: " + RemoteSideName;
 
-            _connectToPerfCountersServerThread.Start();
+            _connectionThread.Start();
         }
 
         /// <summary>
@@ -128,11 +120,11 @@ namespace Qoollo.Logger.RealWriters.Helpers
         /// </summary>
         public void Stop()
         {
-            if (_connectToPerfCountersServerThread == null)
+            if (_connectionThread == null)
                 return;
 
             _procStopTokenSource.Cancel();
-            _connectToPerfCountersServerThread.Join();
+            _connectionThread.Join();
 
             lock (_syncObj)
             {
@@ -223,33 +215,7 @@ namespace Qoollo.Logger.RealWriters.Helpers
             }
         }
 
-        public void Dispose()
-        {
-            Dispose(DisposeReason.Dispose);
-        }
-
-        public void Dispose(DisposeReason reason)
-        {
-            if (!_isDisposed)
-            {
-                _isDisposed = true;
-
-                if (reason != DisposeReason.Finalize)
-                {
-                    lock (_lockWrite)
-                    {
-                        if (_writer != null)
-                            _writer.Dispose();
-                    }
-                }
-                else
-                {
-                    if (_writer != null)
-                        _writer.FinalizeFast();
-                }
-            }
-        }
-
+    
         public bool Write(string data)
         {         
             if (data == null)
@@ -260,16 +226,14 @@ namespace Qoollo.Logger.RealWriters.Helpers
             var localClient = Volatile.Read(ref _curClient);
             if (localClient == null || !localClient.Connected)
             {
-                _thisClassSupportLogger.Error("Connection is not established. Can't perform Write for tcp Server: " + RemoteSideName);
-                return false;
+                throw new CommunicationException("Connection is not established. Can't perform Write for tcp Server: " + RemoteSideName);
             }
             lock (_syncObj)
             {
                 localClient = Volatile.Read(ref _curClient);
                 if (localClient == null || !localClient.Connected)
                 {
-                    _thisClassSupportLogger.Error("Connection is not established. Can't perform Write for tcp Server: " + RemoteSideName);
-                    return false;
+                    throw new CommunicationException("Connection is not established. Can't perform Write for tcp Server: " + RemoteSideName);
                 }
 
                 try
@@ -278,13 +242,11 @@ namespace Qoollo.Logger.RealWriters.Helpers
                 }
                 catch (SocketException sExc)
                 {
-                    _thisClassSupportLogger.Error(sExc, "Connection is not established. Can't perform Write for tcp Server: " + RemoteSideName);
-                    return false;
+                    throw new CommunicationException("Connection is not established. Can't perform Write for tcp Server: " + RemoteSideName, sExc);
                 }
                 catch (IOException ioExc)
                 {
-                    _thisClassSupportLogger.Error(ioExc, "Network error. Can't perform Write for tcp Server: " + RemoteSideName);
-                    return false;
+                    throw new CommunicationException("etwork error. Can't perform Write for tcp Server: " + RemoteSideName, ioExc);
                 }
 
                 return true;
@@ -300,6 +262,40 @@ namespace Qoollo.Logger.RealWriters.Helpers
             writer.Flush();
         }
 
+
+        /// <summary>
+        /// Close connection and clean-up all resources
+        /// </summary>
+        /// <param name="isUserCall">Is called by user</param>
+        protected void Dispose(bool isUserCall)
+        {
+            if (isUserCall)
+            {
+                this.Stop();
+            }
+            else
+            {
+                if (_procStopTokenSource != null && !_procStopTokenSource.IsCancellationRequested)
+                    _procStopTokenSource.Cancel();
+            }
+        }
+
+        /// <summary>
+        /// Special method to finalize object from owner
+        /// </summary>
+        internal void FinalizeFast()
+        {
+            this.Dispose(false);
+        }
+
+        /// <summary>
+        /// Close connection and clean-up all resources
+        /// </summary>
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 
 
