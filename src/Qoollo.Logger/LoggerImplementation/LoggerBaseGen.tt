@@ -214,7 +214,7 @@ namespace Qoollo.Logger
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void <#= methodName #><#= methodGenericParams #>(<#= methodParameters #>)
 		{
-			if (_isEnabled && <#= level == "Log" ? "Level.IsEnabled(level)" : ("_is" + level + "Enabled" ) #>)
+			if (<#= level == "Log" ? "Level.IsEnabled(level)" : ("_is" + level + "Enabled" ) #> && _isEnabled)
 			{
 				this.WriteLog(<#= levelParameterValue #>, <#= exceptionParameterValue #>, <#= messageParameterValue #>, <#= contextParameterValue #>, @class, method, filePath, lineNumber);
 			}
