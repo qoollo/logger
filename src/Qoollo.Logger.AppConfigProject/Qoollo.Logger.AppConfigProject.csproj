@@ -46,9 +46,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NewFormat\ILoggerConfigurationSection_AppConfigLoader.cs">
-      <DependentUpon>AppConfigLoaderGenerator.ttcode</DependentUpon>
-    </Compile>
     <Compile Include="NewFormat\LoggerConfigurationInterfaces.cs" />
     <Compile Include="OldFormat\ConfigurationSection.csd.cs">
       <AutoGen>True</AutoGen>
@@ -59,23 +56,13 @@
     <Compile Include="OldFormat\WriteErrorValidator.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="NewFormat\AppConfigLoaderGenerator.ttcode">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>AppConfigLoaderGenerator.txt</LastGenOutput>
-    </None>
+    <None Include="NewFormat\AppConfigLoaderGenerator.ttcode" />
     <None Include="NewFormat\Helpers\ConfigCommonData.ttinclude" />
     <None Include="NewFormat\Helpers\ConfigLoaderGenerator.ttinclude" />
     <None Include="NewFormat\Helpers\ConfigSampleFileGenerator.ttinclude" />
     <None Include="NewFormat\Helpers\ConfigSchemaGenerator.ttinclude" />
     <None Include="NewFormat\Helpers\MultiOutput.ttinclude" />
     <None Include="NewFormat\Helpers\XmlBasedConfigSampleFileGenerator.ttinclude" />
-    <None Include="NewFormat\ILoggerConfigurationSection_AppConfigSchema.xsd">
-      <DependentUpon>AppConfigLoaderGenerator.ttcode</DependentUpon>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="NewFormat\ILoggerConfigurationSection_SampleAppConfig.config">
-      <DependentUpon>AppConfigLoaderGenerator.ttcode</DependentUpon>
-    </None>
     <None Include="OldFormat\ConfigurationSection.csd">
       <Generator>CsdFileGenerator</Generator>
       <LastGenOutput>ConfigurationSection.csd.cs</LastGenOutput>
@@ -95,13 +82,6 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="NewFormat\AppConfigLoaderGenerator.txt">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>AppConfigLoaderGenerator.ttcode</DependentUpon>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
