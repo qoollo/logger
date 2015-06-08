@@ -1,127 +1,119 @@
-﻿using Qoollo.Logger.Common;
-using Qoollo.Logger.Configuration;
-using Qoollo.Logger.Exceptions;
-using Qoollo.Logger.Helpers;
-using Qoollo.Logger.Net;
-using System;
-using System.Diagnostics.Contracts;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.ServiceModel;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Qoollo.Logger.Common;
+using Qoollo.Logger.Configuration;
+using Qoollo.Logger.Helpers;
+using Qoollo.Logger.Net;
+using Qoollo.Logger.RealWriters.Helpers;
 
 namespace Qoollo.Logger.Writers
 {
-    /// <summary>
-    /// NetWriter. Ресурс для отправки сообщения по тсп на сетевой сервер сбора логов
-    /// </summary>
-    internal class LogstashWriter : Writer
+
+    internal class LogstashWriter : Writer, IDisposable
     {
-        private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(NetWriter));
+        private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(LogstashWriter));
+        private readonly TcpHelper _writer;
 
-        private readonly InernalStableLoggerNetClient _writer;
-
-        private readonly string _serverName;
-        private readonly int _port;
-        private readonly object _lockWrite = new object();
         private readonly LogLevel _logLevel;
 
         private ErrorTimeTracker _errorTracker = new ErrorTimeTracker(TimeSpan.FromMinutes(5));
         private volatile bool _isDisposed = false;
 
 
-        public LogstashWriter(NetWriterConfiguration config)
+        public LogstashWriter(LogstashWriterConfiguration config)
             : base(config.Level)
         {
-            Contract.Requires(config != null);
+            if (config.ServerAddress == null)
+                throw new ArgumentNullException("ServerAddress");
 
-            _logLevel = config.Level;
-            _serverName = config.ServerAddress;
-            _port = config.Port;
+            _writer = new TcpHelper(config.ServerAddress, config.Port, config.ConnectionTestTimeMs);
 
-            _writer = InernalStableLoggerNetClient.CreateOnTcpInternal(_serverName, _port);
             _writer.Start();
         }
 
 
-        /// <summary>
-        /// Отправка события логгера по сети
-        /// </summary>
-        /// <param name="data"></param>
-        public override bool Write(LoggingEvent data)
-        {
-            if (_isDisposed)
-            {
-                if (_errorTracker.CanWriteErrorGetAndUpdate())
-                    _thisClassSupportLogger.Error("Attempt to write LoggingEvent in Disposed state");
-
-                return false;
-            }
-
-            if (data.Level < _logLevel)
-                return true;
-
-            bool result = false;
-
-            try
-            {
-                lock (_lockWrite)
-                {
-                    if (_isDisposed)
-                        return false;
-
-                    if (!_writer.IsStarted)
-                        _writer.Start();
-
-                    if (!_writer.HasConnection)
-                    {
-                        if (_errorTracker.CanWriteErrorGetAndUpdate())
-                            _thisClassSupportLogger.Error("Connection to network logger server is not established: " + _writer.RemoteSideName);
-
-                        return false;
-                    }
-
-                    _writer.SendData(data);
-                    result = true;
-                }
-            }
-            catch (SocketException ex)
-            {
-                if (_errorTracker.CanWriteErrorGetAndUpdate())
-                    _thisClassSupportLogger.Error(ex, "Error while sending data to remote logger server: " + _writer.RemoteSideName);
-            }
-            catch (CommunicationException ex)
-            {
-                if (_errorTracker.CanWriteErrorGetAndUpdate())
-                    _thisClassSupportLogger.Error(ex, "Error while sending data to remote logger server: " + _writer.RemoteSideName);
-            }
-            catch (TimeoutException ex)
-            {
-                if (_errorTracker.CanWriteErrorGetAndUpdate())
-                    _thisClassSupportLogger.Error(ex, "Error while sending data to remote logger server: " + _writer.RemoteSideName);
-            }
-            catch (Exception ex)
-            {
-                _thisClassSupportLogger.Error(ex, "Fatal error while sending data to remote logger server: " + _writer.RemoteSideName);
-                throw new LoggerNetWriteException("Fatal error while sending data to remote logger server: " + _writer.RemoteSideName, ex);
-            }
-
-            return result;
-        }
-
-
-        protected override void Dispose(bool isUserCall)
+        protected override void Dispose(DisposeReason reason)
         {
             if (!_isDisposed)
             {
                 _isDisposed = true;
 
-                lock (_lockWrite)
+                if (reason != DisposeReason.Finalize)
                 {
                     if (_writer != null)
                     {
-                        _writer.Dispose();
+                        _writer.Stop();
+                        _writer.Dispose(reason);
                     }
+                }
+                else
+                {
+                    //if (_writer != null)
+                    //  _writer.FinalizeFast();
                 }
             }
         }
+
+        public override bool Write(LoggingEvent data)
+        {
+            if (data == null)
+            {
+                throw new ArgumentNullException("LoggingEvent data");
+            }
+
+            return _writer.Write(ConvertToString(data));
+        }
+
+        protected virtual string ConvertToString(LoggingEvent log)
+        {
+            int unixTimestamp = (Int32)(log.Date.ToUniversalTime().Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+
+            var sb = new StringBuilder(64);
+            sb = sb.Append("{")
+                .Append("timestamp", log.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))
+                .Append("@version", 1)
+                .Append("level", log.Level.ToString())
+                .Append("@message", log.Message)
+                .Append("logger", log.ProcessName)
+                .Append("machinename", log.MachineName)
+                .Append("ip", log.IPv4);
+
+            if (log.Exception != null)
+                sb = sb.Append("exception", log.Exception.ToString());
+
+            var result = sb.ToString().TrimEnd(',') + "}\n";
+            return result;
+        }
+
     }
+
+    internal static class Extentions
+    {
+        public static StringBuilder Append(this StringBuilder sb, string key, int value)
+        {
+            key = key.Trim('\'').Trim('"');
+            return AppendDict(sb, String.Format("\"{0}\"", key), String.Format("\"{0}\"", value));
+        }
+
+        public static StringBuilder Append(this StringBuilder sb, string key, string value)
+        {
+            key = key.Trim('\'').Trim('"');
+            value = value.Trim('\'').Trim('"');
+            return AppendDict(sb, String.Format("\"{0}\"", key), String.Format("\"{0}\"", value));
+        }
+
+        private static StringBuilder AppendDict(StringBuilder sb, string key, string value)
+        {
+            return sb.Append(key).Append(":").Append(value).Append(",");
+        }
+    }
+
+
 }
