@@ -109,7 +109,7 @@ namespace Qoollo.Logger.LoggingEventConverters
                 {"machinename",     ConverterTypes.MachineNameConverter},
                 {"machine",         ConverterTypes.MachineNameConverter},
                 
-                {"machineipaddress",              ConverterTypes.MachineIpAddressConverter},
+                {"machineipaddress",     ConverterTypes.MachineIpAddressConverter},
                 {"machineip",            ConverterTypes.MachineIpAddressConverter},
 
                 {"processname",     ConverterTypes.ProcessNameConverter},
@@ -271,6 +271,9 @@ namespace Qoollo.Logger.LoggingEventConverters
                     
                 case ConverterTypes.MachineNameConverter:
                     return WrapByParsedParams(factory.CreateMachineNameConverter(), parsedParams, "??");
+
+                case ConverterTypes.MachineIpAddressConverter:
+                    return WrapByParsedParams(factory.CreateMachineIpAddressConverter(), parsedParams, "??");
 
                 case ConverterTypes.ProcessNameConverter:
                     return WrapByParsedParams(factory.CreateProcessNameConverter(), parsedParams, "??");

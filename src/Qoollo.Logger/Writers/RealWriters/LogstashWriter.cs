@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 using Qoollo.Logger.Common;
 using Qoollo.Logger.Configuration;
 using Qoollo.Logger.Helpers;
+using Qoollo.Logger.LoggingEventConverters;
 using Qoollo.Logger.Net;
 using Qoollo.Logger.RealWriters.Helpers;
 
@@ -27,44 +29,27 @@ namespace Qoollo.Logger.Writers
         private volatile bool _isDisposed = false;
         private readonly object _lockWrite = new object();
 
+        private LoggingEventConverterBase _exceptionConverter;
+
         private const int connectionTestTimeoutMaxMs = 16000;
 
         public LogstashWriter(LogstashWriterConfiguration config)
             : base(config.Level)
         {
-            if (config.ServerAddress == null)
-                throw new ArgumentNullException("ServerAddress");
+            Contract.Requires<ArgumentNullException>(config != null);
 
             _writer = new TcpHelper(config.ServerAddress, config.Port, connectionTestTimeoutMaxMs);
-
+            _logLevel = config.Level;
             _writer.Start();
         }
 
-
-        protected override void Dispose(DisposeReason reason)
+        public override void SetConverterFactory(ConverterFactory factory)
         {
-            if (!_isDisposed)
-            {
-                _isDisposed = true;
+            base.SetConverterFactory(factory);
 
-                if (reason != DisposeReason.Finalize)
-                {
-                    lock (_lockWrite)
-                    {
-                        if (_writer != null)
-                        {
-                            _writer.Stop();
-                            _writer.Dispose();
-                        }
-                    }
-                }
-                else
-                {
-                    if (_writer != null)
-                        _writer.FinalizeFast();
-                }
-            }
+            _exceptionConverter = factory.CreateExceptionConverter();
         }
+        
 
         public override bool Write(LoggingEvent data)
         {
@@ -131,19 +116,48 @@ namespace Qoollo.Logger.Writers
         {
             var sb = new StringBuilder(64);
             sb = sb.Append("{")
-                .Append("timestamp", log.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))
-                .Append("@version", 1)
-                .Append("level", log.Level.ToString())
-                .Append("@message", log.Message)
-                .Append("logger", log.ProcessName)
-                .Append("machinename", log.MachineName)
+                .Append("timestamp", log.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")).Append(",")
+                .Append("@version", 1).Append(",")
+                .Append("level", log.Level.ToString()).Append(",")
+                .Append("@message", log.Message).Append(",")
+                .Append("file", log.FilePath).Append(",")
+                .Append("source", log.Clazz).Append(",")
+                .Append("method", log.Clazz).Append(",")
+                .Append("process", log.ProcessName).Append(",")
+                .Append("processId", log.ProcessId).Append(",")
+                .Append("machinename", log.MachineName).Append(",")
                 .Append("ip", log.MachineIpAddress);
 
             if (log.Exception != null)
-                sb = sb.Append("exception", log.Exception.ToString());
+                sb = sb.Append(",").Append("exception", _exceptionConverter.Convert(log));
 
-            var result = sb.ToString().TrimEnd(',') + "}\n";
+            string result = sb.Append("}\n").ToString();
             return result;
+        }
+
+        protected override void Dispose(DisposeReason reason)
+        {
+            if (!_isDisposed)
+            {
+                _isDisposed = true;
+
+                if (reason != DisposeReason.Finalize)
+                {
+                    lock (_lockWrite)
+                    {
+                        if (_writer != null)
+                        {
+                            _writer.Stop();
+                            _writer.Dispose();
+                        }
+                    }
+                }
+                else
+                {
+                    if (_writer != null)
+                        _writer.FinalizeFast();
+                }
+            }
         }
 
     }
@@ -152,20 +166,22 @@ namespace Qoollo.Logger.Writers
     {
         public static StringBuilder Append(this StringBuilder sb, string key, int value)
         {
-            key = key.Trim('\'').Trim('"');
-            return AppendDict(sb, String.Format("\"{0}\"", key), String.Format("\"{0}\"", value));
+            //key = key.Trim('\'').Trim('"');
+            return AppendDict(sb, key, value.ToString());
         }
 
         public static StringBuilder Append(this StringBuilder sb, string key, string value)
         {
-            key = key.Trim('\'').Trim('"');
-            value = value.Trim('\'').Trim('"');
-            return AppendDict(sb, String.Format("\"{0}\"", key), String.Format("\"{0}\"", value));
+            //key = key.Trim('\'').Trim('"');
+            //value = value.Trim('\'').Trim('"');
+            return AppendDict(sb, key, value);
         }
 
         private static StringBuilder AppendDict(StringBuilder sb, string key, string value)
         {
-            return sb.Append(key).Append(":").Append(value).Append(",");
+            key = key ?? "";
+            value = value ?? "";
+            return sb.Append("\"").Append(key).Append("\"").Append(":").Append("\"").Append(value).Append("\"");
         }
     }
 

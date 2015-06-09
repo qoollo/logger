@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -18,15 +19,11 @@ namespace Qoollo.Logger.RealWriters.Helpers
         private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(TcpHelper));
 
         private readonly string _address;
-        private readonly string _serverName;
         private readonly int _port;
 
-        private volatile bool _isDisposed = false;
-
-
         private TcpClient _curClient;
-
         private Thread _connectionThread;
+
         private CancellationTokenSource _procStopTokenSource = new CancellationTokenSource();
         private object _syncObj = new object();
 
@@ -37,9 +34,11 @@ namespace Qoollo.Logger.RealWriters.Helpers
 
         public TcpHelper(string address, int port, int timeoutMs)
         {
-            if (address == null)
-                throw new ArgumentNullException("address");
-            
+            Contract.Requires<ArgumentException>(!String.IsNullOrWhiteSpace(address));
+            Contract.Requires<ArgumentOutOfRangeException>(port > 0 && port < 65535);
+            Contract.Requires<ArgumentOutOfRangeException>(timeoutMs > 0);
+
+
             _address = address;
             _port = port;
 
@@ -50,7 +49,7 @@ namespace Qoollo.Logger.RealWriters.Helpers
 
 
         /// <summary>
-        /// Имя удалённой стороны
+        /// Remoteside full address
         /// </summary>
         public string RemoteSideName
         {
@@ -61,7 +60,7 @@ namespace Qoollo.Logger.RealWriters.Helpers
         }
 
         /// <summary>
-        /// Есть ли в данный момент соединение
+        /// Is there an active connectino right now
         /// </summary>
         public bool HasConnection
         {
@@ -84,11 +83,12 @@ namespace Qoollo.Logger.RealWriters.Helpers
         }
 
         /// <summary>
-        /// Было ли пересоздано подключение
+        /// Indicates, if reconnection was done
         /// </summary>
         public bool WasReconnected { get { return _wasReconnected; } }
+
         /// <summary>
-        /// Пометить, что переподключение было обработано внешним кодом
+        /// Mark, that reconnection was done by external code
         /// </summary>
         public void MarkReconnectedWasProcessed()
         {
@@ -96,10 +96,8 @@ namespace Qoollo.Logger.RealWriters.Helpers
         }
 
 
-
-
         /// <summary>
-        /// Запустить
+        /// Start connection lifecycle
         /// </summary>
         public void Start()
         {
@@ -110,13 +108,13 @@ namespace Qoollo.Logger.RealWriters.Helpers
 
             _connectionThread = new Thread(ConnectionWorker);
             _connectionThread.IsBackground = true;
-            _connectionThread.Name = "Tcp connection thread: " + RemoteSideName;
+            _connectionThread.Name = "Logger TcpHelper connection thread: " + RemoteSideName;
 
             _connectionThread.Start();
         }
 
         /// <summary>
-        /// Остановить
+        /// Stop
         /// </summary>
         public void Stop()
         {
@@ -176,7 +174,7 @@ namespace Qoollo.Logger.RealWriters.Helpers
                             }
                             catch (SocketException ex)
                             {
-                                _thisClassSupportLogger.Error(ex, "LogstashWriter threw socket exception");
+                                _thisClassSupportLogger.Error(ex, "Logger tcpHelper threw socket exception");
                             }
 
                             if (isConnected)
@@ -220,7 +218,7 @@ namespace Qoollo.Logger.RealWriters.Helpers
         {         
             if (data == null)
             {
-                throw new ArgumentNullException("string data");
+                throw new ArgumentNullException("data");
             }
 
             var localClient = Volatile.Read(ref _curClient);
@@ -242,11 +240,11 @@ namespace Qoollo.Logger.RealWriters.Helpers
                 }
                 catch (SocketException sExc)
                 {
-                    throw new CommunicationException("Connection is not established. Can't perform Write for tcp Server: " + RemoteSideName, sExc);
+                    throw new CommunicationException("Network error while sending data to remote TCP Server: " + RemoteSideName, sExc);
                 }
                 catch (IOException ioExc)
                 {
-                    throw new CommunicationException("etwork error. Can't perform Write for tcp Server: " + RemoteSideName, ioExc);
+                    throw new CommunicationException("Network error while sending data to remote TCP Server: " + RemoteSideName, ioExc);
                 }
 
                 return true;
