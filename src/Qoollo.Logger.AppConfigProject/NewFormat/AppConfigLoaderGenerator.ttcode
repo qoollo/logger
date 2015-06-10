@@ -40,6 +40,7 @@
 	Params.AssemblyName = AssemblyName;
 	Params.GenerateInterface = GenerateInterfaces;
 	Params.SectionName = OverridedSectionName;
+	Params.GenerateAppConfigLoader = false;
 
 	if (Params.SectionName == null)
     {
@@ -112,6 +113,7 @@
 	[ConfigSubstituteTypeAttribute(typeof(IFileWriter))]
 	[ConfigSubstituteTypeAttribute(typeof(IPipeWriter))]
 	[ConfigSubstituteTypeAttribute(typeof(INetworkWriter))]
+	[ConfigSubstituteTypeAttribute(typeof(ILogstashWriter))]
 	[ConfigSubstituteTypeAttribute(typeof(IDatabaseWriter))]
 	[ConfigSubstituteTypeAttribute(typeof(ICustomWriter))]
     interface ILoggerWriterWrapperConfiguration
@@ -263,6 +265,14 @@
         string ServerAddress { get; }
 
 		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "26113")]
+        int Port { get; }
+    }
+
+	interface ILogstashWriter : ILoggerWriterConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute)]
+        string ServerAddress { get; }
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "5001")]
         int Port { get; }
     }
 

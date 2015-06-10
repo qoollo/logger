@@ -445,32 +445,15 @@
 			if (attrib == null || attrib.Length == 0)
 				return null;
 
-			int ownIndex = -1;
-			for (int i = 0; i < attrib.Length; i++)
-            {
-				if (((ConfigSubstituteTypeAttribute)attrib[i]).SubType == tp)
-                {
-					ownIndex = i;
-					break;
-                }
-            }
+			ConfigSubstituteTypeAttribute ownAttribute = attrib.Cast<ConfigSubstituteTypeAttribute>().FirstOrDefault(o => o.SubType == tp);
+			if (ownAttribute == null)
+				return attrib.Cast<ConfigSubstituteTypeAttribute>().OrderBy(o => o.SubType.Name).ToArray();
 
-			if (ownIndex < 0)
-				return attrib.Cast<ConfigSubstituteTypeAttribute>().ToArray();
-
-			ConfigSubstituteTypeAttribute[] res = new ConfigSubstituteTypeAttribute[attrib.Length];
-			res[0] = (ConfigSubstituteTypeAttribute)attrib[ownIndex];
-
-			int wrtIndex = 1;
-			for (int i = 0; i < attrib.Length; i++)
-            {
-				if (i != ownIndex)
-                {
-					res[wrtIndex] = (ConfigSubstituteTypeAttribute)attrib[i];
-					wrtIndex++;
-                }
-            }
-			return res;
+			List<ConfigSubstituteTypeAttribute> result = attrib.Cast<ConfigSubstituteTypeAttribute>().ToList();
+			result.Remove(ownAttribute);
+			result.Sort((a, b) => a.SubType.Name.CompareTo(b.SubType.Name));
+			result.Insert(0, ownAttribute);
+			return result.ToArray();
 		}
 		// Извлечение атрибутов ConfigSubstituteTypeAttribute из типа
 		public static ConfigSubstituteTypeAttribute[] GetCfgSubstituteTypeAttribInit(Type tp)
@@ -724,6 +707,7 @@
 		public string NamespaceName { get; set; }
 		public string AssemblyName { get; set; }
 		public bool GenerateInterface { get; set; }
+		public bool GenerateAppConfigLoader { get; set; }
 		public string SectionName { get; set; }
     }
 

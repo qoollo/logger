@@ -50,6 +50,9 @@ namespace <#= parameters.NamespaceName #>
 		WriteSampleSectionGroupCode(tp, parameters.NamespaceName, parameters.SectionName);
 		this.WriteLine("");
 
+		WriteSampleConfigLoaderCode(tp, parameters.NamespaceName, parameters.SectionName, !parameters.GenerateAppConfigLoader);
+		this.WriteLine("");
+
 		if (parameters.GenerateInterface)
         {
 			WriteAllBaseTypes(tp);
@@ -116,6 +119,56 @@ public class SampleSectionGroup: ConfigurationSectionGroup
 
 
 	// =====================================
+
+	private void WriteSampleConfigLoaderCode(Type intType, string Namespace, string sectionName, bool isCommented)
+    {
+		string ConfigSectionTypeName = NameResolveHelper.GetConfigClassNameByIntName(intType);
+
+		string intName = NameResolveHelper.GenericToPlainTypeName(TypeHelper.GetTypeName(intType));
+		if (intType.IsInterface && intName.StartsWith("I"))
+			intName = intName.Substring(1, intName.Length - 1);
+			
+
+		#>
+/* **** Sample config loader ***** <#= isCommented ? "" : "*/" #>
+
+public static class <#= intName #>AppConfigLoader
+{
+    public const string DefaultSectionName = "<#= sectionName #>";
+
+    public static <#= TypeHelper.GetTypeName(intType) #> Load(string sectionGroupName, string sectionName)
+    {
+        string fullSectionName = sectionName;
+        if (sectionGroupName != null)
+            fullSectionName = sectionGroupName + "/" + sectionName;
+
+        var cfg = (<#= ConfigSectionTypeName #>)ConfigurationManager.GetSection(fullSectionName);
+        return cfg.ExtractConfigData();
+    }
+    public static <#= TypeHelper.GetTypeName(intType) #> Load(string sectionName)
+    {
+        return Load(null, sectionName);
+    }
+    public static <#= TypeHelper.GetTypeName(intType) #> Load()
+    {
+        return Load(DefaultSectionName);
+    }
+}
+
+<#= isCommented ? "*/" : "" #>
+
+
+
+		<#+
+
+
+    }
+
+
+	// =====================================
+
+
+
 
 	private void WriteAllBaseTypes(Type intType)
     {
@@ -272,7 +325,7 @@ public class SampleSectionGroup: ConfigurationSectionGroup
 			throw new Exception("bad type");
         }
 
-		this.WriteLine("public class " + NameResolveHelper.GetImplementClassNameByIntName(intType) + " : " + TypeHelper.GetTypeName(intType));
+		this.WriteLine("internal class " + NameResolveHelper.GetImplementClassNameByIntName(intType) + " : " + TypeHelper.GetTypeName(intType));
 		this.WriteLine("{");
 		this.PushIndent(Indent);
 
@@ -398,8 +451,18 @@ public class SampleSectionGroup: ConfigurationSectionGroup
 						this.WriteLine("this." + NameResolveHelper.GetFieldNameByPropertyName(prop.Name) + " = '" + attribVal.Attrib.DefaultValue + "';");
 					else if (prop.PropertyType.IsEnum)
 						this.WriteLine("this." + NameResolveHelper.GetFieldNameByPropertyName(prop.Name) + " = " + TypeHelper.GetTypeName(prop.PropertyType) + "." + attribVal.Attrib.DefaultValue + ";");
-					else
+					else if (prop.PropertyType == typeof(int) || prop.PropertyType == typeof(long))
 						this.WriteLine("this." + NameResolveHelper.GetFieldNameByPropertyName(prop.Name) + " = " + attribVal.Attrib.DefaultValue + ";");
+					else if (prop.PropertyType == typeof(double))
+						this.WriteLine("this." + NameResolveHelper.GetFieldNameByPropertyName(prop.Name) + " = " + attribVal.Attrib.DefaultValue + ";");
+					else if (prop.PropertyType == typeof(float))
+						this.WriteLine("this." + NameResolveHelper.GetFieldNameByPropertyName(prop.Name) + " = " + attribVal.Attrib.DefaultValue + "f;");
+					else if (prop.PropertyType == typeof(TimeSpan))
+						this.WriteLine("this." + NameResolveHelper.GetFieldNameByPropertyName(prop.Name) + " = TimeSpan.Parse(\"" + attribVal.Attrib.DefaultValue + "\");");
+					else if (prop.PropertyType == typeof(DateTime))
+						this.WriteLine("this." + NameResolveHelper.GetFieldNameByPropertyName(prop.Name) + " = DateTime.Parse(\"" + attribVal.Attrib.DefaultValue + "\");");
+					else
+						this.WriteLine("this." + NameResolveHelper.GetFieldNameByPropertyName(prop.Name) + " = " + "(" + TypeHelper.GetTypeName(prop.PropertyType) + ")System.ComponentModel.TypeDescriptor.GetConverter(typeof(" + TypeHelper.GetTypeName(prop.PropertyType) + ")).ConvertFromString(null, System.Globalization.CultureInfo.InvariantCulture, \"" + attribVal.Attrib.DefaultValue + "\");");
                 }
             }
 			else if (attribVal.TypeKind == GenerationTypeKind.ComplexType)
@@ -598,7 +661,7 @@ public class <#= ConfigSectionTypeName #> : System.Configuration.ConfigurationSe
 
 	private T Parse<T>(string value)
     {
-		return (T)System.ComponentModel.TypeDescriptor.GetConverter(typeof(T)).ConvertFromString(value);
+		return (T)System.ComponentModel.TypeDescriptor.GetConverter(typeof(T)).ConvertFromString(null, System.Globalization.CultureInfo.InvariantCulture, value);
     }
 
 
@@ -1702,7 +1765,7 @@ switch (addKey)
 
 			AnalizeTypes(rootTp, col, false);
 
-			return col.ToList();
+			return col.OrderBy(o => o.Name).ToList();
         }
 
 		public static List<Type> CollectAllTypesToImplWithEnums(Type rootTp)
@@ -1711,7 +1774,7 @@ switch (addKey)
 
 			AnalizeTypes(rootTp, col, true);
 
-			return col.ToList();
+			return col.OrderBy(o => o.Name).ToList();
         }
     }
 
