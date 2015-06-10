@@ -212,6 +212,9 @@ namespace Qoollo.Logger
                 case WriterTypeEnum.NetWriter:
                     return new NetWriter((NetWriterConfiguration)config);
 
+                case WriterTypeEnum.LogstashWriter:
+                    return new LogstashWriter((LogstashWriterConfiguration)config);
+
                 case WriterTypeEnum.GroupWrapper:
                     return new GroupWriter((GroupWrapperConfiguration)config);
 

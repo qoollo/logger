@@ -78,6 +78,9 @@ namespace Qoollo.Logger.LoggingEventConverters
     /// MachineName, Machine - substitution tokens for MachineName
     /// </summary>
     /// <summary>
+    /// MachineIpAddres, MachineIp - substitution tokens for MachineIpAddress
+    /// </summary>
+    /// <summary>
     /// ProcessName, Process - substitution tokens for ProcessName
     /// </summary>
     /// <summary>
@@ -105,6 +108,9 @@ namespace Qoollo.Logger.LoggingEventConverters
 
                 {"machinename",     ConverterTypes.MachineNameConverter},
                 {"machine",         ConverterTypes.MachineNameConverter},
+                
+                {"machineipaddress",     ConverterTypes.MachineIpAddressConverter},
+                {"machineip",            ConverterTypes.MachineIpAddressConverter},
 
                 {"processname",     ConverterTypes.ProcessNameConverter},
                 {"process",         ConverterTypes.ProcessNameConverter},
@@ -146,7 +152,8 @@ namespace Qoollo.Logger.LoggingEventConverters
             ExceptionConverter,
             StackSourceConverter,
             StackSourceHeadConverter,
-            StackSourceTailConverter
+            StackSourceTailConverter,
+            MachineIpAddressConverter
         }
 
         #endregion
@@ -264,6 +271,9 @@ namespace Qoollo.Logger.LoggingEventConverters
                     
                 case ConverterTypes.MachineNameConverter:
                     return WrapByParsedParams(factory.CreateMachineNameConverter(), parsedParams, "??");
+
+                case ConverterTypes.MachineIpAddressConverter:
+                    return WrapByParsedParams(factory.CreateMachineIpAddressConverter(), parsedParams, "??");
 
                 case ConverterTypes.ProcessNameConverter:
                     return WrapByParsedParams(factory.CreateProcessNameConverter(), parsedParams, "??");

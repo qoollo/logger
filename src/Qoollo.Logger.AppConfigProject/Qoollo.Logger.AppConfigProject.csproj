@@ -56,10 +56,7 @@
     <Compile Include="OldFormat\WriteErrorValidator.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="NewFormat\AppConfigLoaderGenerator.ttcode">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>AppConfigLoaderGenerator.txt</LastGenOutput>
-    </None>
+    <None Include="NewFormat\AppConfigLoaderGenerator.ttcode" />
     <None Include="NewFormat\Helpers\ConfigCommonData.ttinclude" />
     <None Include="NewFormat\Helpers\ConfigLoaderGenerator.ttinclude" />
     <None Include="NewFormat\Helpers\ConfigSampleFileGenerator.ttinclude" />

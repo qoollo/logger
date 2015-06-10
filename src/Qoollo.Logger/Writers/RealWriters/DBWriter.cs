@@ -25,8 +25,8 @@ namespace Qoollo.Logger.Writers
         private readonly object _lockWrite = new object();
         private readonly LogLevel _logLevel;
 
-        private LoggingEventConverterBase _exceptionConverterBase;
-        private LoggingEventConverterBase _sourcesConverterBase;
+        private LoggingEventConverterBase _exceptionConverter;
+        private LoggingEventConverterBase _sourcesConverter;
 
         private ErrorTimeTracker _errorTracker = new ErrorTimeTracker(TimeSpan.FromMinutes(5));
 
@@ -163,8 +163,8 @@ namespace Qoollo.Logger.Writers
             AddParameter(cmd, SqlDbType.NVarChar,  0,      true , "@FilePath",     data.FilePath);
             AddParameter(cmd, SqlDbType.Int,       0,      true , "@LineNumber",   data.LineNumber < 0 ? (object)null : data.LineNumber);
             AddParameter(cmd, SqlDbType.NVarChar,  0,      false, "@Message",      data.Message);
-            AddParameter(cmd, SqlDbType.NVarChar,  0,      true , "@Exception",    data.Exception != null ? _exceptionConverterBase.Convert(data) : null);
-            AddParameter(cmd, SqlDbType.NVarChar,  0,      true , "@StackSources", data.StackSources != null ? _sourcesConverterBase.Convert(data) : null);
+            AddParameter(cmd, SqlDbType.NVarChar,  0,      true , "@Exception",    data.Exception != null ? _exceptionConverter.Convert(data) : null);
+            AddParameter(cmd, SqlDbType.NVarChar,  0,      true , "@StackSources", data.StackSources != null ? _sourcesConverter.Convert(data) : null);
             AddParameter(cmd, SqlDbType.NVarChar,  0,      true , "@Namespace",    data.Namespace);
             AddParameter(cmd, SqlDbType.NVarChar,  0,      true , "@Assembly",     data.Assembly);
             AddParameter(cmd, SqlDbType.NVarChar,  255,    true , "@MachineName",  data.MachineName);
@@ -178,8 +178,8 @@ namespace Qoollo.Logger.Writers
         {
             base.SetConverterFactory(factory);
 
-            _exceptionConverterBase = factory.CreateExceptionConverter();
-            _sourcesConverterBase = factory.CreateStackSourceConverter();
+            _exceptionConverter = factory.CreateExceptionConverter();
+            _sourcesConverter = factory.CreateStackSourceConverter();
         }
 
 

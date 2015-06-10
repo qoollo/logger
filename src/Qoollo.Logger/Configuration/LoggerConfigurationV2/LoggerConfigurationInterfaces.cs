@@ -129,7 +129,14 @@ namespace Qoollo.Logger.Configuration.LoggerConfigurationV2
     interface INetworkWriter : ILoggerWriterConfiguration
     {
         string ServerAddress { get; }
+        int Port { get; }        
+    }
+
+    interface ILogstashWriter : ILoggerWriterConfiguration
+    {
+        string ServerAddress { get; }
         int Port { get; }
+        int ConnectionTestTimeMs { get; }
     }
 
     interface IDatabaseWriter : ILoggerWriterConfiguration
