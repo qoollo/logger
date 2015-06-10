@@ -13,7 +13,6 @@ using Qoollo.Logger.Net;
 
 namespace Qoollo.Logger.RealWriters.Helpers
 {
-   
     internal class TcpHelper: IDisposable
     {
         private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(TcpHelper));
@@ -217,22 +216,17 @@ namespace Qoollo.Logger.RealWriters.Helpers
         public bool Write(string data)
         {         
             if (data == null)
-            {
                 throw new ArgumentNullException("data");
-            }
 
             var localClient = Volatile.Read(ref _curClient);
             if (localClient == null || !localClient.Connected)
-            {
                 throw new CommunicationException("Connection is not established. Can't perform Write for tcp Server: " + RemoteSideName);
-            }
+
             lock (_syncObj)
             {
                 localClient = Volatile.Read(ref _curClient);
                 if (localClient == null || !localClient.Connected)
-                {
                     throw new CommunicationException("Connection is not established. Can't perform Write for tcp Server: " + RemoteSideName);
-                }
 
                 try
                 {
@@ -295,7 +289,4 @@ namespace Qoollo.Logger.RealWriters.Helpers
             GC.SuppressFinalize(this);
         }
     }
-
-
-
 }

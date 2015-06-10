@@ -17,8 +17,7 @@ using Qoollo.Logger.RealWriters.Helpers;
 
 namespace Qoollo.Logger.Writers
 {
-
-    internal class LogstashWriter : Writer, IDisposable
+    internal class LogstashWriter : Writer
     {
         private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(LogstashWriter));
         private readonly TcpHelper _writer;
@@ -49,7 +48,7 @@ namespace Qoollo.Logger.Writers
 
             _exceptionConverter = factory.CreateExceptionConverter();
         }
-        
+
 
         public override bool Write(LoggingEvent data)
         {
@@ -162,18 +161,15 @@ namespace Qoollo.Logger.Writers
 
     }
 
-    internal static class Extentions
+    internal static class StringBuilderExtentions
     {
         public static StringBuilder Append(this StringBuilder sb, string key, int value)
         {
-            //key = key.Trim('\'').Trim('"');
             return AppendDict(sb, key, value.ToString());
         }
 
         public static StringBuilder Append(this StringBuilder sb, string key, string value)
         {
-            //key = key.Trim('\'').Trim('"');
-            //value = value.Trim('\'').Trim('"');
             return AppendDict(sb, key, value);
         }
 
@@ -184,6 +180,4 @@ namespace Qoollo.Logger.Writers
             return sb.Append("\"").Append(key).Append("\"").Append(":").Append("\"").Append(value).Append("\"");
         }
     }
-
-
 }

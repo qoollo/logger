@@ -860,13 +860,12 @@ namespace Qoollo.Logger.Configuration
         /// <summary>
         /// Server address/host
         /// </summary>
-        public string ServerAddress { get;  set; }
+        public string ServerAddress { get; private set; }
 
         /// <summary>
         /// Server TCP port
         /// </summary>
-        public int Port { get;  set; }
-
+        public int Port { get; private set; }
     }
 
     /// <summary>
