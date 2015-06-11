@@ -30,16 +30,18 @@ namespace Qoollo.Logger.Writers
 
         private LoggingEventConverterBase _exceptionConverter;
 
-        private const int connectionTestTimeoutMaxMs = 16000;
+        private const int _connectionTestTimeoutMaxMs = 16000;
 
         public LogstashWriter(LogstashWriterConfiguration config)
             : base(config.Level)
         {
             Contract.Requires<ArgumentNullException>(config != null);
 
-            _writer = new TcpHelper(config.ServerAddress, config.Port, connectionTestTimeoutMaxMs);
+            _writer = new TcpHelper(config.ServerAddress, config.Port, _connectionTestTimeoutMaxMs);
             _logLevel = config.Level;
             _writer.Start();
+
+            SetConverterFactory(ConverterFactory.Default);
         }
 
         public override void SetConverterFactory(ConverterFactory factory)
@@ -111,6 +113,8 @@ namespace Qoollo.Logger.Writers
             return result;
         }
 
+
+
         protected virtual string ConvertToString(LoggingEvent log)
         {
             var sb = new StringBuilder(64);
@@ -120,8 +124,8 @@ namespace Qoollo.Logger.Writers
                 .Append("level", log.Level.ToString()).Append(",")
                 .Append("@message", log.Message).Append(",")
                 .Append("file", log.FilePath).Append(",")
-                .Append("source", log.Clazz).Append(",")
-                .Append("method", log.Clazz).Append(",")
+                //.Append("source", log.Clazz).Append(",")
+                .Append("method", log.Method).Append(",")
                 .Append("process", log.ProcessName).Append(",")
                 .Append("processId", log.ProcessId).Append(",")
                 .Append("machinename", log.MachineName).Append(",")

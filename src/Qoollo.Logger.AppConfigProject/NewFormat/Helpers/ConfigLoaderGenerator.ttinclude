@@ -443,7 +443,11 @@ public static class <#= intName #>AppConfigLoader
 
 			if (attribVal.TypeKind == GenerationTypeKind.SimpleType)
             {
-				if (attribVal.Attrib.DefaultValue != null)
+				if (attribVal.Attrib.DefaultValueSource != null)
+				{
+					this.WriteLine("this." + NameResolveHelper.GetFieldNameByPropertyName(prop.Name) + " = " + attribVal.Attrib.DefaultValueSource + ";");
+				}
+				else if (attribVal.Attrib.DefaultValue != null)
                 {
 					if (prop.PropertyType == typeof(string))
 						this.WriteLine("this." + NameResolveHelper.GetFieldNameByPropertyName(prop.Name) + " = \"" + attribVal.Attrib.DefaultValue + "\";");
@@ -461,6 +465,8 @@ public static class <#= intName #>AppConfigLoader
 						this.WriteLine("this." + NameResolveHelper.GetFieldNameByPropertyName(prop.Name) + " = TimeSpan.Parse(\"" + attribVal.Attrib.DefaultValue + "\");");
 					else if (prop.PropertyType == typeof(DateTime))
 						this.WriteLine("this." + NameResolveHelper.GetFieldNameByPropertyName(prop.Name) + " = DateTime.Parse(\"" + attribVal.Attrib.DefaultValue + "\");");
+					else if (prop.PropertyType == typeof(bool))
+						this.WriteLine("this." + NameResolveHelper.GetFieldNameByPropertyName(prop.Name) + " = " + attribVal.Attrib.DefaultValue + ";");
 					else
 						this.WriteLine("this." + NameResolveHelper.GetFieldNameByPropertyName(prop.Name) + " = " + "(" + TypeHelper.GetTypeName(prop.PropertyType) + ")System.ComponentModel.TypeDescriptor.GetConverter(typeof(" + TypeHelper.GetTypeName(prop.PropertyType) + ")).ConvertFromString(null, System.Globalization.CultureInfo.InvariantCulture, \"" + attribVal.Attrib.DefaultValue + "\");");
                 }

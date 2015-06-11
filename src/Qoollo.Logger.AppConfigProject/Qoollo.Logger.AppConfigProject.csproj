@@ -83,10 +83,7 @@
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="NewFormat\AppConfigLoaderGenerator.ttcode">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>AppConfigLoaderGenerator1.txt</LastGenOutput>
-    </None>
+    <None Include="NewFormat\AppConfigLoaderGenerator.ttcode" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

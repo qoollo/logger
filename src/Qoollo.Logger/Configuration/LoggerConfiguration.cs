@@ -578,7 +578,7 @@ namespace Qoollo.Logger.Configuration
         /// <summary>
         /// Default file name format string
         /// </summary>
-        public const string DefaultFileNameTemplateFormat = "logs/app.log";
+        public const string DefaultFileNameTemplateFormat = "logs/{DateTime, format = yyyy-MM-dd}.log";
 
         /// <summary>
         /// FileWriterConfiguration constructor
