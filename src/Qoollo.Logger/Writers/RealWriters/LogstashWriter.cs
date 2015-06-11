@@ -20,17 +20,19 @@ namespace Qoollo.Logger.Writers
     internal class LogstashWriter : Writer
     {
         private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(LogstashWriter));
-        private readonly TcpHelper _writer;
+        private const int _connectionTestTimeoutMaxMs = 16000;
 
         private readonly LogLevel _logLevel;
+
+        private readonly TcpHelper _writer;
+
+        private LoggingEventConverterBase _exceptionConverter;
+        private LoggingEventConverterBase _stackSourceConverter;
 
         private ErrorTimeTracker _errorTracker = new ErrorTimeTracker(TimeSpan.FromMinutes(5));
         private volatile bool _isDisposed = false;
         private readonly object _lockWrite = new object();
 
-        private LoggingEventConverterBase _exceptionConverter;
-
-        private const int _connectionTestTimeoutMaxMs = 16000;
 
         public LogstashWriter(LogstashWriterConfiguration config)
             : base(config.Level)
@@ -49,6 +51,7 @@ namespace Qoollo.Logger.Writers
             base.SetConverterFactory(factory);
 
             _exceptionConverter = factory.CreateExceptionConverter();
+            _stackSourceConverter = factory.CreateStackSourceConverter();
         }
 
 
@@ -115,24 +118,133 @@ namespace Qoollo.Logger.Writers
 
 
 
+        private static StringBuilder AppendScreened(StringBuilder sb, string value)
+        {
+            Contract.Requires(sb != null);
+            Contract.Requires(value != null);
+
+            int screenStartPosition = sb.Length;
+            sb.Append(value);
+            sb.Replace(Environment.NewLine, @"\n", screenStartPosition, sb.Length - screenStartPosition);
+            sb.Replace("\n", @"\n", screenStartPosition, sb.Length - screenStartPosition);
+            sb.Replace("\r", @"", screenStartPosition, sb.Length - screenStartPosition);
+            sb.Replace("\t", @"\t", screenStartPosition, sb.Length - screenStartPosition);
+            sb.Replace("\\", @"\\", screenStartPosition, sb.Length - screenStartPosition);
+            sb.Replace("\'", @"\'", screenStartPosition, sb.Length - screenStartPosition);
+            sb.Replace("\"", "\\\"", screenStartPosition, sb.Length - screenStartPosition);
+
+            return sb;
+        }
+
+        private static bool AppendJsonParamConditional(StringBuilder sb, string key, string value, bool withComma = false, bool screen = false)
+        {
+            Contract.Requires(sb != null);
+            Contract.Requires(key != null);
+
+            if (value == null)
+                return false;
+
+            sb.Append("\"").Append(key).Append("\"").Append(":").Append("\"");
+            if (screen)
+                AppendScreened(sb, value);
+            else
+                sb.Append(value);
+            sb.Append("\"");
+
+            if (withComma)
+                sb.Append(",");
+
+            return true;
+        }
+
+        private static bool AppendJsonParamConditional(StringBuilder sb, string key, List<string> valueList, bool withComma = false, bool screen = false)
+        {
+            Contract.Requires(sb != null);
+            Contract.Requires(key != null);
+
+            if (valueList == null)
+                return false;
+
+            sb.Append("\"").Append(key).Append("\"").Append(":").Append("[");
+
+
+            for (int i = 0; i < valueList.Count; i++)
+            {
+                if (valueList[i] != null)
+                {
+                    sb.Append("\"");
+                    if (screen) AppendScreened(sb, valueList[i]); else sb.Append(valueList[i]);
+                    sb.Append("\",");
+                }
+            }
+
+
+            if (sb[sb.Length - 1] == ',')
+                sb.Remove(sb.Length - 1, 1);
+
+            sb.Append("]");
+
+            if (withComma)
+                sb.Append(",");
+
+            return true;
+        }
+
         protected virtual string ConvertToString(LoggingEvent log)
         {
-            var sb = new StringBuilder(64);
-            sb = sb.Append("{")
-                .Append("timestamp", log.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")).Append(",")
-                .Append("@version", 1).Append(",")
-                .Append("level", log.Level.ToString()).Append(",")
-                .Append("@message", log.Message).Append(",")
-                .Append("file", log.FilePath).Append(",")
-                //.Append("source", log.Clazz).Append(",")
-                .Append("method", log.Method).Append(",")
-                .Append("process", log.ProcessName).Append(",")
-                .Append("processId", log.ProcessId).Append(",")
-                .Append("machinename", log.MachineName).Append(",")
-                .Append("ip", log.MachineIpAddress);
+            var sb = new StringBuilder(256);
+            sb = sb.Append("{");
+            AppendJsonParamConditional(sb, "timestamp", log.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"), withComma: true, screen: false);
+            AppendJsonParamConditional(sb, "@version", "1", withComma: true, screen: false);
+            AppendJsonParamConditional(sb, "level", log.Level.Name, withComma: true, screen: false);
+            AppendJsonParamConditional(sb, "@message", log.Message ?? "", withComma: true, screen: true);
+            AppendJsonParamConditional(sb, "context", log.Context, withComma: true, screen: true);
+
+            AppendJsonParamConditional(sb, "file", log.FilePath, withComma: true, screen: true);
+            AppendJsonParamConditional(sb, "line_number", log.LineNumber > 0 ? log.LineNumber.ToString() : null, withComma: true, screen: false);
+
+            AppendJsonParamConditional(sb, "assembly", log.Assembly, withComma: true, screen: true);
+            AppendJsonParamConditional(sb, "namespace", log.Namespace, withComma: true, screen: false);
+            AppendJsonParamConditional(sb, "class", log.Clazz, withComma: true, screen: false);
+            AppendJsonParamConditional(sb, "method", log.Method, withComma: true, screen: false);
+
+            AppendJsonParamConditional(sb, "process_name", log.ProcessName, withComma: true, screen: true);
+            AppendJsonParamConditional(sb, "pid", log.ProcessId > 0 ? log.ProcessId.ToString() : null, withComma: true, screen: false);
+            AppendJsonParamConditional(sb, "machine_name", log.MachineName, withComma: true, screen: true);
+            AppendJsonParamConditional(sb, "machine_ip", log.MachineIpAddress, withComma: true, screen: true);
+
+            if (log.StackSources != null && log.StackSources.Count > 0)
+            {
+                AppendJsonParamConditional(sb, "stack_source", log.StackSources, withComma: true, screen: true);
+            }
 
             if (log.Exception != null)
-                sb = sb.Append(",").Append("exception", _exceptionConverter.Convert(log));
+            {
+                List<string> messages = new List<string>();
+                List<string> types = new List<string>();
+                Error currentError = log.Exception;
+                while (currentError != null)
+                {
+                    messages.Add(currentError.Message);
+                    types.Add(currentError.Type);
+                    currentError = currentError.InnerError;
+                }
+
+
+                sb.Append("\"exception\":{");
+
+                AppendJsonParamConditional(sb, "summary", _exceptionConverter.Convert(log), withComma: true, screen: true);
+                AppendJsonParamConditional(sb, "messages", messages, withComma: true, screen: true);
+                AppendJsonParamConditional(sb, "types", types, withComma: true, screen: true);
+
+                if (sb[sb.Length - 1] == ',')
+                    sb.Remove(sb.Length - 1, 1);
+
+                sb.Append("},");
+            }
+
+            if (sb[sb.Length - 1] == ',')
+                sb.Remove(sb.Length - 1, 1);
 
             string result = sb.Append("}\n").ToString();
             return result;
@@ -163,25 +275,5 @@ namespace Qoollo.Logger.Writers
             }
         }
 
-    }
-
-    internal static class StringBuilderExtentions
-    {
-        public static StringBuilder Append(this StringBuilder sb, string key, int value)
-        {
-            return AppendDict(sb, key, value.ToString());
-        }
-
-        public static StringBuilder Append(this StringBuilder sb, string key, string value)
-        {
-            return AppendDict(sb, key, value);
-        }
-
-        private static StringBuilder AppendDict(StringBuilder sb, string key, string value)
-        {
-            key = key ?? "";
-            value = value ?? "";
-            return sb.Append("\"").Append(key).Append("\"").Append(":").Append("\"").Append(value).Append("\"");
-        }
     }
 }
