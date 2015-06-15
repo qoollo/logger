@@ -167,13 +167,27 @@ namespace Qoollo.Logger.Writers
 
             sb.Append("\"").Append(key).Append("\"").Append(":").Append("[");
 
-
-            for (int i = 0; i < valueList.Count; i++)
+            if (screen)
             {
-                if (valueList[i] != null)
+                for (int i = 0; i < valueList.Count; i++)
                 {
+                    if (valueList[i] == null)
+                        continue;
+
                     sb.Append("\"");
-                    if (screen) AppendScreened(sb, valueList[i]); else sb.Append(valueList[i]);
+                    AppendScreened(sb, valueList[i]);
+                    sb.Append("\",");
+                }
+            }
+            else
+            {
+                for (int i = 0; i < valueList.Count; i++)
+                {
+                    if (valueList[i] == null)
+                        continue;
+
+                    sb.Append("\"");
+                    sb.Append(valueList[i]);
                     sb.Append("\",");
                 }
             }
@@ -190,8 +204,15 @@ namespace Qoollo.Logger.Writers
             return true;
         }
 
+        /// <summary>
+        /// Convert LoggingEvent to JSON string for LogStash
+        /// </summary>
+        /// <param name="log">Log event</param>
+        /// <returns>JSON string</returns>
         protected virtual string ConvertToString(LoggingEvent log)
         {
+            Contract.Requires(log != null);
+
             var sb = new StringBuilder(256);
             sb = sb.Append("{");
             AppendJsonParamConditional(sb, "timestamp", log.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"), withComma: true, screen: false);
@@ -230,17 +251,9 @@ namespace Qoollo.Logger.Writers
                     currentError = currentError.InnerError;
                 }
 
-
-                sb.Append("\"exception\":{");
-
-                AppendJsonParamConditional(sb, "summary", _exceptionConverter.Convert(log), withComma: true, screen: true);
-                AppendJsonParamConditional(sb, "messages", messages, withComma: true, screen: true);
-                AppendJsonParamConditional(sb, "types", types, withComma: true, screen: true);
-
-                if (sb[sb.Length - 1] == ',')
-                    sb.Remove(sb.Length - 1, 1);
-
-                sb.Append("},");
+                AppendJsonParamConditional(sb, "exception_summary", _exceptionConverter.Convert(log), withComma: true, screen: true);
+                AppendJsonParamConditional(sb, "exception_messages", messages, withComma: true, screen: true);
+                AppendJsonParamConditional(sb, "exception_types", types, withComma: true, screen: true);
             }
 
             if (sb[sb.Length - 1] == ',')
@@ -274,6 +287,5 @@ namespace Qoollo.Logger.Writers
                 }
             }
         }
-
     }
 }
