@@ -1,5 +1,3 @@
-
-
 CREATE TABLE [dbo].[Logs](
 	[LogId]				[bigint] IDENTITY(1,1) NOT NULL,
 	[Date]				[datetime]		NOT NULL,
