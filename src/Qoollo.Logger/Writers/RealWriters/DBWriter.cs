@@ -168,6 +168,7 @@ namespace Qoollo.Logger.Writers
             AddParameter(cmd, SqlDbType.NVarChar,  0,      true , "@Namespace",    data.Namespace);
             AddParameter(cmd, SqlDbType.NVarChar,  0,      true , "@Assembly",     data.Assembly);
             AddParameter(cmd, SqlDbType.NVarChar,  255,    true , "@MachineName",  data.MachineName);
+            AddParameter(cmd, SqlDbType.NVarChar,  64,     true , "@MachineIp",    data.MachineIpAddress);
             AddParameter(cmd, SqlDbType.NVarChar,  255,    true , "@ProcessName",  data.ProcessName);
             AddParameter(cmd, SqlDbType.Int,       0,      true , "@ProcessId",    data.ProcessId < 0 ? (object)null : data.ProcessId);
 
