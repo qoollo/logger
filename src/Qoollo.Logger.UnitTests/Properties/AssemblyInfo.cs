@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Qoollo.Logger")]
-[assembly: AssemblyDescription("Logger")]
+[assembly: AssemblyTitle("Qoollo.Logger.UnitTests")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Qoollo")]
-[assembly: AssemblyProduct("Qoollo.Logger")]
-[assembly: AssemblyCopyright("Copyright © Qoollo")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("Qoollo.Logger.UnitTests")]
+[assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,9 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("23297dee-c39e-4601-9b9a-af7fb07e3d6d")]
-// Visibility for UnitTests
-[assembly: InternalsVisibleTo("Qoollo.Logger.UnitTests")]
+[assembly: Guid("08239e90-d25d-41b8-a763-7a6ac9ea2455")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -34,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.1.*")]
-//[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
