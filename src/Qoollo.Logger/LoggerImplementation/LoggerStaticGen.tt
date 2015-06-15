@@ -1,0 +1,227 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".cs" #>
+<#@ Assembly Name="System.Core" #>
+<#@ Assembly Name="System.Windows.Forms" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Diagnostics" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #> 
+using System;
+using Qoollo.Logger.Common;
+using Qoollo.Logger.Helpers;
+using System.Runtime.CompilerServices;
+
+namespace Qoollo.Logger
+{
+    partial class LoggerStatic
+    {
+    
+<#   
+    List<string> Levels = new List<string>
+    {
+		"Log",
+        "Trace",
+        "Debug",
+        "Info",
+        "Warn",
+        "Error",
+        "Fatal"
+    };
+
+    string commentSummary = 
+        "/// <summary>" + Environment.NewLine + "\t\t" +
+        "/// Writes log message at {0} level with specified parameters." + Environment.NewLine + "\t\t" +
+        "/// </summary>";
+
+	string commentLogLevel = 
+		"/// <param name=\"level\">Log level for message</param>";
+
+	string commentMessage = 
+	    "/// <param name=\"message\">Log message</param>";
+    string commentTemplate = 
+        "/// <param name=\"template\">Message template (similar to string.Format)</param>";
+
+	string commentArg1 = 
+        "/// <param name=\"arg1\">First argument</param>";
+	string commentArg2 =
+        "/// <param name=\"arg2\">Second argument</param>";
+	string commentArg3 =
+        "/// <param name=\"arg3\">Third argument</param>";
+	string commentArg4 =
+        "/// <param name=\"arg4\">Fourth argument</param>";
+
+
+	string commentArg1Type = 
+        "/// <typeparam name=\"TArg1\">First argument type</typeparam>";
+	string commentArg2Type =
+        "/// <typeparam name=\"TArg2\">Second argument type</typeparam>";
+	string commentArg3Type =
+        "/// <typeparam name=\"TArg3\">Third argument type</typeparam>";
+	string commentArg4Type =
+        "/// <typeparam name=\"TArg4\">Fourth argument type</typeparam>";
+
+
+    string contextComment = "/// <param name=\"context\">Log message context." + Environment.NewLine + "\t\t" +
+                            "/// Additional parameter that can be used to filter log messages.</param>";
+
+    string exceptionComment = "/// <param name=\"exception\">Exception object to be logged</param>";
+
+    
+    string commentFooter = 
+        "/// <param name=\"guard\">Special guard parameter</param>" + Environment.NewLine + "\t\t" +
+		"/// <param name=\"class\">Name of the class from which logging is performed.</param>" + Environment.NewLine + "\t\t" +
+		"/// <param name=\"lineNumber\">Auto-completed parameter! Line number in source code file " + Environment.NewLine + "\t\t" +
+        "/// at which the logging performed.</param>" + Environment.NewLine + "\t\t" +
+        "/// <param name=\"filePath\">Auto-completed parameter! Source code file name " + Environment.NewLine + "\t\t" +
+        "/// from which logging performed</param>" + Environment.NewLine + "\t\t" +
+        "/// <param name=\"method\">Auto-completed parameter! Method name " + Environment.NewLine + "\t\t" +
+        "/// from which logging performed.</param>";
+        
+    string parametersEnding = "ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0";
+    string callingEnding = "guard, @class, method, filePath, lineNumber";
+    
+
+    List<string> methodProtos = new List<string>
+    {
+        "string message",
+        "string message, string context",
+        "Exception exception, string message",
+        "Exception exception, string message, string context",
+
+		"string template",
+		"string template, TArg1 arg1",
+		"string template, TArg1 arg1, TArg2 arg2",
+		"string template, TArg1 arg1, TArg2 arg2, TArg3 arg3",
+        "string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4",
+		"Exception exception, string template",
+		"Exception exception, string template, TArg1 arg1",
+		"Exception exception, string template, TArg1 arg1, TArg2 arg2",
+		"Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3",
+		"Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4"
+    };
+
+
+	List<string> methodCallings = new List<string>
+    {
+        "message",
+        "message, context",
+        "exception, message",
+        "exception, message, context",
+
+		"template",
+		"template, arg1",
+		"template, arg1, arg2",
+		"template, arg1, arg2, arg3",
+        "template, arg1, arg2, arg3, arg4",
+		"exception, template",
+		"exception, template, arg1",
+		"exception, template, arg1, arg2",
+		"exception, template, arg1, arg2, arg3",
+		"exception, template, arg1, arg2, arg3, arg4"
+    };
+#>
+
+		#region All logging methods
+
+<# foreach (string level in Levels) { #>
+
+        #region <#= level #>
+
+<#		foreach (string methodProto in methodProtos) 
+        {
+			string comment = "";
+			if (level == "Log")
+				comment += string.Format(commentSummary, "the specified");
+			else
+				comment += string.Format(commentSummary, level);
+
+			if (level == "Log")
+				comment += Environment.NewLine + "\t\t" + commentLogLevel;
+
+			if (methodProto.Contains("message"))
+				comment += Environment.NewLine + "\t\t" + commentMessage;
+
+			if (methodProto.Contains("template"))
+				comment += Environment.NewLine + "\t\t" + commentTemplate;
+
+			if (methodProto.Contains("context"))
+				comment += Environment.NewLine + "\t\t" + contextComment;
+
+			if (methodProto.Contains("exception"))
+				comment += Environment.NewLine + "\t\t" + exceptionComment;
+
+			if (methodProto.Contains("arg1"))
+			{
+				comment += Environment.NewLine + "\t\t" + commentArg1Type;
+				comment += Environment.NewLine + "\t\t" + commentArg1;
+			}
+			if (methodProto.Contains("arg2"))
+			{
+				comment += Environment.NewLine + "\t\t" + commentArg2Type;
+				comment += Environment.NewLine + "\t\t" + commentArg2;
+			}
+			if (methodProto.Contains("arg3"))
+			{
+				comment += Environment.NewLine + "\t\t" + commentArg3Type;
+				comment += Environment.NewLine + "\t\t" + commentArg3;
+			}
+			if (methodProto.Contains("arg4"))
+			{
+				comment += Environment.NewLine + "\t\t" + commentArg4Type;
+				comment += Environment.NewLine + "\t\t" + commentArg4;
+			}
+
+			comment += Environment.NewLine + "\t\t" + commentFooter;
+
+
+			string methodName = level;
+			if (methodProto.Contains("template"))
+				methodName += "Format";
+
+
+
+			string methodGenericParams = "";
+			if (methodProto.Contains("arg1"))
+				methodGenericParams += "TArg1, ";
+			if (methodProto.Contains("arg2"))
+				methodGenericParams += "TArg2, ";
+			if (methodProto.Contains("arg3"))
+				methodGenericParams += "TArg3, ";
+			if (methodProto.Contains("arg4"))
+				methodGenericParams += "TArg4, ";
+
+			if (methodGenericParams != "")
+				methodGenericParams = "<" + methodGenericParams.Substring(0, methodGenericParams.Length - 2) + ">";
+		
+		
+			string methodParameters = "";
+			if (level == "Log")
+				methodParameters += "LogLevel level, ";
+
+			methodParameters += methodProto + ", ";
+			methodParameters += parametersEnding;
+
+
+			string methodCalling = methodCallings[methodProtos.IndexOf(methodProto)] + ", " + callingEnding;
+			if (level == "Log")
+				methodCalling = "level, " + methodCalling;
+		#>
+
+
+		<#= comment #>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static void <#= methodName #><#= methodGenericParams #>(<#= methodParameters #>)
+		{
+			Instance.<#= methodName #>(<#= methodCalling #>);
+		}
+
+	<# } #>
+
+		#endregion
+
+<# } #>
+		#endregion
+    }
+}
