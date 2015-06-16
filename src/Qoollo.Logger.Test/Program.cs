@@ -15,6 +15,8 @@ namespace Qoollo.Logger.Test
             var log2 = Qoollo.Logger.LoggerFactory.CreateLoggerFromAppConfig("321", "LoggerConfigurationSection");
             var logger = Qoollo.Logger.LoggerDefault.Instance.GetThisClassLogger();
 
+
+
             System.Threading.Thread.Sleep(1000);
 
             for (int i = 0; i < 500; i++)
@@ -98,7 +100,7 @@ namespace Qoollo.Logger.Test
             }
             catch (Exception ex)
             {
-                return ex;
+                return new Exception("Wrapping exc", ex);
             }
             return null;
         }

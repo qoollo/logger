@@ -117,93 +117,6 @@ namespace Qoollo.Logger.Writers
         }
 
 
-
-        private static StringBuilder AppendScreened(StringBuilder sb, string value)
-        {
-            Contract.Requires(sb != null);
-            Contract.Requires(value != null);
-
-            int screenStartPosition = sb.Length;
-            sb.Append(value);
-            sb.Replace(Environment.NewLine, @"\n", screenStartPosition, sb.Length - screenStartPosition);
-            sb.Replace("\n", @"\n", screenStartPosition, sb.Length - screenStartPosition);
-            sb.Replace("\r", @"", screenStartPosition, sb.Length - screenStartPosition);
-            sb.Replace("\t", @"\t", screenStartPosition, sb.Length - screenStartPosition);
-            sb.Replace("\\", @"\\", screenStartPosition, sb.Length - screenStartPosition);
-            sb.Replace("\'", @"\'", screenStartPosition, sb.Length - screenStartPosition);
-            sb.Replace("\"", "\\\"", screenStartPosition, sb.Length - screenStartPosition);
-
-            return sb;
-        }
-
-        private static bool AppendJsonParamConditional(StringBuilder sb, string key, string value, bool withComma = false, bool screen = false)
-        {
-            Contract.Requires(sb != null);
-            Contract.Requires(key != null);
-
-            if (value == null)
-                return false;
-
-            sb.Append("\"").Append(key).Append("\"").Append(":").Append("\"");
-            if (screen)
-                AppendScreened(sb, value);
-            else
-                sb.Append(value);
-            sb.Append("\"");
-
-            if (withComma)
-                sb.Append(",");
-
-            return true;
-        }
-
-        private static bool AppendJsonParamConditional(StringBuilder sb, string key, List<string> valueList, bool withComma = false, bool screen = false)
-        {
-            Contract.Requires(sb != null);
-            Contract.Requires(key != null);
-
-            if (valueList == null)
-                return false;
-
-            sb.Append("\"").Append(key).Append("\"").Append(":").Append("[");
-
-            if (screen)
-            {
-                for (int i = 0; i < valueList.Count; i++)
-                {
-                    if (valueList[i] == null)
-                        continue;
-
-                    sb.Append("\"");
-                    AppendScreened(sb, valueList[i]);
-                    sb.Append("\",");
-                }
-            }
-            else
-            {
-                for (int i = 0; i < valueList.Count; i++)
-                {
-                    if (valueList[i] == null)
-                        continue;
-
-                    sb.Append("\"");
-                    sb.Append(valueList[i]);
-                    sb.Append("\",");
-                }
-            }
-
-
-            if (sb[sb.Length - 1] == ',')
-                sb.Remove(sb.Length - 1, 1);
-
-            sb.Append("]");
-
-            if (withComma)
-                sb.Append(",");
-
-            return true;
-        }
-
         /// <summary>
         /// Convert LoggingEvent to JSON string for LogStash
         /// </summary>
@@ -213,54 +126,60 @@ namespace Qoollo.Logger.Writers
         {
             Contract.Requires(log != null);
 
-            var sb = new StringBuilder(256);
-            sb = sb.Append("{");
-            AppendJsonParamConditional(sb, "timestamp", log.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"), withComma: true, screen: false);
-            AppendJsonParamConditional(sb, "@version", "1", withComma: true, screen: false);
-            AppendJsonParamConditional(sb, "level", log.Level.Name, withComma: true, screen: false);
-            AppendJsonParamConditional(sb, "@message", log.Message ?? "", withComma: true, screen: true);
-            AppendJsonParamConditional(sb, "context", log.Context, withComma: true, screen: true);
-
-            AppendJsonParamConditional(sb, "file", log.FilePath, withComma: true, screen: true);
-            AppendJsonParamConditional(sb, "line_number", log.LineNumber > 0 ? log.LineNumber.ToString() : null, withComma: true, screen: false);
-
-            AppendJsonParamConditional(sb, "assembly", log.Assembly, withComma: true, screen: true);
-            AppendJsonParamConditional(sb, "namespace", log.Namespace, withComma: true, screen: false);
-            AppendJsonParamConditional(sb, "class", log.Clazz, withComma: true, screen: false);
-            AppendJsonParamConditional(sb, "method", log.Method, withComma: true, screen: false);
-
-            AppendJsonParamConditional(sb, "process_name", log.ProcessName, withComma: true, screen: true);
-            AppendJsonParamConditional(sb, "pid", log.ProcessId > 0 ? log.ProcessId.ToString() : null, withComma: true, screen: false);
-            AppendJsonParamConditional(sb, "machine_name", log.MachineName, withComma: true, screen: true);
-            AppendJsonParamConditional(sb, "machine_ip", log.MachineIpAddress, withComma: true, screen: true);
-
-            if (log.StackSources != null && log.StackSources.Count > 0)
+            JsonSimpleWriter writer = new JsonSimpleWriter(1024);
+            writer.AppendJsonBeginObject();
             {
-                AppendJsonParamConditional(sb, "stack_source", log.StackSources, withComma: true, screen: true);
-            }
-
-            if (log.Exception != null)
-            {
-                List<string> messages = new List<string>();
-                List<string> types = new List<string>();
-                Error currentError = log.Exception;
-                while (currentError != null)
+                writer.AppendJsonParamConditional("@timestamp", log.Date.ToUniversalTime().ToString("o", System.Globalization.CultureInfo.InvariantCulture), screen: false);
+                writer.AppendJsonParamConditional("@version", "1", screen: false);
+                writer.AppendJsonParamConditional("level", log.Level.Name, screen: false);
+                writer.AppendJsonParamConditional("message", log.Message ?? "", screen: true);
+                writer.AppendJsonParamConditional("context", log.Context, screen: true);
+                
+                writer.AppendJsonKey("location").AppendJsonBeginObject();
                 {
-                    messages.Add(currentError.Message);
-                    types.Add(currentError.Type);
-                    currentError = currentError.InnerError;
+                    writer.AppendJsonParamConditional("file", log.FilePath, screen: true);
+                    writer.AppendJsonParamConditional("line_number", log.LineNumber > 0 ? log.LineNumber.ToString() : null, screen: false);
+
+                    writer.AppendJsonParamConditional("assembly", log.Assembly, screen: true);
+                    writer.AppendJsonParamConditional("namespace", log.Namespace, screen: false);
+                    writer.AppendJsonParamConditional("class", log.Clazz, screen: false);
+                    writer.AppendJsonParamConditional("method", log.Method, screen: false);
+
+                    writer.AppendJsonParamConditional("stack_source", log.StackSources, screen: true);
+
+                    writer.AppendJsonEndObject();
                 }
 
-                AppendJsonParamConditional(sb, "exception_summary", _exceptionConverter.Convert(log), withComma: true, screen: true);
-                AppendJsonParamConditional(sb, "exception_messages", messages, withComma: true, screen: true);
-                AppendJsonParamConditional(sb, "exception_types", types, withComma: true, screen: true);
+                writer.AppendJsonKey("source").AppendJsonBeginObject();
+                {
+                    writer.AppendJsonParamConditional("process_name", log.ProcessName, screen: true);
+                    writer.AppendJsonParamConditional("pid", log.ProcessId > 0 ? log.ProcessId.ToString() : null, screen: false);
+                    writer.AppendJsonParamConditional("machine_name", log.MachineName, screen: true);
+                    writer.AppendJsonParamConditional("machine_ip", log.MachineIpAddress, screen: true);
+
+                    writer.AppendJsonEndObject();
+                }
+
+                if (log.Exception != null)
+                {
+                    List<string> messages = new List<string>();
+                    List<string> types = new List<string>();
+                    Error currentError = log.Exception;
+                    while (currentError != null)
+                    {
+                        messages.Add(currentError.Message);
+                        types.Add(currentError.Type);
+                        currentError = currentError.InnerError;
+                    }
+
+                    writer.AppendJsonParamConditional("exception", _exceptionConverter.Convert(log), screen: true);
+                    writer.AppendJsonParamConditional("exception.message", messages, screen: true);
+                    writer.AppendJsonParamConditional("exception.type", types, screen: true);
+                }
+
+                writer.AppendJsonEndObject(withComma: false);
             }
-
-            if (sb[sb.Length - 1] == ',')
-                sb.Remove(sb.Length - 1, 1);
-
-            string result = sb.Append("}\n").ToString();
-            return result;
+            return writer.GetStringBuilder().Append("\n").ToString();
         }
 
         protected override void Dispose(DisposeReason reason)
