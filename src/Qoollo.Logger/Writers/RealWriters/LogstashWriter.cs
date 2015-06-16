@@ -13,7 +13,7 @@ using Qoollo.Logger.Configuration;
 using Qoollo.Logger.Helpers;
 using Qoollo.Logger.LoggingEventConverters;
 using Qoollo.Logger.Net;
-using Qoollo.Logger.RealWriters.Helpers;
+using Qoollo.Logger.Writers.RealWriters.Helpers;
 
 namespace Qoollo.Logger.Writers
 {

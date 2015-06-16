@@ -15,7 +15,7 @@ namespace Qoollo.Logger
     /// Log - universal log method which also parametrized with LogLevel of message
     /// Trace, Debug, Info, Warn, Error, Fatal - separate logging methods for all log levels.
     /// </summary>
-    public abstract partial class LoggerBase : ILogger
+    public abstract partial class LoggerBase : LoggerImplementation.LoggerMarkerClass, ILogger
     {
         private const string Class = "Qoollo.Logger.LoggerBase";
 
@@ -151,9 +151,9 @@ namespace Qoollo.Logger
             {
                 var frame = stack.GetFrame(i);
                 var curMInf = frame.GetMethod();
-                if (curMInf != null && 
-                    curMInf.DeclaringType != typeof(LoggerBase) && !curMInf.DeclaringType.IsSubclassOf(typeof(LoggerBase)) &&
-                    curMInf.DeclaringType != typeof(LoggerStatic) && !curMInf.DeclaringType.IsSubclassOf(typeof(LoggerStatic)))
+                if (curMInf != null &&
+                    curMInf.DeclaringType != typeof(LoggerBase) && curMInf.DeclaringType != typeof(LoggerStatic) &&
+                    !curMInf.DeclaringType.IsSubclassOf(typeof(LoggerImplementation.LoggerMarkerClass)))
                 {
                     assembly = curMInf.DeclaringType.Assembly.FullName;
                     @namespace = curMInf.DeclaringType.Namespace;
@@ -185,9 +185,9 @@ namespace Qoollo.Logger
             {
                 var frame = stack.GetFrame(i);
                 var curMInf = frame.GetMethod();
-                if (curMInf != null && 
-                    curMInf.DeclaringType != typeof(LoggerBase) && !curMInf.DeclaringType.IsSubclassOf(typeof(LoggerBase)) &&
-                    curMInf.DeclaringType != typeof(LoggerStatic) && !curMInf.DeclaringType.IsSubclassOf(typeof(LoggerStatic)))
+                if (curMInf != null &&
+                    curMInf.DeclaringType != typeof(LoggerBase) && curMInf.DeclaringType != typeof(LoggerStatic) && 
+                    !curMInf.DeclaringType.IsSubclassOf(typeof(LoggerImplementation.LoggerMarkerClass)))
                 {
                     assembly = curMInf.DeclaringType.Assembly.FullName;
                     @namespace = curMInf.DeclaringType.Namespace;

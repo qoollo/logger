@@ -6,8 +6,15 @@ using System.Threading.Tasks;
 
 namespace Qoollo.Logger
 {
-    internal static partial class LoggerStatic
+    partial class LoggerStatic : LoggerImplementation.LoggerMarkerClass
     {
+        /// <summary>
+        /// LoggerStatic should not be created as instance. Use it as Static class.
+        /// </summary>
+        protected LoggerStatic()
+        {
+        }
+
         #region Log Levels
 
         /// <summary>

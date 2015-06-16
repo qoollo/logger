@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Qoollo.Logger.Helpers;
 using Qoollo.Logger.Net;
 
-namespace Qoollo.Logger.RealWriters.Helpers
+namespace Qoollo.Logger.Writers.RealWriters.Helpers
 {
     internal class TcpHelper: IDisposable
     {

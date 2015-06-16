@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -95,6 +96,7 @@ namespace Qoollo.Logger
         /// </summary>
         public static Logger EmptyLogger
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (_emptyInstance == null)
@@ -109,6 +111,7 @@ namespace Qoollo.Logger
         /// </summary>
         public static Logger ConsoleLogger
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (_consoleInstance == null)
@@ -123,6 +126,7 @@ namespace Qoollo.Logger
         /// </summary>
         public static Logger Instance
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (_defaultInstance == null)

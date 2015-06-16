@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,12 +10,16 @@ namespace Qoollo.Logger
     /// <summary>
     /// Static logger. Shortcut for 'LoggerDefault.Instance'
     /// </summary>
-    internal static partial class LoggerStatic
+    public partial class LoggerStatic
     {
         /// <summary>
         /// Instance of a wrapped logger
         /// </summary>
-        public static Logger Instance { get { return LoggerDefault.Instance; } }
+        public static Logger Instance
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return LoggerDefault.Instance; }
+        }
 
         /// <summary>
         /// Set logger singleton instance

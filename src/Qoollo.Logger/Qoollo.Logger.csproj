@@ -218,6 +218,7 @@
     <Compile Include="Helpers\ErrorTimeTracker.cs" />
     <Compile Include="Helpers\LocalMachineInfo.cs" />
     <Compile Include="LoggerDefault.cs" />
+    <Compile Include="LoggerImplementation\LoggerMarkerClass.cs" />
     <Compile Include="LoggerImplementation\LoggerStaticGen.cs">
       <DependentUpon>LoggerStaticGen.tt</DependentUpon>
       <AutoGen>True</AutoGen>

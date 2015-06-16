@@ -22,6 +22,7 @@ namespace Qoollo.Logger.Test
                 log1.Trace("trace sample: " + i.ToString());
                 log2.Trace("trace sample: " + i.ToString());
                 logger.Trace("trace sample: " + i.ToString());
+                Qoollo.Logger.LoggerStatic.Trace("trace sample: " + i.ToString());
             }
             System.Threading.Thread.Sleep(1);
             for (int i = 0; i < 500; i++)
@@ -29,6 +30,7 @@ namespace Qoollo.Logger.Test
                 log1.Debug("debug sample: " + i.ToString());
                 log2.Debug("debug sample: " + i.ToString());
                 logger.Debug("debug sample: " + i.ToString());
+                Qoollo.Logger.LoggerStatic.Debug("debug sample: " + i.ToString());
             }
             System.Threading.Thread.Sleep(1);
             for (int i = 0; i < 500; i++)
@@ -36,6 +38,7 @@ namespace Qoollo.Logger.Test
                 log1.Info("info sample: " + i.ToString());
                 log2.Info("info sample: " + i.ToString());
                 logger.Info("info sample: " + i.ToString());
+                Qoollo.Logger.LoggerStatic.Info("info sample: " + i.ToString());
             }
             System.Threading.Thread.Sleep(1);
             for (int i = 0; i < 500; i++)
@@ -43,6 +46,7 @@ namespace Qoollo.Logger.Test
                 log1.WarnFormat("warn sample: {0}", i);
                 log2.WarnFormat("warn sample: {0}", i);
                 logger.WarnFormat("warn sample: {0}", i);
+                Qoollo.Logger.LoggerStatic.WarnFormat("warn sample: {0}", i);
             }
             System.Threading.Thread.Sleep(1);
             Exception ex = new InvalidOperationException("test exc");
@@ -51,6 +55,7 @@ namespace Qoollo.Logger.Test
                 log1.Error(ex, "error sample: " + i.ToString());
                 log2.Error(ex, "error sample: " + i.ToString());
                 logger.Error(ex, "error sample: " + i.ToString());
+                Qoollo.Logger.LoggerStatic.Error(ex, "error sample: " + i.ToString());
             }
             System.Threading.Thread.Sleep(1);
             var realExc = GetRealExc();
@@ -59,12 +64,14 @@ namespace Qoollo.Logger.Test
                 log1.Fatal(realExc, "fatal sample: " + i.ToString());
                 log2.Fatal(realExc, "fatal sample: " + i.ToString());
                 logger.Fatal(realExc, "fatal sample: " + i.ToString());
+                Qoollo.Logger.LoggerStatic.Fatal(realExc, "fatal sample: " + i.ToString());
             }
 
             log1.Close();
             log2.Close();
             Qoollo.Logger.LoggerDefault.ResetInstance();
         }
+
 
         static void Main(string[] args)
         {
