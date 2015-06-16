@@ -18,6 +18,7 @@ Supported logging targets:
 * MS SQL Server database
 * Pipe service
 * Network service
+* Logstash
 
 
 Supported service facilities:
@@ -53,17 +54,9 @@ Supported service facilities:
 
 </configuration>
 ```
-- Load configuration on application start-up:
-```C#
-  Qoollo.Logger.LoggerDefault.LoadInstanceFromAppConfig();
-```
-- Use logger anywhere:
+- Now it is ready to use:
 ```C#
   Qoollo.Logger.LoggerDefault.Instance.Info("Hello world!");
-```
-- Don't forget to dispose logger when application is closing:
-```C#
-  Qoollo.Logger.LoggerDefault.ResetInstance();
 ```
 
 

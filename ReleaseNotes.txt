@@ -1,3 +1,11 @@
+vNext
+- Logstash target added
+- LoggerStatic added as an alternative for singleton LoggerDefault.Instance
+- Automatic initialization from app.config for global logger singleton
+- New substitution tokens: StackSourceHead, StackSourceTail, MachineIp
+- Several tweaks and fixes
+
+
 v2.1 (12.01.2015)
 - Public surface comments translated to English
 - DBWriter updated to the latest format of LogginEvent
