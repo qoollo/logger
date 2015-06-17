@@ -56,7 +56,7 @@ Supported service facilities:
 ```
 - Now it is ready to use:
 ```C#
-  Qoollo.Logger.LoggerDefault.Instance.Info("Hello world!");
+  Qoollo.Logger.LoggerStatic.Info("Hello world!");
 ```
 
 
