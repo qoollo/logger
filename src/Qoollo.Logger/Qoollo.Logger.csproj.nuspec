@@ -21,7 +21,7 @@
   <files>
     <file src="bin\$configuration$\$id$.pdb" target="lib\net45\" />
     <file src="bin\$configuration$\CodeContracts\*.dll" target="lib\net45\CodeContracts\" />
-    <file src="LoggerConfigHelpers\LoggerAppConfigSchema.xsd" target="lib\net45\" />
-    <file src="LoggerConfigHelpers\LoggerAppConfigSample.config" target="lib\net45\" />
+    <file src="LoggerConfigHelpers\LoggerAppConfigSchema.xsd" target="." />
+    <file src="LoggerConfigHelpers\LoggerAppConfigSample.config" target="." />
   </files>
 </package>

@@ -31,8 +31,8 @@ Supported service facilities:
 
 ## Quick start guide
 
-- Add reference to logger library
-- Add configuration section to your 'App.config':
+- Install [Qoollo.Logger](https://www.nuget.org/packages/Qoollo.Logger) NuGet package
+- Add configuration section to your 'App.config' (you can use [Qoollo.Logger.Config](https://www.nuget.org/packages/Qoollo.Logger.Config) NuGet package):
 ```XML
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
