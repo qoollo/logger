@@ -127,6 +127,23 @@ namespace Qoollo.Logger.Initialization
 
 
         /// <summary>
+        /// Initialize logger signleton in all referenced assemblies
+        /// </summary>
+        /// <param name="logger">Parent logger instance that will be wrapped by assembly logger singleton</param>
+        /// <returns>The number of loggers initialized by this call</returns>
+        public static int InitializeLoggerInReferencedAssemblies(ILogger logger)
+        {
+            Contract.Requires<ArgumentNullException>(logger != null);
+
+            var callingAssembly = Assembly.GetCallingAssembly();
+            var referencedAssemblies = callingAssembly.GetReferencedAssemblies();
+
+            return InitializeLoggerInAssembly(logger, referencedAssemblies.Select(o => Assembly.Load(o)));
+        }
+
+
+
+        /// <summary>
         /// Initialize logger signleton in dependant assembly. This logger is used as parent.
         /// </summary>
         /// <param name="wrapper">Parent logger instance that will be wrapped by assembly logger singleton</param>

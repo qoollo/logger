@@ -13,11 +13,53 @@ namespace Qoollo.Logger.Writers.RealWriters.Helpers
     /// </summary>
     internal class FileWriterFilePool : IDisposable
     {
-        class FileData
+        public struct FileStreamAndWriter
         {
-            public FileData(FileStream file)
+            private readonly FileStream _file;
+            private readonly StreamWriter _writer;
+
+            public FileStreamAndWriter(FileStream file, StreamWriter writer)
             {
+                Contract.Requires(file != null);
+                Contract.Requires(writer != null);
+
+                _file = file;
+                _writer = writer;
+            }
+
+            public FileStream File { get { return _file; } }
+            public StreamWriter Writer { get { return _writer; } }
+
+            public bool IsInitialized { get { return _file != null; } }
+
+            public void WriteLine(string line)
+            {
+                _writer.WriteLine(line);
+            }
+
+            public void RefreshPosition()
+            {
+                _writer.Flush();
+                _file.Seek(0, SeekOrigin.End);
+            }
+
+            public void Flush(bool toDisk)
+            {
+                _writer.Flush();
+                if (toDisk)
+                    _file.Flush(toDisk);
+            }
+        }
+
+        private class FileData: IDisposable
+        {
+            public FileData(FileStream file, Encoding encoding)
+            {
+                Contract.Requires(file != null);
+                Contract.Requires(encoding != null);
+
                 File = file;
+                Writer = new StreamWriter(file, encoding);
                 IsActive = true;
                 LastAccess = DateTime.Now;
             }
@@ -25,16 +67,40 @@ namespace Qoollo.Logger.Writers.RealWriters.Helpers
             public DateTime LastAccess;
             public bool IsActive;
             public FileStream File;
+            public StreamWriter Writer;
+
+            public FileStreamAndWriter GetFileStreamAndWriter()
+            {
+                return new FileStreamAndWriter(this.File, this.Writer);
+            }
+
+            /// <summary>
+            /// Flush and close file
+            /// </summary>
+            public void Dispose()
+            {
+                Writer.Flush();
+                File.Close();
+            }
         }
 
+
+        // =============
+
+
         private Dictionary<string, FileData> _files;
+        private Encoding _encoding;
         private DateTime _lastScan;
         private TimeSpan _trimPeriod;
         private System.Threading.Timer _trimTimer;
 
-        public FileWriterFilePool(TimeSpan trimPeriod)
+        public FileWriterFilePool(TimeSpan trimPeriod, Encoding encoding)
         {
+            Contract.Requires(trimPeriod > TimeSpan.Zero);
+            Contract.Requires(encoding != null);
+
             _files = new Dictionary<string, FileData>();
+            _encoding = encoding;
             _trimPeriod = trimPeriod;
             _lastScan = DateTime.Now;
 
@@ -42,41 +108,43 @@ namespace Qoollo.Logger.Writers.RealWriters.Helpers
         }
 
         /// <summary>
-        /// Request FileStream from pool
+        /// Request FileStream and StreamWriter from pool
         /// </summary>
-        /// <param name="name">Путь до файла</param>
-        /// <param name="releaseName">Имя файла для освобождения</param>
-        /// <param name="streamToRelease">Старый файл для освобождения</param>
-        /// <returns>Новый файл</returns>
-        public FileStream RequestFile(string name, FileStream streamToRelease, string releaseName)
+        /// <param name="name">Path to the file</param>
+        /// <param name="streamToRelease">Previous stream that should be released</param>
+        /// <param name="releaseName">Name of previously requested stream</param>
+        /// <returns>Requested stream with writer</returns>
+        public FileStreamAndWriter RequestFile(string name, FileStreamAndWriter streamToRelease, string releaseName)
         {
             //name = Path.GetFileName(name);
             lock (_files)
             {
                 FileData data = null;
 
-                if (streamToRelease != null)
+                if (streamToRelease.IsInitialized)
                 {
-                    releaseName = releaseName ?? streamToRelease.Name;
+                    releaseName = releaseName ?? streamToRelease.File.Name;
                     Contract.Assert(_files.ContainsKey(releaseName));
 
                     data = _files[releaseName];
-                    Contract.Assert(object.ReferenceEquals(streamToRelease, data.File));
+                    Contract.Assert(object.ReferenceEquals(streamToRelease.File, data.File));
+                    Contract.Assert(object.ReferenceEquals(streamToRelease.Writer, data.Writer));
 
                     data.LastAccess = DateTime.Now;
                     data.IsActive = false;
 
-                    if (!streamToRelease.CanWrite)
+                    if (!streamToRelease.File.CanWrite)
                     {
                         _files.Remove(releaseName);
-                        streamToRelease.Close();
+                        streamToRelease.Flush(false);
+                        streamToRelease.File.Close();
                     }
                 }
 
                 if (!_files.TryGetValue(name, out data))
                 {
                     var newFile = CreateFile(name);
-                    data = new FileData(newFile);
+                    data = new FileData(newFile, _encoding);
                     _files.Add(name, data);
                 }
 
@@ -84,7 +152,7 @@ namespace Qoollo.Logger.Writers.RealWriters.Helpers
                 data.IsActive = true;
 
                 Contract.Assert(data.File.CanWrite);
-                return data.File;
+                return data.GetFileStreamAndWriter();
             }
         }
 
@@ -129,7 +197,7 @@ namespace Qoollo.Logger.Writers.RealWriters.Helpers
             }
 
             foreach (var elem in forDetele)
-                elem.Value.File.Close();
+                elem.Value.Dispose();
         }
 
 
@@ -149,7 +217,7 @@ namespace Qoollo.Logger.Writers.RealWriters.Helpers
             if (isUserCall)
             {
                 foreach (var elem in forDetele)
-                    elem.Value.File.Close();
+                    elem.Value.Dispose();
             }
         }
 

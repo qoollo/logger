@@ -174,7 +174,9 @@ namespace Qoollo.Logger
             {
                 var frame = stack.GetFrame(i);
                 var curMInf = frame.GetMethod();
-                if (curMInf != null && curMInf.DeclaringType != typeof(LoggerBase) && !curMInf.DeclaringType.IsSubclassOf(typeof(LoggerBase)))
+                if (curMInf != null &&
+                    curMInf.DeclaringType != typeof(LoggerBase) && curMInf.DeclaringType != typeof(LoggerStatic) &&
+                    !curMInf.DeclaringType.IsSubclassOf(typeof(LoggerImplementation.LoggerMarkerClass)))
                 {
                     return GetClassLogger(curMInf.DeclaringType);
                 }

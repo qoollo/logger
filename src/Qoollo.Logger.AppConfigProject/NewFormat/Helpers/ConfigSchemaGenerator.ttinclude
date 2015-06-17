@@ -746,7 +746,7 @@
 
 			AnalizeTypes(rootTp, col);
 
-			return col.ToList();
+			return col.OrderBy(o => o.Name).ToList();
         }
     }
 #>

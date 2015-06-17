@@ -104,10 +104,10 @@ namespace Qoollo.Logger.Writers
 
 
         /// <summary>
-        /// Основной код освобождения ресурсов
+        /// Main clean-up code
         /// </summary>
-        /// <param name="isUserCall">Вызвано ли освобождение пользователем. False - деструктор</param>
-        protected virtual void Dispose(bool isUserCall)
+        /// <param name="reason">Disposing reason</param>
+        protected virtual void Dispose(DisposeReason reason)
         {
             if (!_isDisposed)
             {
@@ -117,20 +117,27 @@ namespace Qoollo.Logger.Writers
 
                 if (_readerThread != null)
                 {
-                    if (isUserCall)
+                    if (reason != DisposeReason.Finalize)
                         _readerThread.Join();
                 }
 
-                if (isUserCall)
+                if (reason == DisposeReason.Dispose)
                     _logger.Dispose();
+                else if (reason == DisposeReason.Close)
+                    _logger.Close();
 
                 _tempStoreLock.Dispose();
             }
         }
 
+        public void Close()
+        {
+            Dispose(DisposeReason.Close);
+            GC.SuppressFinalize(this);
+        }
         public void Dispose()
         {
-            Dispose(true);
+            Dispose(DisposeReason.Dispose);
             GC.SuppressFinalize(this);
         }
     }

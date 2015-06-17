@@ -15,7 +15,7 @@ namespace Qoollo.Logger
     /// Log - universal log method which also parametrized with LogLevel of message
     /// Trace, Debug, Info, Warn, Error, Fatal - separate logging methods for all log levels.
     /// </summary>
-    public abstract partial class LoggerBase : ILogger
+    public abstract partial class LoggerBase : LoggerImplementation.LoggerMarkerClass, ILogger
     {
         private const string Class = "Qoollo.Logger.LoggerBase";
 
@@ -151,7 +151,9 @@ namespace Qoollo.Logger
             {
                 var frame = stack.GetFrame(i);
                 var curMInf = frame.GetMethod();
-                if (curMInf != null && curMInf.DeclaringType != typeof(LoggerBase) && !curMInf.DeclaringType.IsSubclassOf(typeof(LoggerBase)))
+                if (curMInf != null &&
+                    curMInf.DeclaringType != typeof(LoggerBase) && curMInf.DeclaringType != typeof(LoggerStatic) &&
+                    !curMInf.DeclaringType.IsSubclassOf(typeof(LoggerImplementation.LoggerMarkerClass)))
                 {
                     assembly = curMInf.DeclaringType.Assembly.FullName;
                     @namespace = curMInf.DeclaringType.Namespace;
@@ -183,7 +185,9 @@ namespace Qoollo.Logger
             {
                 var frame = stack.GetFrame(i);
                 var curMInf = frame.GetMethod();
-                if (curMInf != null && curMInf.DeclaringType != typeof(LoggerBase) && !curMInf.DeclaringType.IsSubclassOf(typeof(LoggerBase)))
+                if (curMInf != null &&
+                    curMInf.DeclaringType != typeof(LoggerBase) && curMInf.DeclaringType != typeof(LoggerStatic) && 
+                    !curMInf.DeclaringType.IsSubclassOf(typeof(LoggerImplementation.LoggerMarkerClass)))
                 {
                     assembly = curMInf.DeclaringType.Assembly.FullName;
                     @namespace = curMInf.DeclaringType.Namespace;
@@ -398,7 +402,7 @@ namespace Qoollo.Logger
             string @namespace = null;
             ExtractCallerInfo(ref assembly, ref @namespace, ref @class, ref method, ref filePath, ref lineNumber);
 
-            var data = new LoggingEvent(message, exception, level, context, _stackSources, LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
+            var data = new LoggingEvent(message, exception, level, context, _stackSources, LocalMachineInfo.MachineName, LocalMachineInfo.MachineAddress, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId, assembly, @namespace, @class, method, filePath, lineNumber);
             _logger.Write(data);
         }
 
@@ -410,7 +414,8 @@ namespace Qoollo.Logger
         /// Main clean-up code
         /// </summary>
         /// <param name="isUserCall">Is called by user</param>
-        protected void Dispose(bool isUserCall)
+        /// <param name="isClose">Is called from Close method</param>
+        private void Dispose(bool isUserCall, bool isClose)
         {
             if (!_isDisposed)
             {
@@ -419,7 +424,12 @@ namespace Qoollo.Logger
                 if (isUserCall)
                 {
                     if (_logger != null)
-                        _logger.Dispose();
+                    {
+                        if (isClose)
+                            _logger.Close();
+                        else
+                            _logger.Dispose();
+                    }
                 }
             }
         }
@@ -429,6 +439,7 @@ namespace Qoollo.Logger
         /// Wirte passed message at Info level and then dispose the logger.
         /// Helps to distinct cases of expected closing of application and unexpected (by unhandled exception)
         /// </summary>
+        /// <param name="msg">Message to write</param>
         public void Close(string msg)
         {
             if (!_isDisposed)
@@ -436,21 +447,31 @@ namespace Qoollo.Logger
                 var thisType = this.GetType();
 
                 var data = new LoggingEvent(msg, null, LogLevel.Info, null, _stackSources,
-                    LocalMachineInfo.CombinedMachineName, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId,
+                    LocalMachineInfo.MachineName, LocalMachineInfo.MachineAddress, LocalMachineInfo.ProcessName, LocalMachineInfo.ProcessId,
                     thisType.Assembly.FullName, thisType.Namespace, thisType.Name, "Close", null, -1);
 
                 (this as ILogger).Write(data);
-                Dispose(true);
+                this.Close();
             }
+        }
+
+        /// <summary>
+        /// Close logger and clean-up all resources.
+        /// It guarantee that all pending messages will be processed.
+        /// </summary>
+        public void Close()
+        {
+            Dispose(true, isClose: true);
+            GC.SuppressFinalize(this);
         }
 
 
         /// <summary>
-        /// Clean up logger resources (see also 'void Close(string msg)')
+        /// Clean up logger resources (see also 'void Close()')
         /// </summary>
         public void Dispose()
         {
-            Dispose(true);
+            Dispose(true, isClose: false);
             GC.SuppressFinalize(this);
         }
 

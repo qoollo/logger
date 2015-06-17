@@ -130,6 +130,12 @@ namespace Qoollo.Logger.Configuration
         int Port { get; }
     }
 
+    interface ILogstashWriter : ILoggerWriterConfiguration
+    {
+        string ServerAddress { get; }
+        int Port { get; }
+    }
+
     public interface IDatabaseWriter : ILoggerWriterConfiguration
     {
         string ConnectionString { get; }

@@ -15,7 +15,7 @@ using System.Runtime.CompilerServices;
 
 namespace Qoollo.Logger
 {
-    partial class LoggerBase
+    partial class LoggerStatic
     {
     
 <#   
@@ -80,7 +80,9 @@ namespace Qoollo.Logger
         "/// from which logging performed.</param>";
         
     string parametersEnding = "ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0";
+    string callingEnding = "guard, @class, method, filePath, lineNumber";
     
+
     List<string> methodProtos = new List<string>
     {
         "string message",
@@ -100,6 +102,25 @@ namespace Qoollo.Logger
 		"Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4"
     };
 
+
+	List<string> methodCallings = new List<string>
+    {
+        "message",
+        "message, context",
+        "exception, message",
+        "exception, message, context",
+
+		"template",
+		"template, arg1",
+		"template, arg1, arg2",
+		"template, arg1, arg2, arg3",
+        "template, arg1, arg2, arg3, arg4",
+		"exception, template",
+		"exception, template, arg1",
+		"exception, template, arg1, arg2",
+		"exception, template, arg1, arg2, arg3",
+		"exception, template, arg1, arg2, arg3, arg4"
+    };
 #>
 
 		#region All logging methods
@@ -183,41 +204,17 @@ namespace Qoollo.Logger
 			methodParameters += parametersEnding;
 
 
-
-			string levelParameterValue = level == "Log" ? "level" : ("LogLevel." + level);
-			string exceptionParameterValue = methodProto.Contains("exception") ? "exception" : "null";
-			string messageParameterValue = "message";
-			string contextParameterValue = methodProto.Contains("context") ? "context" : "null";
-
-
-			if (methodProto.Contains("template"))
-			{
-				string formatArgs = "";
-				if (methodProto.Contains("arg1"))
-					formatArgs += "arg1, ";
-				if (methodProto.Contains("arg2"))
-					formatArgs += "arg2, ";
-				if (methodProto.Contains("arg3"))
-					formatArgs += "arg3, ";
-				if (methodProto.Contains("arg4"))
-					formatArgs += "arg4, ";
-
-				if (formatArgs != "")
-					messageParameterValue = "string.Format(template, " + formatArgs.Substring(0, formatArgs.Length - 2) + ")";
-				else
-					messageParameterValue = "template";
-			}
+			string methodCalling = methodCallings[methodProtos.IndexOf(methodProto)] + ", " + callingEnding;
+			if (level == "Log")
+				methodCalling = "level, " + methodCalling;
 		#>
 
 
 		<#= comment #>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void <#= methodName #><#= methodGenericParams #>(<#= methodParameters #>)
+		public static void <#= methodName #><#= methodGenericParams #>(<#= methodParameters #>)
 		{
-			if (<#= level == "Log" ? "Level.IsEnabled(level)" : ("_is" + level + "Enabled" ) #> && _isEnabled)
-			{
-				this.WriteLog(<#= levelParameterValue #>, <#= exceptionParameterValue #>, <#= messageParameterValue #>, <#= contextParameterValue #>, @class, method, filePath, lineNumber);
-			}
+			Instance.<#= methodName #>(<#= methodCalling #>);
 		}
 
 	<# } #>

@@ -17,7 +17,7 @@ namespace Qoollo.Logger.Writers
     {
         private static readonly Logger _thisClassSupportLogger = InnerSupportLogger.Instance.GetClassLogger(typeof(NetWriter));
 
-        private readonly InernalStableLoggerNetClient _writer;
+        private readonly InternalStableLoggerNetClient _writer;
 
         private readonly string _serverName;
         private readonly int _port;
@@ -37,7 +37,7 @@ namespace Qoollo.Logger.Writers
             _serverName = config.ServerAddress;
             _port = config.Port;
 
-            _writer = InernalStableLoggerNetClient.CreateOnTcpInternal(_serverName, _port);
+            _writer = InternalStableLoggerNetClient.CreateOnTcpInternal(_serverName, _port);
             _writer.Start();
         }
 
@@ -108,18 +108,24 @@ namespace Qoollo.Logger.Writers
         }
 
 
-        protected override void Dispose(bool isUserCall)
+        protected override void Dispose(DisposeReason reason)
         {
             if (!_isDisposed)
             {
                 _isDisposed = true;
 
-                lock (_lockWrite)
+                if (reason != DisposeReason.Finalize)
+                {
+                    lock (_lockWrite)
+                    {
+                        if (_writer != null)
+                            _writer.Dispose();
+                    }
+                }
+                else
                 {
                     if (_writer != null)
-                    {
-                        _writer.Dispose();
-                    }
+                        _writer.FinalizeFast();
                 }
             }
         }

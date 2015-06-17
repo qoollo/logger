@@ -75,6 +75,15 @@ namespace Qoollo.Logger.LoggingEventConverters
         }
 
         /// <summary>
+        /// Creates converter for 'MachineIpAddress' property of LoggingEvent
+        /// </summary>
+        /// <returns>Created converter</returns>
+        public virtual LoggingEventConverterBase CreateMachineIpAddressConverter()
+        {
+            return new MachineIpAddressConverter();
+        }
+
+        /// <summary>
         /// Creates converter for 'ProcessName' property of LoggingEvent
         /// </summary>
         /// <returns>Created converter</returns>
@@ -153,6 +162,24 @@ namespace Qoollo.Logger.LoggingEventConverters
         public virtual LoggingEventConverterBase CreateStackSourceConverter()
         {
             return new StackSourceConverter();
+        }
+
+        /// <summary>
+        /// Creates converter for 'StackSources[0]' property of LoggingEvent
+        /// </summary>
+        /// <returns>Created converter</returns>
+        public virtual LoggingEventConverterBase CreateStackSourceHeadConverter()
+        {
+            return new StackSourceHeadConverter();
+        }
+
+        /// <summary>
+        /// Creates converter for 'StackSources[end]' property of LoggingEvent
+        /// </summary>
+        /// <returns>Created converter</returns>
+        public virtual LoggingEventConverterBase CreateStackSourceTailConverter()
+        {
+            return new StackSourceTailConverter();
         }
     }
 }

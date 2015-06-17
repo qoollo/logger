@@ -89,6 +89,11 @@ namespace Qoollo.Logger.Configuration.LoggerConfigurationV2
             return new NetWriterConfiguration(ConvertLogLevel(config.LogLevel), config.ServerAddress, config.Port);
         }
 
+        private static LogstashWriterConfiguration CreateLoggerConfigurationInstance(ILogstashWriter config)
+        {
+            return new LogstashWriterConfiguration(ConvertLogLevel(config.LogLevel), config.ServerAddress, config.Port);
+        }
+
         private static EmptyWriterConfiguration CreateLoggerConfigurationInstance(IEmptyWriter config)
         {
             return new EmptyWriterConfiguration();
@@ -171,6 +176,9 @@ namespace Qoollo.Logger.Configuration.LoggerConfigurationV2
 
             if (baseConfig is INetworkWriter)
                 return CreateLoggerConfigurationInstance(baseConfig as INetworkWriter);
+
+            if (baseConfig is ILogstashWriter)
+                return CreateLoggerConfigurationInstance(baseConfig as ILogstashWriter);
 
             if (baseConfig is IGroupWrapper)
                 return CreateLoggerConfigurationInstance(baseConfig as IGroupWrapper);

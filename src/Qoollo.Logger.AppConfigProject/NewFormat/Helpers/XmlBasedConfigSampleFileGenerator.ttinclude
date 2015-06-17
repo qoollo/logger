@@ -53,7 +53,7 @@
 
 		doc.Add(
 			new XElement("configuration",
-				new XElement("configSection",
+				new XElement("configSections",
 					new XElement("section",
 						new XAttribute("name", sectionName),
 						new XAttribute("type", string.Format("{0}.{1}, {2}", ns, NameResolveHelper.GetConfigClassNameByIntName(intType), assembly)),
@@ -174,9 +174,17 @@
 					{
 						ConfigSubstituteTypeAttribute allSubstAttrib = null;
 						if (attribVal.Attrib.AllowInheritance)
-							allSubstAttrib = attribVal.PropTypeInfo.InheritanceTypeSubstitution[0];
+						{
+							allSubstAttrib = attribVal.PropTypeInfo.InheritanceTypeSubstitution.FirstOrDefault(o => !localPassedInterf.Contains(o.SubType));
+							if (allSubstAttrib == null)
+								allSubstAttrib = attribVal.PropTypeInfo.InheritanceTypeSubstitution.FirstOrDefault(o => o.SubType != intType);
+							if (allSubstAttrib == null)
+								allSubstAttrib = attribVal.PropTypeInfo.InheritanceTypeSubstitution[0];
+						}
 						else
+						{
 							allSubstAttrib = attribVal.PropTypeInfo.OwnTypeSubstitution;
+						}
 
 						string testName = null;
 						if (allSubstAttrib != null)

@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace Qoollo.Logger
 {
-    partial class LoggerBase
+    partial class LoggerStatic
     {
     
 
@@ -31,12 +31,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Log(LogLevel level, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Log(LogLevel level, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (Level.IsEnabled(level) && _isEnabled)
-			{
-				this.WriteLog(level, null, message, null, @class, method, filePath, lineNumber);
-			}
+			Instance.Log(level, message, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -57,12 +54,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Log(LogLevel level, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Log(LogLevel level, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (Level.IsEnabled(level) && _isEnabled)
-			{
-				this.WriteLog(level, null, message, context, @class, method, filePath, lineNumber);
-			}
+			Instance.Log(level, message, context, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -82,12 +76,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Log(LogLevel level, Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Log(LogLevel level, Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (Level.IsEnabled(level) && _isEnabled)
-			{
-				this.WriteLog(level, exception, message, null, @class, method, filePath, lineNumber);
-			}
+			Instance.Log(level, exception, message, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -109,12 +100,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Log(LogLevel level, Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Log(LogLevel level, Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (Level.IsEnabled(level) && _isEnabled)
-			{
-				this.WriteLog(level, exception, message, context, @class, method, filePath, lineNumber);
-			}
+			Instance.Log(level, exception, message, context, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -133,12 +121,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void LogFormat(LogLevel level, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void LogFormat(LogLevel level, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (Level.IsEnabled(level) && _isEnabled)
-			{
-				this.WriteLog(level, null, template, null, @class, method, filePath, lineNumber);
-			}
+			Instance.LogFormat(level, template, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -159,12 +144,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void LogFormat<TArg1>(LogLevel level, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void LogFormat<TArg1>(LogLevel level, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (Level.IsEnabled(level) && _isEnabled)
-			{
-				this.WriteLog(level, null, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
-			}
+			Instance.LogFormat(level, template, arg1, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -187,12 +169,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void LogFormat<TArg1, TArg2>(LogLevel level, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void LogFormat<TArg1, TArg2>(LogLevel level, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (Level.IsEnabled(level) && _isEnabled)
-			{
-				this.WriteLog(level, null, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
-			}
+			Instance.LogFormat(level, template, arg1, arg2, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -217,12 +196,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void LogFormat<TArg1, TArg2, TArg3>(LogLevel level, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void LogFormat<TArg1, TArg2, TArg3>(LogLevel level, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (Level.IsEnabled(level) && _isEnabled)
-			{
-				this.WriteLog(level, null, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
-			}
+			Instance.LogFormat(level, template, arg1, arg2, arg3, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -249,12 +225,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void LogFormat<TArg1, TArg2, TArg3, TArg4>(LogLevel level, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void LogFormat<TArg1, TArg2, TArg3, TArg4>(LogLevel level, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (Level.IsEnabled(level) && _isEnabled)
-			{
-				this.WriteLog(level, null, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
-			}
+			Instance.LogFormat(level, template, arg1, arg2, arg3, arg4, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -274,12 +247,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void LogFormat(LogLevel level, Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void LogFormat(LogLevel level, Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (Level.IsEnabled(level) && _isEnabled)
-			{
-				this.WriteLog(level, exception, template, null, @class, method, filePath, lineNumber);
-			}
+			Instance.LogFormat(level, exception, template, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -301,12 +271,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void LogFormat<TArg1>(LogLevel level, Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void LogFormat<TArg1>(LogLevel level, Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (Level.IsEnabled(level) && _isEnabled)
-			{
-				this.WriteLog(level, exception, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
-			}
+			Instance.LogFormat(level, exception, template, arg1, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -330,12 +297,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void LogFormat<TArg1, TArg2>(LogLevel level, Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void LogFormat<TArg1, TArg2>(LogLevel level, Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (Level.IsEnabled(level) && _isEnabled)
-			{
-				this.WriteLog(level, exception, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
-			}
+			Instance.LogFormat(level, exception, template, arg1, arg2, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -361,12 +325,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void LogFormat<TArg1, TArg2, TArg3>(LogLevel level, Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void LogFormat<TArg1, TArg2, TArg3>(LogLevel level, Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (Level.IsEnabled(level) && _isEnabled)
-			{
-				this.WriteLog(level, exception, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
-			}
+			Instance.LogFormat(level, exception, template, arg1, arg2, arg3, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -394,12 +355,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void LogFormat<TArg1, TArg2, TArg3, TArg4>(LogLevel level, Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void LogFormat<TArg1, TArg2, TArg3, TArg4>(LogLevel level, Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (Level.IsEnabled(level) && _isEnabled)
-			{
-				this.WriteLog(level, exception, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
-			}
+			Instance.LogFormat(level, exception, template, arg1, arg2, arg3, arg4, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -423,12 +381,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Trace(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Trace(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isTraceEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Trace, null, message, null, @class, method, filePath, lineNumber);
-			}
+			Instance.Trace(message, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -448,12 +403,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Trace(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Trace(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isTraceEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Trace, null, message, context, @class, method, filePath, lineNumber);
-			}
+			Instance.Trace(message, context, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -472,12 +424,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Trace(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Trace(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isTraceEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Trace, exception, message, null, @class, method, filePath, lineNumber);
-			}
+			Instance.Trace(exception, message, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -498,12 +447,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Trace(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Trace(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isTraceEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Trace, exception, message, context, @class, method, filePath, lineNumber);
-			}
+			Instance.Trace(exception, message, context, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -521,12 +467,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void TraceFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void TraceFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isTraceEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Trace, null, template, null, @class, method, filePath, lineNumber);
-			}
+			Instance.TraceFormat(template, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -546,12 +489,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void TraceFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void TraceFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isTraceEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Trace, null, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
-			}
+			Instance.TraceFormat(template, arg1, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -573,12 +513,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void TraceFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void TraceFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isTraceEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Trace, null, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
-			}
+			Instance.TraceFormat(template, arg1, arg2, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -602,12 +539,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void TraceFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void TraceFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isTraceEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Trace, null, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
-			}
+			Instance.TraceFormat(template, arg1, arg2, arg3, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -633,12 +567,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void TraceFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void TraceFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isTraceEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Trace, null, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
-			}
+			Instance.TraceFormat(template, arg1, arg2, arg3, arg4, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -657,12 +588,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void TraceFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void TraceFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isTraceEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Trace, exception, template, null, @class, method, filePath, lineNumber);
-			}
+			Instance.TraceFormat(exception, template, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -683,12 +611,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void TraceFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void TraceFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isTraceEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Trace, exception, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
-			}
+			Instance.TraceFormat(exception, template, arg1, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -711,12 +636,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void TraceFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void TraceFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isTraceEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Trace, exception, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
-			}
+			Instance.TraceFormat(exception, template, arg1, arg2, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -741,12 +663,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void TraceFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void TraceFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isTraceEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Trace, exception, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
-			}
+			Instance.TraceFormat(exception, template, arg1, arg2, arg3, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -773,12 +692,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void TraceFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void TraceFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isTraceEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Trace, exception, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
-			}
+			Instance.TraceFormat(exception, template, arg1, arg2, arg3, arg4, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -802,12 +718,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Debug(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Debug(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isDebugEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Debug, null, message, null, @class, method, filePath, lineNumber);
-			}
+			Instance.Debug(message, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -827,12 +740,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Debug(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Debug(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isDebugEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Debug, null, message, context, @class, method, filePath, lineNumber);
-			}
+			Instance.Debug(message, context, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -851,12 +761,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Debug(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Debug(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isDebugEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Debug, exception, message, null, @class, method, filePath, lineNumber);
-			}
+			Instance.Debug(exception, message, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -877,12 +784,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Debug(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Debug(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isDebugEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Debug, exception, message, context, @class, method, filePath, lineNumber);
-			}
+			Instance.Debug(exception, message, context, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -900,12 +804,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void DebugFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void DebugFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isDebugEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Debug, null, template, null, @class, method, filePath, lineNumber);
-			}
+			Instance.DebugFormat(template, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -925,12 +826,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void DebugFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void DebugFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isDebugEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Debug, null, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
-			}
+			Instance.DebugFormat(template, arg1, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -952,12 +850,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void DebugFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void DebugFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isDebugEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Debug, null, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
-			}
+			Instance.DebugFormat(template, arg1, arg2, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -981,12 +876,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void DebugFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void DebugFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isDebugEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Debug, null, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
-			}
+			Instance.DebugFormat(template, arg1, arg2, arg3, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1012,12 +904,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void DebugFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void DebugFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isDebugEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Debug, null, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
-			}
+			Instance.DebugFormat(template, arg1, arg2, arg3, arg4, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1036,12 +925,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void DebugFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void DebugFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isDebugEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Debug, exception, template, null, @class, method, filePath, lineNumber);
-			}
+			Instance.DebugFormat(exception, template, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1062,12 +948,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void DebugFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void DebugFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isDebugEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Debug, exception, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
-			}
+			Instance.DebugFormat(exception, template, arg1, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1090,12 +973,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void DebugFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void DebugFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isDebugEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Debug, exception, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
-			}
+			Instance.DebugFormat(exception, template, arg1, arg2, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1120,12 +1000,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void DebugFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void DebugFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isDebugEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Debug, exception, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
-			}
+			Instance.DebugFormat(exception, template, arg1, arg2, arg3, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1152,12 +1029,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void DebugFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void DebugFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isDebugEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Debug, exception, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
-			}
+			Instance.DebugFormat(exception, template, arg1, arg2, arg3, arg4, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1181,12 +1055,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Info(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Info(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isInfoEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Info, null, message, null, @class, method, filePath, lineNumber);
-			}
+			Instance.Info(message, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1206,12 +1077,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Info(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Info(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isInfoEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Info, null, message, context, @class, method, filePath, lineNumber);
-			}
+			Instance.Info(message, context, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1230,12 +1098,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Info(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Info(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isInfoEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Info, exception, message, null, @class, method, filePath, lineNumber);
-			}
+			Instance.Info(exception, message, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1256,12 +1121,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Info(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Info(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isInfoEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Info, exception, message, context, @class, method, filePath, lineNumber);
-			}
+			Instance.Info(exception, message, context, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1279,12 +1141,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void InfoFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void InfoFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isInfoEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Info, null, template, null, @class, method, filePath, lineNumber);
-			}
+			Instance.InfoFormat(template, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1304,12 +1163,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void InfoFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void InfoFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isInfoEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Info, null, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
-			}
+			Instance.InfoFormat(template, arg1, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1331,12 +1187,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void InfoFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void InfoFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isInfoEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Info, null, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
-			}
+			Instance.InfoFormat(template, arg1, arg2, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1360,12 +1213,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void InfoFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void InfoFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isInfoEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Info, null, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
-			}
+			Instance.InfoFormat(template, arg1, arg2, arg3, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1391,12 +1241,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void InfoFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void InfoFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isInfoEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Info, null, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
-			}
+			Instance.InfoFormat(template, arg1, arg2, arg3, arg4, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1415,12 +1262,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void InfoFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void InfoFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isInfoEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Info, exception, template, null, @class, method, filePath, lineNumber);
-			}
+			Instance.InfoFormat(exception, template, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1441,12 +1285,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void InfoFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void InfoFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isInfoEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Info, exception, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
-			}
+			Instance.InfoFormat(exception, template, arg1, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1469,12 +1310,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void InfoFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void InfoFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isInfoEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Info, exception, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
-			}
+			Instance.InfoFormat(exception, template, arg1, arg2, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1499,12 +1337,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void InfoFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void InfoFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isInfoEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Info, exception, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
-			}
+			Instance.InfoFormat(exception, template, arg1, arg2, arg3, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1531,12 +1366,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void InfoFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void InfoFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isInfoEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Info, exception, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
-			}
+			Instance.InfoFormat(exception, template, arg1, arg2, arg3, arg4, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1560,12 +1392,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Warn(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Warn(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isWarnEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Warn, null, message, null, @class, method, filePath, lineNumber);
-			}
+			Instance.Warn(message, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1585,12 +1414,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Warn(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Warn(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isWarnEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Warn, null, message, context, @class, method, filePath, lineNumber);
-			}
+			Instance.Warn(message, context, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1609,12 +1435,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Warn(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Warn(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isWarnEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Warn, exception, message, null, @class, method, filePath, lineNumber);
-			}
+			Instance.Warn(exception, message, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1635,12 +1458,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Warn(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Warn(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isWarnEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Warn, exception, message, context, @class, method, filePath, lineNumber);
-			}
+			Instance.Warn(exception, message, context, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1658,12 +1478,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void WarnFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void WarnFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isWarnEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Warn, null, template, null, @class, method, filePath, lineNumber);
-			}
+			Instance.WarnFormat(template, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1683,12 +1500,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void WarnFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void WarnFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isWarnEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Warn, null, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
-			}
+			Instance.WarnFormat(template, arg1, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1710,12 +1524,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void WarnFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void WarnFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isWarnEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Warn, null, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
-			}
+			Instance.WarnFormat(template, arg1, arg2, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1739,12 +1550,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void WarnFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void WarnFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isWarnEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Warn, null, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
-			}
+			Instance.WarnFormat(template, arg1, arg2, arg3, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1770,12 +1578,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void WarnFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void WarnFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isWarnEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Warn, null, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
-			}
+			Instance.WarnFormat(template, arg1, arg2, arg3, arg4, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1794,12 +1599,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void WarnFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void WarnFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isWarnEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Warn, exception, template, null, @class, method, filePath, lineNumber);
-			}
+			Instance.WarnFormat(exception, template, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1820,12 +1622,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void WarnFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void WarnFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isWarnEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Warn, exception, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
-			}
+			Instance.WarnFormat(exception, template, arg1, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1848,12 +1647,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void WarnFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void WarnFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isWarnEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Warn, exception, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
-			}
+			Instance.WarnFormat(exception, template, arg1, arg2, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1878,12 +1674,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void WarnFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void WarnFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isWarnEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Warn, exception, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
-			}
+			Instance.WarnFormat(exception, template, arg1, arg2, arg3, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1910,12 +1703,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void WarnFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void WarnFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isWarnEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Warn, exception, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
-			}
+			Instance.WarnFormat(exception, template, arg1, arg2, arg3, arg4, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1939,12 +1729,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Error(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Error(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isErrorEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Error, null, message, null, @class, method, filePath, lineNumber);
-			}
+			Instance.Error(message, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1964,12 +1751,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Error(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Error(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isErrorEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Error, null, message, context, @class, method, filePath, lineNumber);
-			}
+			Instance.Error(message, context, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -1988,12 +1772,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Error(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Error(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isErrorEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Error, exception, message, null, @class, method, filePath, lineNumber);
-			}
+			Instance.Error(exception, message, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2014,12 +1795,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Error(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Error(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isErrorEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Error, exception, message, context, @class, method, filePath, lineNumber);
-			}
+			Instance.Error(exception, message, context, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2037,12 +1815,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ErrorFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void ErrorFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isErrorEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Error, null, template, null, @class, method, filePath, lineNumber);
-			}
+			Instance.ErrorFormat(template, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2062,12 +1837,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ErrorFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void ErrorFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isErrorEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Error, null, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
-			}
+			Instance.ErrorFormat(template, arg1, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2089,12 +1861,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ErrorFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void ErrorFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isErrorEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Error, null, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
-			}
+			Instance.ErrorFormat(template, arg1, arg2, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2118,12 +1887,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ErrorFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void ErrorFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isErrorEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Error, null, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
-			}
+			Instance.ErrorFormat(template, arg1, arg2, arg3, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2149,12 +1915,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ErrorFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void ErrorFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isErrorEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Error, null, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
-			}
+			Instance.ErrorFormat(template, arg1, arg2, arg3, arg4, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2173,12 +1936,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ErrorFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void ErrorFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isErrorEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Error, exception, template, null, @class, method, filePath, lineNumber);
-			}
+			Instance.ErrorFormat(exception, template, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2199,12 +1959,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ErrorFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void ErrorFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isErrorEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Error, exception, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
-			}
+			Instance.ErrorFormat(exception, template, arg1, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2227,12 +1984,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ErrorFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void ErrorFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isErrorEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Error, exception, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
-			}
+			Instance.ErrorFormat(exception, template, arg1, arg2, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2257,12 +2011,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ErrorFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void ErrorFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isErrorEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Error, exception, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
-			}
+			Instance.ErrorFormat(exception, template, arg1, arg2, arg3, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2289,12 +2040,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ErrorFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void ErrorFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isErrorEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Error, exception, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
-			}
+			Instance.ErrorFormat(exception, template, arg1, arg2, arg3, arg4, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2318,12 +2066,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Fatal(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Fatal(string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isFatalEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Fatal, null, message, null, @class, method, filePath, lineNumber);
-			}
+			Instance.Fatal(message, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2343,12 +2088,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Fatal(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Fatal(string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isFatalEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Fatal, null, message, context, @class, method, filePath, lineNumber);
-			}
+			Instance.Fatal(message, context, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2367,12 +2109,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Fatal(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Fatal(Exception exception, string message, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isFatalEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Fatal, exception, message, null, @class, method, filePath, lineNumber);
-			}
+			Instance.Fatal(exception, message, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2393,12 +2132,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Fatal(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void Fatal(Exception exception, string message, string context, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isFatalEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Fatal, exception, message, context, @class, method, filePath, lineNumber);
-			}
+			Instance.Fatal(exception, message, context, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2416,12 +2152,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void FatalFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void FatalFormat(string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isFatalEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Fatal, null, template, null, @class, method, filePath, lineNumber);
-			}
+			Instance.FatalFormat(template, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2441,12 +2174,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void FatalFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void FatalFormat<TArg1>(string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isFatalEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Fatal, null, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
-			}
+			Instance.FatalFormat(template, arg1, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2468,12 +2198,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void FatalFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void FatalFormat<TArg1, TArg2>(string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isFatalEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Fatal, null, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
-			}
+			Instance.FatalFormat(template, arg1, arg2, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2497,12 +2224,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void FatalFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void FatalFormat<TArg1, TArg2, TArg3>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isFatalEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Fatal, null, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
-			}
+			Instance.FatalFormat(template, arg1, arg2, arg3, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2528,12 +2252,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void FatalFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void FatalFormat<TArg1, TArg2, TArg3, TArg4>(string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isFatalEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Fatal, null, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
-			}
+			Instance.FatalFormat(template, arg1, arg2, arg3, arg4, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2552,12 +2273,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void FatalFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void FatalFormat(Exception exception, string template, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isFatalEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Fatal, exception, template, null, @class, method, filePath, lineNumber);
-			}
+			Instance.FatalFormat(exception, template, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2578,12 +2296,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void FatalFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void FatalFormat<TArg1>(Exception exception, string template, TArg1 arg1, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isFatalEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Fatal, exception, string.Format(template, arg1), null, @class, method, filePath, lineNumber);
-			}
+			Instance.FatalFormat(exception, template, arg1, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2606,12 +2321,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void FatalFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void FatalFormat<TArg1, TArg2>(Exception exception, string template, TArg1 arg1, TArg2 arg2, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isFatalEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Fatal, exception, string.Format(template, arg1, arg2), null, @class, method, filePath, lineNumber);
-			}
+			Instance.FatalFormat(exception, template, arg1, arg2, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2636,12 +2348,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void FatalFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void FatalFormat<TArg1, TArg2, TArg3>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isFatalEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Fatal, exception, string.Format(template, arg1, arg2, arg3), null, @class, method, filePath, lineNumber);
-			}
+			Instance.FatalFormat(exception, template, arg1, arg2, arg3, guard, @class, method, filePath, lineNumber);
 		}
 
 	
@@ -2668,12 +2377,9 @@ namespace Qoollo.Logger
 		/// <param name="method">Auto-completed parameter! Method name 
 		/// from which logging performed.</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void FatalFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
+		public static void FatalFormat<TArg1, TArg2, TArg3, TArg4>(Exception exception, string template, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, ParameterGuardClass guard = null, string @class = null, [CallerMemberName] string method = null, [CallerFilePath] string filePath = null, [CallerLineNumber] int lineNumber = 0)
 		{
-			if (_isFatalEnabled && _isEnabled)
-			{
-				this.WriteLog(LogLevel.Fatal, exception, string.Format(template, arg1, arg2, arg3, arg4), null, @class, method, filePath, lineNumber);
-			}
+			Instance.FatalFormat(exception, template, arg1, arg2, arg3, arg4, guard, @class, method, filePath, lineNumber);
 		}
 
 	

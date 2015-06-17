@@ -218,7 +218,19 @@
     <Compile Include="Helpers\ErrorTimeTracker.cs" />
     <Compile Include="Helpers\LocalMachineInfo.cs" />
     <Compile Include="LoggerDefault.cs" />
+    <Compile Include="LoggerImplementation\LoggerMarkerClass.cs" />
+    <Compile Include="LoggerImplementation\LoggerStaticGen.cs">
+      <DependentUpon>LoggerStaticGen.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="LoggerImplementation\LoggerStatic.cs" />
+    <Compile Include="LoggerStatic.cs" />
     <Compile Include="Net\InernalStableLoggerNetClient.cs" />
+    <Compile Include="Writers\DisposeReason.cs" />
+    <Compile Include="Writers\RealWriters\Helpers\JsonSimpleWriter.cs" />
+    <Compile Include="Writers\RealWriters\Helpers\TcpHelper.cs" />
+    <Compile Include="Writers\RealWriters\LogstashWriter.cs" />
     <Compile Include="Writers\Wrappers\Helpers\QueueAsyncProcessing\QueueAsyncProcessor.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -250,7 +262,6 @@
     <Compile Include="InnerSupportLogger.cs" />
     <Compile Include="Common\ParameterGuardClass.cs" />
     <Compile Include="Writers\Wrappers\Helpers\QueueAsyncProcessing\QueueAsyncProcessorBase.cs" />
-    <Compile Include="Writers\Wrappers\Helpers\QueueAsyncProcessing\QueueAsyncProcessorException.cs" />
     <Compile Include="LoggingEventConverters\TemplateParser.cs" />
     <Compile Include="Writers\Wrappers\Helpers\TemporaryStore\TemporaryStoreBase.cs" />
     <Compile Include="Writers\Wrappers\Helpers\TemporaryStore\TemporaryStoreLockFile.cs" />
@@ -299,7 +310,12 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="LoggerImplementation\LoggerStaticGen.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LoggerStaticGen.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

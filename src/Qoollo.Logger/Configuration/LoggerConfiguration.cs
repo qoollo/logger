@@ -578,7 +578,7 @@ namespace Qoollo.Logger.Configuration
         /// <summary>
         /// Default file name format string
         /// </summary>
-        public const string DefaultFileNameTemplateFormat = "logs/app.log";
+        public const string DefaultFileNameTemplateFormat = "logs/{DateTime, format = yyyy-MM-dd}.log";
 
         /// <summary>
         /// FileWriterConfiguration constructor
@@ -783,6 +783,75 @@ namespace Qoollo.Logger.Configuration
         /// NetWriterConfiguration constructor
         /// </summary>
         public NetWriterConfiguration()
+            : this(LogLevel.FullLog, DefaultServerName, DefaultPort)
+        {
+
+        }
+
+        /// <summary>
+        /// Server address/host
+        /// </summary>
+        public string ServerAddress { get; private set; }
+
+        /// <summary>
+        /// Server TCP port
+        /// </summary>
+        public int Port { get; private set; }
+    }
+
+    /// <summary>
+    /// Configuration for Logstash Writer (sends logs to logstash tcp server in json format)
+    /// </summary>
+    public class LogstashWriterConfiguration : LogWriterConfiguration
+    {
+        /// <summary>
+        /// Default server TCP port
+        /// </summary>
+        public const int DefaultPort = 5001;
+        /// <summary>
+        /// Default server address/host
+        /// </summary>
+        public const string DefaultServerName = "127.0.0.1";
+
+        /// <summary>
+        /// LogstashWriterConfiguration constructor
+        /// </summary>
+        /// <param name="level">Log level</param>
+        /// <param name="serverAddress">Logstash tcp server address</param>
+        /// <param name="port">Logstash tcp server port</param>
+        public LogstashWriterConfiguration(LogLevel level, string serverAddress, int port)
+            : base(level, WriterTypeEnum.LogstashWriter)
+        {
+            Contract.Requires<ArgumentNullException>(level != null);
+            Contract.Requires<ArgumentNullException>(serverAddress != null);
+            Contract.Requires<ArgumentException>(port > 0 && port < 65536);
+
+            ServerAddress = serverAddress;
+            Port = port;
+        }
+        /// <summary>
+        /// LogstashWriterConfiguration constructor
+        /// </summary>
+        /// <param name="level">Log level</param>
+        /// <param name="serverAddress">Logstash tcp server address</param>
+        public LogstashWriterConfiguration(LogLevel level, string serverAddress)
+            : this(level, serverAddress, DefaultPort)
+        {
+
+        }
+        /// <summary>
+        /// LogstashWriterConfiguration constructor
+        /// </summary>
+        /// <param name="serverAddress">Logstash tcp server address</param>
+        public LogstashWriterConfiguration(string serverAddress)
+            : this(LogLevel.FullLog, serverAddress, DefaultPort)
+        {
+
+        }
+        /// <summary>
+        /// LogstashWriterConfiguration constructor
+        /// </summary>
+        public LogstashWriterConfiguration()
             : this(LogLevel.FullLog, DefaultServerName, DefaultPort)
         {
 

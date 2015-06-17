@@ -40,6 +40,7 @@
 	Params.AssemblyName = AssemblyName;
 	Params.GenerateInterface = GenerateInterfaces;
 	Params.SectionName = OverridedSectionName;
+	Params.GenerateAppConfigLoader = false;
 
 	if (Params.SectionName == null)
     {
@@ -112,6 +113,7 @@
 	[ConfigSubstituteTypeAttribute(typeof(IFileWriter))]
 	[ConfigSubstituteTypeAttribute(typeof(IPipeWriter))]
 	[ConfigSubstituteTypeAttribute(typeof(INetworkWriter))]
+	[ConfigSubstituteTypeAttribute(typeof(ILogstashWriter))]
 	[ConfigSubstituteTypeAttribute(typeof(IDatabaseWriter))]
 	[ConfigSubstituteTypeAttribute(typeof(ICustomWriter))]
     interface ILoggerWriterWrapperConfiguration
@@ -142,7 +144,7 @@
 		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "true")]
         bool IsDiscardExcess { get; }
 
-		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "reliable_log_q")]
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "reliable_log_q", DefaultValueSource = "Qoollo.Logger.Configuration.AsyncReliableQueueWrapperConfiguration.DefaultFolderName")]
         string FolderForTemporaryStore { get; }
 
 		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "67108864")]
@@ -229,16 +231,16 @@
 
     interface IConsoleWriter : ILoggerWriterConfiguration
     {
-		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "{DateTime}. {Level}. At {StackSource}.{Class}::{Method}. Message: {Message}. {Exception, prefix = ' Exception: ', valueOnNull=''}")]
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "{DateTime}. {Level}. At {StackSource}.{Class}::{Method}. Message: {Message}. {Exception, prefix = ' Exception: ', valueOnNull=''}", DefaultValueSource = "Qoollo.Logger.Configuration.ConsoleWriterConfiguration.DefaultTemplateFormat")]
         string Template { get; }
     }
 
     interface IFileWriter : ILoggerWriterConfiguration
     {
-		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "{DateTime}. {Level}. At {StackSource}.{Class}::{Method}. Message: {Message}. {Exception, prefix = ' Exception: ', valueOnNull=''}")]
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "{DateTime}. {Level}. At {StackSource}.{Class}::{Method}. Message: {Message}. {Exception, prefix = ' Exception: ', valueOnNull=''}", DefaultValueSource = "Qoollo.Logger.Configuration.FileWriterConfiguration.DefaultTemplateFormat")]
         string Template { get; }
 
-		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "logs/app.log")]
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "logs/{DateTime, format = yyyy-MM-dd}.log", DefaultValueSource = "Qoollo.Logger.Configuration.FileWriterConfiguration.DefaultFileNameTemplateFormat")]
         string FileNameTemplate { get; }
 
 		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "true")]
@@ -250,10 +252,10 @@
 
     interface IPipeWriter : ILoggerWriterConfiguration
     {
-		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = ".")]
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = ".", DefaultValueSource = "Qoollo.Logger.Configuration.PipeWriterConfiguration.DefaultServerName")]
         string ServerName { get; }
 
-		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "LoggingService")]
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "LoggingService", DefaultValueSource = "Qoollo.Logger.Configuration.PipeWriterConfiguration.DefaultPipeName")]
         string PipeName { get; }
     }
 
@@ -262,7 +264,15 @@
 		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute)]
         string ServerAddress { get; }
 
-		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "26113")]
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "26113", DefaultValueSource = "Qoollo.Logger.Configuration.NetWriterConfiguration.DefaultPort")]
+        int Port { get; }
+    }
+
+	interface ILogstashWriter : ILoggerWriterConfiguration
+    {
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute)]
+        string ServerAddress { get; }
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "5001", DefaultValueSource = "Qoollo.Logger.Configuration.LogstashWriterConfiguration.DefaultPort")]
         int Port { get; }
     }
 
@@ -271,7 +281,7 @@
 		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute)]
         string ConnectionString { get; }
 
-		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "[dbo].[LogInsert]")]
+		[ConfigPropertyDescriptionAttribute(ConfigPropertyStyle.XmlAttribute, IsRequired = false, DefaultValue = "[dbo].[LogInsert]", DefaultValueSource = "Qoollo.Logger.Configuration.DatabaseWriterConfiguration.DefaultStoredProcedureName")]
         string StoredProcedureName { get; }
     }
 

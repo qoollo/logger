@@ -81,5 +81,10 @@ namespace Qoollo.Logger.Configuration
         /// Custom user writer configuration
         /// </summary>
         CustomWriter,
+
+        /// <summary>
+        /// Logstash json tcp writer
+        /// </summary>
+        LogstashWriter,
     }
 }

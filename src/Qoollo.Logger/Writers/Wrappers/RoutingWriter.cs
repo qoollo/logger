@@ -106,13 +106,13 @@ namespace Qoollo.Logger.Writers
 
 
 
-        protected virtual void Dispose(bool isUserCall)
+        protected virtual void Dispose(DisposeReason reason)
         {
             if (!_isDisposed)
             {
                 _isDisposed = true;
 
-                if (isUserCall)
+                if (reason == DisposeReason.Dispose)
                 {
                     for (int i = 0; i < _all.Count; i++)
                         _all[i].Dispose();
@@ -126,13 +126,32 @@ namespace Qoollo.Logger.Writers
                             item.Dispose();
                     }
                 }
+                else if (reason == DisposeReason.Close)
+                {
+                    for (int i = 0; i < _all.Count; i++)
+                        _all[i].Close();
+
+                    for (int i = 0; i < _others.Count; i++)
+                        _others[i].Close();
+
+                    foreach (var elem in _routingLoggers)
+                    {
+                        foreach (var item in elem.Value)
+                            item.Close();
+                    }
+                }
             }
         }
 
 
-        public virtual void Dispose()
+        public void Close()
         {
-            Dispose(true);
+            Dispose(DisposeReason.Close);
+            GC.SuppressFinalize(this);
+        }
+        public void Dispose()
+        {
+            Dispose(DisposeReason.Dispose);
             GC.SuppressFinalize(this);
         }
     }

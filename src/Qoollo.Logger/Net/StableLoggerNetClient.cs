@@ -347,12 +347,39 @@ namespace Qoollo.Logger.Net
             }
         }
 
+
+        /// <summary>
+        /// Close connection and clean-up all resources
+        /// </summary>
+        /// <param name="isUserCall">Is called by user</param>
+        protected void Dispose(bool isUserCall)
+        {
+            if (isUserCall)
+            {
+                this.Stop();
+            }
+            else
+            {
+                if (_procStopTokenSource != null && !_procStopTokenSource.IsCancellationRequested)
+                    _procStopTokenSource.Cancel();
+            }
+        }
+
+        /// <summary>
+        /// Special method to finalize object from owner
+        /// </summary>
+        internal void FinalizeFast()
+        {
+            this.Dispose(false);
+        }
+
         /// <summary>
         /// Close connection and clean-up all resources
         /// </summary>
         public void Dispose()
         {
-            Stop();
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

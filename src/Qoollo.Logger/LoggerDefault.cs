@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -56,10 +57,46 @@ namespace Qoollo.Logger
         }
 
         /// <summary>
+        /// Init default logger instance
+        /// </summary>
+        private static void CreateDefaultLogger()
+        {
+            if (_defaultInstance == null)
+            {
+                lock (_lockCreation)
+                {
+                    if (_defaultInstance == null)
+                    {
+                        if (Configurator.HasConfiguration("LoggerConfigurationSection"))
+                            LoadInstanceFromAppConfig();
+                        else
+                            SetInstance(ConsoleLogger);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Automatic logger dispose on ProcessExit event
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="args">Event args</param>
+        private static void FreeDefaultLogger(object sender, EventArgs args)
+        {
+            if (_defaultInstance != null && _defaultInstance != _consoleInstance && _defaultInstance != _emptyInstance)
+            {
+                var oldLogger = System.Threading.Interlocked.Exchange(ref _defaultInstance, _consoleInstance);
+                if (oldLogger != null && oldLogger != _consoleInstance && oldLogger != _emptyInstance)
+                    oldLogger.Dispose();
+            }
+        }
+
+        /// <summary>
         /// Empty logger (not writes any message)
         /// </summary>
         public static Logger EmptyLogger
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (_emptyInstance == null)
@@ -74,6 +111,7 @@ namespace Qoollo.Logger
         /// </summary>
         public static Logger ConsoleLogger
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (_consoleInstance == null)
@@ -88,10 +126,12 @@ namespace Qoollo.Logger
         /// </summary>
         public static Logger Instance
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (_defaultInstance == null)
-                    System.Threading.Interlocked.CompareExchange(ref _defaultInstance, ConsoleLogger, null);
+                    CreateDefaultLogger();
+
                 return _defaultInstance;
             }
         }
@@ -103,11 +143,13 @@ namespace Qoollo.Logger
         public static void SetInstance(Logger newDefault)
         {
             if (newDefault == null)
-                newDefault = ConsoleLogger;
+                newDefault = EmptyLogger;
 
             var oldLogger = System.Threading.Interlocked.Exchange(ref _defaultInstance, newDefault);
-            if (oldLogger != null && oldLogger != ConsoleLogger && oldLogger != EmptyLogger)
-                oldLogger.Dispose();
+            if (oldLogger != null && oldLogger != _consoleInstance && oldLogger != _emptyInstance)
+                oldLogger.Close();
+
+            AppDomain.CurrentDomain.ProcessExit += FreeDefaultLogger;
         }
         /// <summary>
         /// Reset global logger singleton
